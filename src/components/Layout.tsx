@@ -1,10 +1,10 @@
 import { Outlet } from 'react-router-dom';
-import Header from './Header';
+import NavBar from './common/NavBar';
 
 const Layout = () => {
   return (
     <div className="min-h-screen bg-white">
-      <Header />
+      <NavBar />
       <main>
         <Outlet />
       </main>

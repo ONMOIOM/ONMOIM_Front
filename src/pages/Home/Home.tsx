@@ -27,7 +27,8 @@ const Home = () => {
           완전 초기 셋팅입니다.
         </p>
         <p className="text-yellow-900 font-semibold mt-2">
-          위에 bar나 모두 다 수정 진행 필수입니다!!
+          위에 bar나 모두 다 수정 진행 필수입니다
+          자자 우리 화이팅 해봐요!!
         </p>
       </div>
       
