@@ -1,12 +1,26 @@
-# React + Vite
+# ONMOIM
+> **행사 초대장 제작·공유·참여 조사 웹 서비스 ONMOIM 프론트엔드 레포지토리입니다.**
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Role & Responsibilities
+| 닉네임 | 담당 파트 |
+| :---: | :---: |
+| **칠판** | **메인 / 분석 페이지** |
+| **도비** | **프로필 / 참여자 페이지** |
+| **카야** | **로그인 / 이벤트 생성 페이지** | 
 
-Currently, two official plugins are available:
+<br/>
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Convention Rules
 
-## Expanding the ESLint configuration
+### 1. Commit Message Strategy
+커밋 메시지는 아래 규칙을 따릅니다.
+> `[태그]: 설명` 형식으로 작성 (예: `feat: 메인 페이지 레이아웃 구현`)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+| 태그 | 설명 |
+| :--- | :--- |
+| `feat` | 새로운 기능 추가 |
+| `fix` | 버그 수정 |
+| `design` | CSS 등 UI 디자인 변경 |
+| `refactor` | 코드 리팩토링 (기능 변경 없음) |
+| `chore` | 빌드 업무, 패키지 매니저 설정 등 |
+| `docs` | 문서 수정 (README 등) |
