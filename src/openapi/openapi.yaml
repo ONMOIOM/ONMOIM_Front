@@ -754,14 +754,18 @@ paths:
                   message:
                     type: string
                     example: "세션 측정이 성공적으로 시작되었습니다."
-                  sessionId:
-                    type: string
-                    example: "abc123xyz"
+                  data:
+                    type: object
+                    properties:
+                      sessionId:
+                        type: string
+                        example: "abc123xyz"
               example:
                 success: true
                 code: "SESSION_200"
                 message: "세션 측정이 성공적으로 시작되었습니다."
-                sessionId: "abc123xyz"
+                data:
+                  sessionId: "abc123xyz"
         '400':
           description: Bad Request
           content:
@@ -791,7 +795,7 @@ paths:
                   message:
                     type: string
 
-  /api/v1/analytics/{eventId}/sessions/{sessionld}:
+  /api/v1/analytics/{eventId}/sessions/{sessionId}:
     patch:
       summary: 세션 시간 측정 종료
       description: 세션 시간 측정을 종료합니다
@@ -807,7 +811,7 @@ paths:
           schema:
             type: integer
             example: 100
-        - name: sessionld
+        - name: sessionId
           in: path
           required: true
           description: 세션 ID
@@ -831,14 +835,18 @@ paths:
                   message:
                     type: string
                     example: "세션 측정이 성공적으로 종료되었습니다."
-                  sessionId:
-                    type: string
-                    example: "abc123xyz"
+                  data:
+                    type: object
+                    properties:
+                      sessionId:
+                        type: string
+                        example: "abc123xyz"
               example:
                 success: true
                 code: "SESSION_201"
                 message: "세션 측정이 성공적으로 종료되었습니다."
-                sessionId: "abc123xyz"
+                data:
+                  sessionId: "abc123xyz"
         '400':
           description: Bad Request
           content:
