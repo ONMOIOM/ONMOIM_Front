@@ -2,10 +2,10 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 
 const axiosInstance: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:4010',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:4010', //지금은 Prism Mock 서버임
   timeout: 10000,
   headers: {
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json', // 서버한테 보낼 때 json 형식으로 보낸다고 알려줌
   },
 });
 
