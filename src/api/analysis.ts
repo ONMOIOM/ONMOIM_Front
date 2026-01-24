@@ -63,8 +63,7 @@ export const endSession = async (
   sessionId: string
 ): Promise<BaseResponse<SessionResponseData>> => {
   const res = await axiosInstance.patch<BaseResponse<SessionResponseData>>(
-    `/api/v1/analytics/${eventId}/sessions/${sessionId}`,
-    {}
+    `/api/v1/analytics/${eventId}/sessions/${sessionId}`
   );
   return res.data;
 }
