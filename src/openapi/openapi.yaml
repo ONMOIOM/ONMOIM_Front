@@ -2056,7 +2056,7 @@ paths:
               properties:
                 status:
                   type: string
-                  enum: ["참여!", "고민중...", "못가요..."]
+                  enum: ["참여!", "고민중..", "못가요.."]
                   example: "참여!"
             example:
               status: "참여!"
@@ -2091,7 +2091,7 @@ paths:
                         example: "user_123"
                       status:
                         type: string
-                        enum: ["참여!", "고민중...", "못가요..."]
+                        enum: ["참여!", "고민중..", "못가요.."]
                         example: "참여!"
               example:
                 success: true
