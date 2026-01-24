@@ -41,7 +41,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  isSuccess:
+                  success:
                     type: boolean
                     example: true
                   code:
@@ -50,7 +50,7 @@ paths:
                   message:
                     type: string
                     example: "성공입니다."
-                  result:
+                  data:
                     type: object
                     properties:
                       email:
@@ -66,10 +66,10 @@ paths:
                         format: date-time
                         example: "2026-01-21T22:46:39"
               example:
-                isSuccess: true
+                success: true
                 code: "COMMON200"
                 message: "성공입니다."
-                result:
+                data:
                   email: "user@example.com"
                   sentAt: "2026-01-21T22:16:39"
                   expireAt: "2026-01-21T22:46:39"
@@ -80,7 +80,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  isSuccess:
+                  success:
                     type: boolean
                     example: false
                   code:
@@ -117,7 +117,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  isSuccess:
+                  success:
                     type: boolean
                     example: true
                   code:
@@ -126,7 +126,7 @@ paths:
                   message:
                     type: string
                     example: "이메일 인증이 성공적으로 완료되었습니다."
-                  result:
+                  data:
                     type: object
                     properties:
                       email:
@@ -141,10 +141,10 @@ paths:
                         type: string
                         example: "VERIFIED"
               example:
-                isSuccess: true
+                success: true
                 code: "COMMON200"
                 message: "이메일 인증이 성공적으로 완료되었습니다."
-                result:
+                data:
                   email: "user@example.com"
                   verifiedAt: "2026-01-21T22:20:05"
                   status: "VERIFIED"
@@ -155,7 +155,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  isSuccess:
+                  success:
                     type: boolean
                     example: false
                   code:
