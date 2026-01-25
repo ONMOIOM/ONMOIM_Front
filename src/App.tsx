@@ -6,6 +6,7 @@ import Profile from './pages/Profile/Profile';
 import EventParticipants from './pages/EventParticipants/EventParticipants';
 import EventCreate from './pages/EventCreate/EventCreate';
 import Analysis from './pages/Analysis/Analysis';
+import TestPage from './pages/TestPage';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="event-participants" element={<EventParticipants />} />
         <Route path="event-create" element={<EventCreate />} />
         <Route path="analysis" element={<Analysis />} />
+        <Route path="test" element={<TestPage />} />
       </Route>
     </Routes>
   );
