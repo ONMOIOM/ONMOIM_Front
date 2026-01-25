@@ -34,8 +34,8 @@ export type UpdateProfileRequest = {
 
 export const profileAPI = {
   /** 프로필 조회: GET /api/v1/users (bearerAuth) */
-  getProfile: async (): Promise<BaseResponse<ProfileData[]>> => {
-    const res = await axiosInstance.get<BaseResponse<ProfileData[]>>(
+  getProfile: async (): Promise<BaseResponse<ProfileData>> => {
+    const res = await axiosInstance.get<BaseResponse<ProfileData>>(
       '/api/v1/users'
     );
     return res.data;
