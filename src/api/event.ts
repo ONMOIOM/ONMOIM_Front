@@ -3,6 +3,10 @@ import axiosInstance from './axiosInstance';
 import { BaseResponse } from '../constants/types';
 
 /** 행사 초안 생성 응답 data */
+/*
+사용되는 곳
+- 행사 생성 : Kaya
+*/
 export type CreateEventData = {
   eventId: string;
   status: string;
@@ -17,7 +21,7 @@ export type CreateEventData = {
   updatedAt?: string | null;
 };
 
-/** 행사 정보 수정 요청 body: PATCH /api/v1/users/events/{eventId} (eventId는 path, body에 없음) */
+/** 행사 정보 수정 요청 body: PATCH /api/v1/users/events/{eventId}*/
 export type SaveEventFieldsBody = {
   title?: string;
   schedule?: {
@@ -36,7 +40,7 @@ export type SaveEventFieldsBody = {
 
 // --- API 함수 ---
 
-/** 행사 초안 생성: POST /api/v1/users/events */
+/** 행사 초안 생성: POST /api/v1/users/events *  : Kaya*/
 export const createEventDraft = async (): Promise<
   BaseResponse<CreateEventData>
 > => {
@@ -46,7 +50,7 @@ export const createEventDraft = async (): Promise<
   return res.data;
 };
 
-/** 행사 정보 수정: PATCH /api/v1/users/events/{eventId} */
+/** 행사 정보 수정: PATCH /api/v1/users/events/{eventId} : Kaya */ 
 export const saveEventFields = async (
   eventId: string,
   body: SaveEventFieldsBody
@@ -58,7 +62,7 @@ export const saveEventFields = async (
   return res.data;
 };
 
-/** 행사 생성(발행): POST /api/v1/users/events/{eventId}/publish */
+/** 행사 생성(발행): POST /api/v1/users/events/{eventId}/publish  : Kaya*/ 
 export const publishEvent = async (
   eventId: string
 ): Promise<BaseResponse<CreateEventData>> => {
