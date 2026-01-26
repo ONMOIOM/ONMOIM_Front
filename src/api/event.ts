@@ -66,7 +66,7 @@ export const saveEventFields = async (
 export const publishEvent = async (
   eventId: string
 ): Promise<BaseResponse<CreateEventData>> => {
-  const res = await axiosInstance.post<BaseResponse<CreateEventData>>(
+  const res = await axiosInstance.patch<BaseResponse<CreateEventData>>(
     `/api/v1/users/events/${eventId}/publish`
   );
   return res.data;

@@ -6,7 +6,6 @@ import {
   requestEmailVerification,
   verifyEmail,
   login,
-  getMe,
 } from "../api/auth";
 
 // event.ts
@@ -88,25 +87,45 @@ const TestPage = () => {
     }
   };
 
+  // 더미 값 생성 함수
+  const getDummyEmail = () => email || "test@gmail.com";
+  const getDummyTurnstileToken = () => turnstileToken || "dummy-turnstile-token-12345";
+  const getDummyAuthCode = () => authCode || "123456";
+  const getDummyEventId = () => eventId || "event_123";
+
   // --------------------
   // AUTH 테스트
   // --------------------
-  const testRequestEmailVerification = () =>
-    run("이메일 인증 메일 발송", () =>
-      requestEmailVerification({ email, turnstileToken })
+  const testRequestEmailVerification = () => {
+    const dummyEmail = getDummyEmail();
+    const dummyToken = getDummyTurnstileToken();
+    if (!email) setEmail(dummyEmail);
+    if (!turnstileToken) setTurnstileToken(dummyToken);
+    return run("이메일 인증 메일 발송", () =>
+      requestEmailVerification({ email: dummyEmail, turnstileToken: dummyToken })
     );
+  };
 
-  const testVerifyEmail = () => run("이메일 인증 코드 검증", () => verifyEmail(authCode));
+  const testVerifyEmail = () => {
+    const dummyEmail = getDummyEmail();
+    const dummyCode = getDummyAuthCode();
+    if (!email) setEmail(dummyEmail);
+    if (!authCode) setAuthCode(dummyCode);
+    return run("이메일 인증 코드 검증", () => verifyEmail({ email: dummyEmail, authcode: dummyCode }));
+  };
 
-  const testLogin = () =>
-    run("로그인", () =>
+  const testLogin = () => {
+    const dummyEmail = getDummyEmail();
+    const dummyCode = getDummyAuthCode();
+    if (!email) setEmail(dummyEmail);
+    if (!authCode) setAuthCode(dummyCode);
+    return run("로그인", () =>
       login({
-        email,
-        authcode: authCode, // 네 타입에 맞춤 (authcode)
+        email: dummyEmail,
+        authcode: dummyCode,
       })
     );
-
-  const testGetMe = () => run("회원 조회 (GET /users)", () => getMe());
+  };
 
   // --------------------
   // EVENT 테스트
@@ -119,17 +138,10 @@ const TestPage = () => {
   };
 
   const testSaveEventFields = () => {
-    if (!eventId) {
-      setLog({
-        label: "행사 정보 수정",
-        ok: false,
-        at: new Date().toLocaleString(),
-        payload: { message: "eventId가 비어있음. 먼저 초안 생성하거나 eventId 입력해줘." },
-      });
-      return;
-    }
+    const dummyEventId = getDummyEventId();
+    if (!eventId) setEventId(dummyEventId);
     return run("행사 정보 수정 (PATCH)", () =>
-      saveEventFields(eventId, {
+      saveEventFields(dummyEventId, {
         title: "테스트 행사",
         capacity: 8,
         // schedule/location 같은 건 백엔드 요구 형태 맞을 때만 추가
@@ -138,16 +150,9 @@ const TestPage = () => {
   };
 
   const testPublishEvent = () => {
-    if (!eventId) {
-      setLog({
-        label: "행사 발행",
-        ok: false,
-        at: new Date().toLocaleString(),
-        payload: { message: "eventId가 비어있음. 먼저 초안 생성하거나 eventId 입력해줘." },
-      });
-      return;
-    }
-    return run("행사 발행 (publish)", () => publishEvent(eventId));
+    const dummyEventId = getDummyEventId();
+    if (!eventId) setEventId(dummyEventId);
+    return run("행사 발행 (publish)", () => publishEvent(dummyEventId));
   };
 
   return (
@@ -165,42 +170,42 @@ const TestPage = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <label className="flex flex-col gap-1">
-            <span className="text-sm text-gray-600">eventId</span>
+            <span className="text-sm text-gray-600">eventId (비어있으면 event_123 자동 사용)</span>
             <input
               value={eventId}
               onChange={(e) => setEventId(e.target.value)}
               className="border rounded px-3 py-2"
-              placeholder="예: 123 또는 draft 생성 후 자동 입력"
+              placeholder="비워두면 event_123 자동 사용 (초안 생성 시 자동 입력됨)"
             />
           </label>
 
           <label className="flex flex-col gap-1">
-            <span className="text-sm text-gray-600">email</span>
+            <span className="text-sm text-gray-600">email (비어있으면 test@gmail.com 자동 사용)</span>
             <input
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="border rounded px-3 py-2"
-              placeholder="test@example.com"
+              placeholder="비워두면 test@gmail.com 자동 사용"
             />
           </label>
 
           <label className="flex flex-col gap-1">
-            <span className="text-sm text-gray-600">turnstileToken</span>
+            <span className="text-sm text-gray-600">turnstileToken (비어있으면 더미 토큰 자동 사용)</span>
             <input
               value={turnstileToken}
               onChange={(e) => setTurnstileToken(e.target.value)}
               className="border rounded px-3 py-2"
-              placeholder="클라우드플레어 Turnstile 토큰"
+              placeholder="비워두면 더미 토큰 자동 사용"
             />
           </label>
 
           <label className="flex flex-col gap-1">
-            <span className="text-sm text-gray-600">authCode</span>
+            <span className="text-sm text-gray-600">authCode (비어있으면 123456 자동 사용)</span>
             <input
               value={authCode}
               onChange={(e) => setAuthCode(e.target.value)}
               className="border rounded px-3 py-2"
-              placeholder="이메일로 받은 인증코드"
+              placeholder="비워두면 123456 자동 사용"
             />
           </label>
         </div>
@@ -232,13 +237,6 @@ const TestPage = () => {
             >
               3) 로그인
             </button>
-
-            <button
-              onClick={testGetMe}
-              className="px-4 py-2 bg-gray-800 text-white rounded hover:bg-gray-900"
-            >
-              4) 회원 조회 (토큰 필요할 수도)
-            </button>
           </div>
         </section>
 
@@ -256,7 +254,6 @@ const TestPage = () => {
             <button
               onClick={testSaveEventFields}
               className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
-              disabled={!eventId}
             >
               2) 행사 정보 수정 (PATCH)
             </button>
@@ -264,16 +261,13 @@ const TestPage = () => {
             <button
               onClick={testPublishEvent}
               className="px-4 py-2 bg-pink-500 text-white rounded hover:bg-pink-600"
-              disabled={!eventId}
             >
               3) 행사 발행 (publish)
             </button>
 
-            {!eventId && (
-              <p className="text-xs text-gray-500">
-                ※ 수정/발행은 eventId가 필요함 (초안 생성하면 자동으로 들어감)
-              </p>
-            )}
+            <p className="text-xs text-gray-500">
+              ※ 값이 비어있으면 자동으로 더미 값 사용 (test@gmail.com, 123456 등)
+            </p>
           </div>
         </section>
       </div>
