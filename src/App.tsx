@@ -6,7 +6,7 @@ import Profile from './pages/Profile/Profile';
 import EventParticipants from './pages/EventParticipants/EventParticipants';
 import EventCreate from './pages/EventCreate/EventCreate';
 import Analysis from './pages/Analysis/Analysis';
-import TestPage from './pages/TestPage';
+import TestPage from './pages/TestPage_kaya';
 
 function App() {
   return (
