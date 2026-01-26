@@ -28,7 +28,7 @@ type LogState = {
 
 const TestPage = () => {
   // 입력값 (하드코딩 말고 직접 넣게)
-  const [eventId, setEventId] = useState<string>(""); // eventId는 string으로 통일
+  const [eventId, setEventId] = useState<number | null>(null); // eventId는 string으로 통일
   const [email, setEmail] = useState<string>("");
   const [turnstileToken, setTurnstileToken] = useState<string>("");
   const [authCode, setAuthCode] = useState<string>("");
@@ -91,7 +91,7 @@ const TestPage = () => {
   const getDummyEmail = () => email || "test@gmail.com";
   const getDummyTurnstileToken = () => turnstileToken || "dummy-turnstile-token-12345";
   const getDummyAuthCode = () => authCode || "123456";
-  const getDummyEventId = () => eventId || "event_123";
+  const getDummyEventId = () => eventId ?? 123;
 
   // --------------------
   // AUTH 테스트
@@ -134,14 +134,12 @@ const TestPage = () => {
     const res = await run("행사 초안 생성", () => createEventDraft());
     // 성공이면 eventId 자동 채우기
     const base = res as any as BaseResponse<any>;
-    if (base?.success && base.data?.eventId) setEventId(String(base.data.eventId));
+    if (base?.success && base.data?.eventId) setEventId(Number(base.data.eventId));
   };
 
   const testSaveEventFields = () => {
-    const dummyEventId = getDummyEventId();
-    if (!eventId) setEventId(dummyEventId);
     return run("행사 정보 수정 (PATCH)", () =>
-      saveEventFields(dummyEventId, {
+        saveEventFields({
         title: "테스트 행사",
         capacity: 8,
         // schedule/location 같은 건 백엔드 요구 형태 맞을 때만 추가
@@ -150,9 +148,9 @@ const TestPage = () => {
   };
 
   const testPublishEvent = () => {
-    const dummyEventId = getDummyEventId();
-    if (!eventId) setEventId(dummyEventId);
-    return run("행사 발행 (publish)", () => publishEvent(dummyEventId));
+    const id = getDummyEventId();
+    if (eventId === null) setEventId(id);
+    return run("행사 발행 (publish)", () => publishEvent(id));
   };
 
   return (
@@ -172,8 +170,12 @@ const TestPage = () => {
           <label className="flex flex-col gap-1">
             <span className="text-sm text-gray-600">eventId (비어있으면 event_123 자동 사용)</span>
             <input
-              value={eventId}
-              onChange={(e) => setEventId(e.target.value)}
+              type="number"
+              value={eventId ?? ""}
+              onChange={(e) => {
+                const v = e.target.value;
+                setEventId(v === "" ? null : Number(v));
+              }}
               className="border rounded px-3 py-2"
               placeholder="비워두면 event_123 자동 사용 (초안 생성 시 자동 입력됨)"
             />

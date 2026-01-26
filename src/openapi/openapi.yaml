@@ -935,8 +935,8 @@ paths:
                     type: object
                     properties:
                       eventId:
-                        type: string
-                        example: "event_001"
+                        type: number
+                        example: 123
                       status:
                         type: string
                         example: "drafted"
@@ -999,7 +999,7 @@ paths:
                 code: "DRAFT_CREATED"
                 message: "행사 초안을 생성합니다."
                 data:
-                  eventId: "event_001"
+                  eventId: 123
                   status: "drafted"
                   title: null
                   schedule: null
@@ -1402,8 +1402,8 @@ paths:
           required: true
           description: 이벤트 ID
           schema:
-            type: string
-            example: "event_001"
+            type: number
+            example: 123
       responses:
         '200':
           description: 행사 생성 성공
@@ -1425,8 +1425,8 @@ paths:
                     type: object
                     properties:
                       eventId:
-                        type: string
-                        example: "event_001"
+                        type: number
+                        example: 123
                       status:
                         type: string
                         example: "published"
@@ -1489,7 +1489,7 @@ paths:
                 code: "EVENT_CREATED"
                 message: "행사가 생성되었습니다."
                 data:
-                  eventId: "event_001"
+                  eventId: 123
                   status: "published"
                   title: "오늘의 하루 소개하기"
                   schedule:
@@ -1704,7 +1704,7 @@ paths:
           required: true
           description: 이벤트 ID
           schema:
-            type: integer
+            type: number
             example: 123
       requestBody:
         required: true

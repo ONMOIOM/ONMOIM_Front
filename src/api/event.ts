@@ -50,21 +50,20 @@ export const createEventDraft = async (): Promise<
   return res.data;
 };
 
-/** 행사 정보 수정: PATCH /api/v1/users/events/{eventId} : Kaya */ 
+/** 행사 정보 수정: PATCH /api/v1/users/events : Kaya */ 
 export const saveEventFields = async (
-  eventId: string,
   body: SaveEventFieldsBody
 ): Promise<BaseResponse<CreateEventData>> => {
   const res = await axiosInstance.patch<BaseResponse<CreateEventData>>(
-    `/api/v1/users/events/${eventId}`,
+    `/api/v1/users/events`,
     body
   );
   return res.data;
 };
 
-/** 행사 생성(발행): POST /api/v1/users/events/{eventId}/publish  : Kaya*/ 
+/** 행사 생성(발행): PATCH /api/v1/users/events/{eventId}/publish  : Kaya*/ 
 export const publishEvent = async (
-  eventId: string
+  eventId: number
 ): Promise<BaseResponse<CreateEventData>> => {
   const res = await axiosInstance.patch<BaseResponse<CreateEventData>>(
     `/api/v1/users/events/${eventId}/publish`
