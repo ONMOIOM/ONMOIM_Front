@@ -11,8 +11,14 @@ import {
 // event.ts
 import {
   createEventDraft,
-  saveEventFields,
   publishEvent,
+  saveEventTitle,
+  saveEventSchedule,
+  saveEventLocation,
+  saveEventCapacity,
+  saveEventPrice,
+  saveEventPlaylist,
+  saveEventInformation,
 } from "../api/event";
 
 // types
@@ -32,6 +38,17 @@ const TestPage = () => {
   const [email, setEmail] = useState<string>("");
   const [turnstileToken, setTurnstileToken] = useState<string>("");
   const [authCode, setAuthCode] = useState<string>("");
+
+  // ✅ EVENT 새 함수 테스트용 더미 입력값 (사용자가 입력 안 해도 됨)
+  const [dummyTitle] = useState("오늘의 하루 소개하기");
+  const [dummyStartDate] = useState("2026-01-01T00:00:00Z");
+  const [dummyEndDate] = useState("2026-02-03T00:00:00Z");
+  const [dummyStreetAddress] = useState("서울특별시 강남구 테헤란로 123");
+  const [dummyLotNumber] = useState<string | null>(null);
+  const [dummyCapacity] = useState(8);
+  const [dummyPrice] = useState(10000);
+  const [dummyPlaylist] = useState("https://open.spotify.com/playlist/dummy");
+  const [dummyInformation] = useState("이 행사는 테스트용 소개글입니다.");
 
   // 결과 로그
   const [log, setLog] = useState<LogState | null>(null);
@@ -137,6 +154,7 @@ const TestPage = () => {
     if (base?.success && base.data?.eventId) setEventId(Number(base.data.eventId));
   };
 
+  /*
   const testSaveEventFields = () => {
     return run("행사 정보 수정 (PATCH)", () =>
         saveEventFields({
@@ -145,12 +163,69 @@ const TestPage = () => {
         // schedule/location 같은 건 백엔드 요구 형태 맞을 때만 추가
       })
     );
-  };
+  };*/
 
   const testPublishEvent = () => {
     const id = getDummyEventId();
     if (eventId === null) setEventId(id);
     return run("행사 발행 (publish)", () => publishEvent(id));
+  };
+  
+  // ✅ 추가된 event.ts 함수들 테스트 (버튼만 누르면 더미로 호출)
+
+  // 1) 제목
+  const testSaveEventTitleOnly = () => {
+    return run("행사 제목 저장 (PATCH)", () =>
+      saveEventTitle({ title: dummyTitle })
+    );
+  };
+
+  // 2) 일정
+  const testSaveEventScheduleOnly = () => {
+    return run("행사 일자 저장 (PATCH)", () =>
+      saveEventSchedule({
+        schedule: { startDate: dummyStartDate, endDate: dummyEndDate },
+      })
+    );
+  };
+
+  // 3) 위치
+  const testSaveEventLocationOnly = () => {
+    return run("행사 위치 저장 (PATCH)", () =>
+      saveEventLocation({
+        location: { streetAddress: dummyStreetAddress, lotNumber: dummyLotNumber },
+      })
+    );
+  };
+
+  // 4) 참여자 수
+  const testSaveEventCapacityOnly = () => {
+    return run("행사 참여자(capacity) 저장 (PATCH)", () =>
+      saveEventCapacity({ capacity: dummyCapacity })
+    );
+  };
+
+  // 5) 가격
+  const testSaveEventPriceOnly = () => {
+    return run("행사 가격(price) 저장 (PATCH)", () =>
+      saveEventPrice({ price: dummyPrice })
+    );
+  };
+
+  // 6) 플레이리스트
+  const testSaveEventPlaylistOnly = () => {
+    return run("행사 플레이리스트 저장 (PATCH)", () =>
+      // ⚠️ event.ts에서 body 타입이 잘못되어 있을 수 있어서(네가 SaveEventTitleRequest로 써둠)
+      // 일단 테스트페이지에서는 any로 한번 호출 가능하게 해둠
+      saveEventPlaylist({ playlist: dummyPlaylist } as any)
+    );
+  };
+
+  // 7) 소개글
+  const testSaveEventInformationOnly = () => {
+    return run("행사 소개글 저장 (PATCH)", () =>
+      saveEventInformation({ information: dummyInformation })
+    );
   };
 
   return (
@@ -253,18 +328,70 @@ const TestPage = () => {
               1) 행사 초안 생성 (POST)
             </button>
 
+            {/*
             <button
               onClick={testSaveEventFields}
               className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
             >
               2) 행사 정보 수정 (PATCH)
             </button>
+            */}
 
             <button
               onClick={testPublishEvent}
               className="px-4 py-2 bg-pink-500 text-white rounded hover:bg-pink-600"
             >
               3) 행사 발행 (publish)
+            </button>
+
+            {/* 추가 */}
+            <button
+              onClick={testSaveEventTitleOnly}
+              className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
+            >
+              4) 제목 저장 (추가 함수)
+            </button>
+
+            <button
+              onClick={testSaveEventScheduleOnly}
+              className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
+            >
+              5) 일자 저장 (추가 함수)
+            </button>
+
+            <button
+              onClick={testSaveEventLocationOnly}
+              className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
+            >
+              6) 위치 저장 (추가 함수)
+            </button>
+
+            <button
+              onClick={testSaveEventCapacityOnly}
+              className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
+            >
+              7) 참여자 저장 (추가 함수)
+            </button>
+
+            <button
+              onClick={testSaveEventPriceOnly}
+              className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
+            >
+              8) 가격 저장 (추가 함수)
+            </button>
+
+            <button
+              onClick={testSaveEventPlaylistOnly}
+              className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
+            >
+              9) 플레이리스트 저장 (추가 함수)
+            </button>
+
+            <button
+              onClick={testSaveEventInformationOnly}
+              className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
+            >
+              10) 소개글 저장 (추가 함수)
             </button>
 
             <p className="text-xs text-gray-500">
