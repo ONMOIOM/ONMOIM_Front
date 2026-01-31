@@ -42,7 +42,7 @@ export const profileAPI = {
   },
   /** 회원정보 수정: POST /api/v1/users (bearerAuth) */
   updateProfile: async (
-    body: UpdateProfileRequest | UpdateProfileRequest[]
+    body: UpdateProfileRequest
   ): Promise<BaseResponse> => {
     const res = await axiosInstance.post<BaseResponse>('/api/v1/users', body);
     return res.data;
