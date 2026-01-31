@@ -60,19 +60,19 @@ paths:
                       sentAt:
                         type: string
                         format: date-time
-                        example: "2026-01-21T22:16:39"
+                        example: "2026-01-21T22:16:39Z"
                       expireAt:
                         type: string
                         format: date-time
-                        example: "2026-01-21T22:46:39"
+                        example: "2026-01-21T22:46:39Z"
               example:
                 success: true
                 code: "COMMON200"
                 message: "성공입니다."
                 data:
                   email: "user@example.com"
-                  sentAt: "2026-01-21T22:16:39"
-                  expireAt: "2026-01-21T22:46:39"
+                  sentAt: "2026-01-21T22:16:39Z"
+                  expireAt: "2026-01-21T22:46:39Z"
         '400':
           description: Bad Request
           content:
@@ -101,14 +101,21 @@ paths:
             schema:
               type: object
               required:
-                - code
+                - email
+                - authcode
               properties:
-                code:
+                email:
+                  type: string
+                  format: email
+                  description: 이메일 주소
+                  example: "user@example.com"
+                authcode:
                   type: string
                   description: 이메일로 발송된 인증 코드
                   example: "123456"
             example:
-              code: "123456"
+              email: "user@example.com"
+              authcode: "123456"
       responses:
         '200':
           description: 이메일 인증 성공
@@ -136,7 +143,7 @@ paths:
                       verifiedAt:
                         type: string
                         format: date-time
-                        example: "2026-01-21T22:20:05"
+                        example: "2026-01-21T22:20:05Z"
                       status:
                         type: string
                         example: "VERIFIED"
@@ -146,7 +153,7 @@ paths:
                 message: "이메일 인증이 성공적으로 완료되었습니다."
                 data:
                   email: "user@example.com"
-                  verifiedAt: "2026-01-21T22:20:05"
+                  verifiedAt: "2026-01-21T22:20:05Z"
                   status: "VERIFIED"
         '400':
           description: Bad Request
@@ -271,68 +278,70 @@ paths:
                     type: string
                     example: "회원 조회가 성공적으로 처리되었습니다."
                   data:
-                    type: object
-                    properties:
-                      memberId:
-                        type: integer
-                        example: 1
-                      username:
-                        type: string
-                        example: "testuser"
-                      nickname:
-                        type: string
-                        example: "테스트닉"
-                      introduction:
-                        type: string
-                        example: "안녕하세요!"
-                      status:
-                        type: string
-                        example: "ACTIVE"
-                      instagramId:
-                        type: string
-                        nullable: true
-                        example: "test_insta"
-                      twitterId:
-                        type: string
-                        nullable: true
-                        example: null
-                      linkedinId:
-                        type: string
-                        nullable: true
-                        example: null
-                      createdAt:
-                        type: string
-                        format: date-time
-                        example: "2026-01-01T10:00:00Z"
-                      updatedAt:
-                        type: string
-                        format: date-time
-                        example: "2026-01-21T18:00:00Z"
-                      email:
-                        type: string
-                        format: email
-                        example: "test@example.com"
-                      imageUrl:
-                        type: string
-                        format: uri
-                        example: "https://example.com/profile/1.jpg"
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        memberId:
+                          type: integer
+                          example: 1
+                        username:
+                          type: string
+                          example: "testuser"
+                        nickname:
+                          type: string
+                          example: "테스트닉"
+                        introduction:
+                          type: string
+                          example: "안녕하세요!"
+                        status:
+                          type: string
+                          example: "ACTIVE"
+                        instagramId:
+                          type: string
+                          nullable: true
+                          example: "test_insta"
+                        twitterId:
+                          type: string
+                          nullable: true
+                          example: null
+                        linkedinId:
+                          type: string
+                          nullable: true
+                          example: null
+                        createdAt:
+                          type: string
+                          format: date-time
+                          example: "2026-01-01T10:00:00Z"
+                        updatedAt:
+                          type: string
+                          format: date-time
+                          example: "2026-01-21T18:00:00Z"
+                        email:
+                          type: string
+                          format: email
+                          example: "test@example.com"
+                        imageUrl:
+                          type: string
+                          format: uri
+                          example: "https://example.com/profile/1.jpg"
               example:
                 success: true
                 code: "MEMBER_2004"
                 message: "회원 조회가 성공적으로 처리되었습니다."
                 data:
-                  memberId: 1
-                  username: "testuser"
-                  nickname: "테스트닉"
-                  introduction: "안녕하세요!"
-                  status: "ACTIVE"
-                  instagramId: "test_insta"
-                  twitterId: null
-                  linkedinId: null
-                  createdAt: "2026-01-01T10:00:00Z"
-                  updatedAt: "2026-01-21T18:00:00Z"
-                  email: "test@example.com"
-                  imageUrl: "https://example.com/profile/1.jpg"
+                  - memberId: 1
+                    username: "testuser"
+                    nickname: "테스트닉"
+                    introduction: "안녕하세요!"
+                    status: "ACTIVE"
+                    instagramId: "test_insta"
+                    twitterId: null
+                    linkedinId: null
+                    createdAt: "2026-01-01T10:00:00Z"
+                    updatedAt: "2026-01-21T18:00:00Z"
+                    email: "test@example.com"
+                    imageUrl: "https://example.com/profile/1.jpg"
         '400':
           description: Bad Request
           content:
@@ -926,8 +935,8 @@ paths:
                     type: object
                     properties:
                       eventId:
-                        type: string
-                        example: "event_001"
+                        type: number
+                        example: 123
                       status:
                         type: string
                         example: "drafted"
@@ -942,11 +951,11 @@ paths:
                           startDate:
                             type: string
                             format: date-time
-                            example: "2026-00-00T00:00:00Z"
+                            example: "2026-01-25T10:00:00Z"
                           endDate:
                             type: string
                             format: date-time
-                            example: "2026-00-00T00:00:00Z"
+                            example: "2026-01-25T12:00:00Z"
                         example: null
                       location:
                         type: object
@@ -979,7 +988,7 @@ paths:
                       createdAt:
                         type: string
                         format: date-time
-                        example: "2026-00-00T00:00:00Z"
+                        example: "2026-01-25T10:00:00Z"
                       updatedAt:
                         type: string
                         format: date-time
@@ -990,7 +999,7 @@ paths:
                 code: "DRAFT_CREATED"
                 message: "행사 초안을 생성합니다."
                 data:
-                  eventId: "event_001"
+                  eventId: 123
                   status: "drafted"
                   title: null
                   schedule: null
@@ -999,7 +1008,7 @@ paths:
                   price: null
                   playlist: null
                   information: null
-                  createdAt: "2026-00-00T00:00:00Z"
+                  createdAt: "2026-01-01T00:00:00Z"
                   updatedAt: null
         '400':
           description: Bad Request
@@ -1056,11 +1065,11 @@ paths:
                     startDate:
                       type: string
                       format: date-time
-                      example: "2026-00-00T00:00:00Z"
+                      example: "2026-01-25T10:00:00Z"
                     endDate:
                       type: string
                       format: date-time
-                      example: "2026-00-00T00:00:00Z"
+                      example: "2026-01-25T10:00:00Z"
                 location:
                   type: object
                   properties:
@@ -1093,8 +1102,8 @@ paths:
                 summary: 행사 일자 생성
                 value:
                   schedule:
-                    startDate: "2026-00-00T00:00:00Z"
-                    endDate: "2026-00-00T00:00:00Z"
+                    startDate: "2026-01-25T10:00:00Z"
+                    endDate: "2026-01-25T12:00:00Z"
               location:
                 summary: 행사 위치 생성
                 value:
@@ -1154,11 +1163,11 @@ paths:
                           startDate:
                             type: string
                             format: date-time
-                            example: "2026-00-00T00:00:00Z"
+                            example: "2026-01-25T10:00:00Z"
                           endDate:
                             type: string
                             format: date-time
-                            example: "2026-00-00T00:00:00Z"
+                            example: "2026-01-25T12:00:00Z"
                         example: null
                       location:
                         type: object
@@ -1191,12 +1200,12 @@ paths:
                       createdAt:
                         type: string
                         format: date-time
-                        example: "2026-00-00T00:00:00Z"
+                        example: "2026-01-01T00:00:00Z"
                       updatedAt:
                         type: string
                         format: date-time
                         nullable: true
-                        example: "2026-00-00T00:00:00Z"
+                        example: "2026-01-25T00:00:00Z"
               examples:
                 title:
                   summary: 행사 제목 생성 성공
@@ -1214,8 +1223,8 @@ paths:
                       price: null
                       playlist: null
                       information: null
-                      createdAt: "2026-00-00T00:00:00Z"
-                      updatedAt: "2026-00-00T00:00:00Z"
+                      createdAt: "2026-01-01T00:00:00Z"
+                      updatedAt: "2026-01-25T00:00:00Z"
                 schedule:
                   summary: 행사 일자 생성 성공
                   value:
@@ -1227,15 +1236,15 @@ paths:
                       status: "drafted"
                       title: "오늘의 하루 소개하기"
                       schedule:
-                        startDate: "2026-00-00T00:00:00Z"
-                        endDate: "2026-00-00T00:00:00Z"
+                        startDate: "2026-01-25T10:00:00Z"
+                        endDate: "2026-01-25T12:00:00Z"
                       location: null
                       capacity: null
                       price: null
                       playlist: null
                       information: null
-                      createdAt: "2026-00-00T00:00:00Z"
-                      updatedAt: "2026-00-00T00:00:00Z"
+                      createdAt: "2026-01-01T00:00:00Z"
+                      updatedAt: "2026-01-25T00:00:00Z"
                 location:
                   summary: 행사 위치 생성 성공
                   value:
@@ -1247,8 +1256,8 @@ paths:
                       status: "drafted"
                       title: "오늘의 하루 소개하기"
                       schedule:
-                        startDate: "2026-00-00T00:00:00Z"
-                        endDate: "2026-00-00T00:00:00Z"
+                        startDate: "2026-01-25T10:00:00Z"
+                        endDate: "2026-01-25T12:00:00Z"
                       location:
                         streetAddress: "제주 서귀포시 칠십리로 123"
                         lotNumber: null
@@ -1256,8 +1265,8 @@ paths:
                       price: null
                       playlist: null
                       information: null
-                      createdAt: "2026-00-00T00:00:00Z"
-                      updatedAt: "2026-00-00T00:00:00Z"
+                      createdAt: "2026-01-01T00:00:00Z"
+                      updatedAt: "2026-01-25T00:00:00Z"
                 capacity:
                   summary: 행사 참여자 생성 성공
                   value:
@@ -1269,8 +1278,8 @@ paths:
                       status: "drafted"
                       title: "오늘의 하루 소개하기"
                       schedule:
-                        startDate: "2026-00-00T00:00:00Z"
-                        endDate: "2026-00-00T00:00:00Z"
+                        startDate: "2026-01-25T10:00:00Z"
+                        endDate: "2026-01-25T12:00:00Z"
                       location:
                         streetAddress: "제주 서귀포시 칠십리로 123"
                         lotNumber: null
@@ -1278,8 +1287,8 @@ paths:
                       price: null
                       playlist: null
                       information: null
-                      createdAt: "2026-00-00T00:00:00Z"
-                      updatedAt: "2026-00-00T00:00:00Z"
+                      createdAt: "2026-01-01T00:00:00Z"
+                      updatedAt: "2026-01-25T00:00:00Z"
                 price:
                   summary: 행사 참여 가격 생성 성공
                   value:
@@ -1291,8 +1300,8 @@ paths:
                       status: "drafted"
                       title: "오늘의 하루 소개하기"
                       schedule:
-                        startDate: "2026-00-00T00:00:00Z"
-                        endDate: "2026-00-00T00:00:00Z"
+                        startDate: "2026-01-25T10:00:00Z"
+                        endDate: "2026-01-25T12:00:00Z"
                       location:
                         streetAddress: "제주 서귀포시 칠십리로 123"
                         lotNumber: null
@@ -1300,8 +1309,8 @@ paths:
                       price: 60000
                       playlist: null
                       information: null
-                      createdAt: "2026-00-00T00:00:00Z"
-                      updatedAt: "2026-00-00T00:00:00Z"
+                      createdAt: "2026-01-01T00:00:00Z"
+                      updatedAt: "2026-01-25T00:00:00Z"
                 playlist:
                   summary: 행사 플레이리스트 생성 성공
                   value:
@@ -1313,8 +1322,8 @@ paths:
                       status: "drafted"
                       title: "오늘의 하루 소개하기"
                       schedule:
-                        startDate: "2026-00-00T00:00:00Z"
-                        endDate: "2026-00-00T00:00:00Z"
+                        startDate: "2026-01-25T10:00:00Z"
+                        endDate: "2026-01-25T12:00:00Z"
                       location:
                         streetAddress: "제주 서귀포시 칠십리로 123"
                         lotNumber: null
@@ -1322,8 +1331,8 @@ paths:
                       price: 60000
                       playlist: "http://test.com/..."
                       information: null
-                      createdAt: "2026-00-00T00:00:00Z"
-                      updatedAt: "2026-00-00T00:00:00Z"
+                      createdAt: "2026-01-01T00:00:00Z"
+                      updatedAt: "2026-01-25T00:00:00Z"
                 information:
                   summary: 행사 소개글 생성 성공
                   value:
@@ -1335,8 +1344,8 @@ paths:
                       status: "drafted"
                       title: "오늘의 하루 소개하기"
                       schedule:
-                        startDate: "2026-00-00T00:00:00Z"
-                        endDate: "2026-00-00T00:00:00Z"
+                        startDate: "2026-01-25T10:00:00Z"
+                        endDate: "2026-01-25T12:00:00Z"
                       location:
                         streetAddress: "제주 서귀포시 칠십리로 123"
                         lotNumber: null
@@ -1344,8 +1353,8 @@ paths:
                       price: 60000
                       playlist: "http://test.com/..."
                       information: "안녕하세요. 이번에는 소개글을 ..."
-                      createdAt: "2026-00-00T00:00:00Z"
-                      updatedAt: "2026-00-00T00:00:00Z"
+                      createdAt: "2026-01-01T00:00:00Z"
+                      updatedAt: "2026-01-25T00:00:00Z"
         '400':
           description: Bad Request
           content:
@@ -1380,7 +1389,7 @@ paths:
                     type: object
 
   /api/v1/users/events/{eventId}/publish:
-    post:
+    patch:
       summary: 행사 생성
       description: 행사 초안을 발행하여 행사를 생성합니다
       tags:
@@ -1393,8 +1402,8 @@ paths:
           required: true
           description: 이벤트 ID
           schema:
-            type: string
-            example: "event_001"
+            type: number
+            example: 123
       responses:
         '200':
           description: 행사 생성 성공
@@ -1416,8 +1425,8 @@ paths:
                     type: object
                     properties:
                       eventId:
-                        type: string
-                        example: "event_001"
+                        type: number
+                        example: 123
                       status:
                         type: string
                         example: "published"
@@ -1432,11 +1441,11 @@ paths:
                           startDate:
                             type: string
                             format: date-time
-                            example: "2026-00-00T00:00:00Z"
+                            example: "2026-01-25T10:00:00Z"
                           endDate:
                             type: string
                             format: date-time
-                            example: "2026-00-00T00:00:00Z"
+                            example: "2026-01-25T12:00:00Z"
                         example: null
                       location:
                         type: object
@@ -1469,23 +1478,23 @@ paths:
                       createdAt:
                         type: string
                         format: date-time
-                        example: "2026-00-00T00:00:00Z"
+                        example: "2026-01-01T00:00:00Z"
                       updatedAt:
                         type: string
                         format: date-time
                         nullable: true
-                        example: "2026-00-00T00:00:00Z"
+                        example: "2026-01-25T00:00:00Z"
               example:
                 success: true
                 code: "EVENT_CREATED"
                 message: "행사가 생성되었습니다."
                 data:
-                  eventId: "event_001"
+                  eventId: 123
                   status: "published"
                   title: "오늘의 하루 소개하기"
                   schedule:
-                    startDate: "2026-00-00T00:00:00Z"
-                    endDate: "2026-00-00T00:00:00Z"
+                    startDate: "2026-01-25T10:00:00Z"
+                    endDate: "2026-01-25T12:00:00Z"
                   location:
                     streetAddress: "제주 서귀포시 칠십리로 123"
                     lotNumber: null
@@ -1493,8 +1502,8 @@ paths:
                   price: 60000
                   playlist: "http://test.com/..."
                   information: "안녕하세요. 이번에는 소개글을 ..."
-                  createdAt: "2026-00-00T00:00:00Z"
-                  updatedAt: "2026-00-00T00:00:00Z"
+                  createdAt: "2026-01-01T00:00:00Z"
+                  updatedAt: "2026-01-25T00:00:00Z"
         '400':
           description: Bad Request
           content:
@@ -1695,7 +1704,7 @@ paths:
           required: true
           description: 이벤트 ID
           schema:
-            type: integer
+            type: number
             example: 123
       requestBody:
         required: true

@@ -12,5 +12,12 @@ export default defineConfig({
     hmr: {
       clientPort: 5173, // HMR 클라이언트 포트
     },
+    // proxy: {
+    //   '/api': {
+    //     target: 'http://168.138.41.19:8080',
+    //     changeOrigin: true,
+    //     secure: false,
+    //   },
+    // },
   },
 })
