@@ -11,6 +11,7 @@ import {
   startSession,
   endSession,
 } from '../api/analysis';
+import { profileAPI } from '../api/profile';
 
 const TestPage = () => {
   const [sessionId, setSessionId] = useState<string>('');
@@ -114,6 +115,43 @@ const TestPage = () => {
     }
   };
 
+  const testGetProfile = async () => {
+    console.log('=== 프로필 조회 테스트 ===');
+    try {
+      const result = await profileAPI.getProfile();
+      alert('프로필 조회 성공');
+      console.log('✅ 프로필 조회 성공:', result);
+    } catch (error) {
+      console.error('❌ 프로필 조회 실패:', error);
+    }
+  };
+
+  const testUpdateProfile = async () => {
+    console.log('=== 회원정보 수정 테스트 ===');
+    try {
+      const payload = {
+        memberId: 1,
+        nickname: '테스트닉',
+      };
+      const result = await profileAPI.updateProfile(payload);
+      alert('회원정보 수정 성공');
+      console.log('✅ 회원정보 수정 성공:', result);
+    } catch (error) {
+      console.error('❌ 회원정보 수정 실패:', error);
+    }
+  };
+
+  const testDeleteProfile = async () => {
+    console.log('=== 회원 탈퇴 테스트 ===');
+    try {
+      const result = await profileAPI.deleteProfile();
+      alert('회원 탈퇴 성공');
+      console.log('✅ 회원 탈퇴 성공:', result);
+    } catch (error) {
+      console.error('❌ 회원 탈퇴 실패:', error);
+    }
+  };
+
   return (
     <div className="p-8 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">API 테스트 페이지</h1>
@@ -192,6 +230,31 @@ const TestPage = () => {
               현재 세션 ID: <code className="bg-gray-100 px-2 py-1 rounded">{sessionId}</code>
             </p>
           )}
+        </section>
+
+        {/* profile.ts API 테스트 */}
+        <section className="border p-4 rounded-lg">
+          <h2 className="text-xl font-semibold mb-4">👤 profile.ts API</h2>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={testGetProfile}
+              className="px-4 py-2 bg-cyan-500 text-white rounded hover:bg-cyan-600"
+            >
+              1. 프로필 조회 (GET)
+            </button>
+            <button
+              onClick={testUpdateProfile}
+              className="px-4 py-2 bg-emerald-500 text-white rounded hover:bg-emerald-600"
+            >
+              2. 회원 정보 수정 (POST)
+            </button>
+            <button
+              onClick={testDeleteProfile}
+              className="px-4 py-2 bg-rose-500 text-white rounded hover:bg-rose-600 col-span-2"
+            >
+              3. 회원 탈퇴 (DELETE)
+            </button>
+          </div>
         </section>
       </div>
     </div>

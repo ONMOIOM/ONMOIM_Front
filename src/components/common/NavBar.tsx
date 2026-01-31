@@ -42,7 +42,12 @@ const NavBar = () => {
           {/* 프로필 사진과 더보기 버튼 컨테이너 */}
           <div className="relative w-[40px] h-[40px] flex-shrink-0 mt-[4px]">
             {/* 프로필 사진 */}
-            <div className="w-[40px] h-[40px] rounded-circle bg-gradient-to-br from-red-400 to-red-600 cursor-pointer hover:opacity-80 transition-opacity" />
+            <div
+              className="w-[40px] h-[40px] rounded-circle bg-gradient-to-br from-red-400 to-red-600 cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => navigate('/profile')}
+              role="button"
+              aria-label="프로필 페이지로 이동"
+            />
             {/* 더보기 버튼 */}
             <button className="absolute left-[26px] top-[24px] w-[28px] h-[28px] rounded-circle bg-gray-0 border border-gray-900 flex items-center justify-center cursor-pointer hover:bg-gray-300 transition-colors outline-none">
               <HiOutlineDotsHorizontal className="text-gray-900" size={16} />

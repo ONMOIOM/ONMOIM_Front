@@ -2,10 +2,10 @@
  * 전 서버 공통 응답 규격 (추측임. 디스코드 답변 따라 달라질 수 있음)
  */
 export interface BaseResponse<T = undefined> {
-  success: boolean;  // 백엔드와 통일하기로 한 키값
-  code: string;      // 응답 코드
-  message: string;   // 응답 메시지
-  data?: T;          // 알맹이 데이터 (Optional)
+  success: boolean | string; // 백엔드가 문자열로 줄 수도 있어 union 처리
+  code: string; // 응답 코드
+  message: string; // 응답 메시지
+  data?: T; // 알맹이 데이터 (Optional)
 }
 
 /* 진짜 예시 사용 코드
