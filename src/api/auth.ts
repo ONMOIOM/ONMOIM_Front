@@ -22,6 +22,12 @@ export type LoginData = {
   refreshToken?: string;
 };
 
+export type verifyEmailRequestData = {
+  email: string;
+  verifiedAt: string;
+  status: string;
+}
+
 /* 회원 조회 응답 data (배열) .. 이것도 누가 쓸건지 역할 분배 필요*/
 export type MeData = {
   memberId: number;
@@ -38,13 +44,18 @@ export type MeData = {
   imageUrl: string;
 };
 
+export type EmailResponse = {
+  email: string;
+  sentAt: string;
+  expireAt: string;
+}
 // --- API 함수 ---
 
 /** 이메일 인증 메일 발송: POST /api/v1/auth/email/verification */
 export const requestEmailVerification = async (
   body: EmailVerificationRequest
-): Promise<BaseResponse> => {
-  const res = await axiosInstance.post<BaseResponse>(
+): Promise<BaseResponse<EmailResponse>> => {
+  const res = await axiosInstance.post<BaseResponse<EmailResponse>>(
     '/api/v1/auth/email/verification',
     body
   );
@@ -52,10 +63,12 @@ export const requestEmailVerification = async (
 };
 
 /** 이메일 인증 코드 검증: POST /api/v1/auth/email/verify (request body에 code) */
-export const verifyEmail = async (code: string): Promise<BaseResponse> => {
-  const res = await axiosInstance.post<BaseResponse>(
+export const verifyEmail = async (
+  body: LoginRequest
+): Promise<BaseResponse<verifyEmailRequestData>> => {
+  const res = await axiosInstance.post<BaseResponse<verifyEmailRequestData>>(
     '/api/v1/auth/email/verify',
-    { code }
+    body
   );
   return res.data;
 };
@@ -68,11 +81,5 @@ export const login = async (
     '/api/v1/users/login',
     body
   );
-  return res.data;
-};
-
-/** 회원 조회: GET /api/v1/users (bearerAuth) , 누가 해야 하는지 확실한 판단 필요, 확실하지 않음 */
-export const getMe = async (): Promise<BaseResponse<MeData[]>> => {
-  const res = await axiosInstance.get<BaseResponse<MeData[]>>('/api/v1/users');
   return res.data;
 };
