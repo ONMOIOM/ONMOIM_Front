@@ -4,7 +4,7 @@ import Login from './pages/Login/Login';
 import Home from './pages/Home/Home';
 import Profile from './pages/Profile/Profile';
 import EventParticipants from './pages/EventParticipants/EventParticipants';
-import EventCreate from './pages/EventCreate/EventCreate';
+import EventCreate from './pages/EventCreate/EventCreate_sample';
 import Analysis from './pages/Analysis/Analysis';
 import TestPage from './pages/TestPage_kaya';
 import TestPageOther from './pages/TestPage';

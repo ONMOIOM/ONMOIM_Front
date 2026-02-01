@@ -1,0 +1,20 @@
+import RSVPCard from './RSVPSelector';
+
+export const CoverPreviewPanel = () => {
+    return (
+        <div className="flex-1 min-w-0">
+            <div className="relative w-full h-[340px] border border-gray-200 bg-gray-200">
+                <button
+                type="button"
+                className="absolute bottom-4 right-4 inline-flex items-center gap-2 rounded-full bg-black px-4 py-1 text-sm text-white"
+                >
+                    ✎ 수정
+                </button>
+            </div>
+        
+            <div className="mt-6">
+                <RSVPCard />
+            </div>
+        </div>
+    )
+}
