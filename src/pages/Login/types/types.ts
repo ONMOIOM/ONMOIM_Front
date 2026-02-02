@@ -1,0 +1,1 @@
+export type Step = "email" | "sending" | "signup" | "login" | "expired"; 
