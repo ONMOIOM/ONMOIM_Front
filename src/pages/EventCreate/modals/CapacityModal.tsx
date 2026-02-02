@@ -40,7 +40,7 @@ export const SeatsModal = ({ open, onClose, value, onSave }: CapacityModalProps)
                     const onlyNum = e.target.value.replace(/[^\d]/g, "");
                     setInput(onlyNum);
                 }}
-                className="w-[160px] h-10 border border-gray-300 rounded-md"
+                className="w-[160px] h-10 border border-gray-300 rounded-md outline-none px-4"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm">명</span>
             </div>

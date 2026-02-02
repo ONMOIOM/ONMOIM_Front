@@ -1,4 +1,4 @@
-import { type LocationType } from "../components/LeftFormPanel";
+import { type LocationType } from "../types/types";
 
 export type ModalProps = {
   open: boolean;

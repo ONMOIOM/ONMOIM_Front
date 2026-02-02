@@ -1,30 +1,11 @@
 import { useState} from 'react';
-import { ScheduleModal } from '../modals/ScheduleModal_sample';
+import { ScheduleModal } from '../modals/ScheduleModal';
 import { LocationModal } from '../modals/LocationModal';
-import { SeatsModal } from '../modals/SeatsModal';
+import { SeatsModal } from '../modals/CapacityModal';
 import { PriceModal } from '../modals/PriceModal';
 import { PlaylistModal } from '../modals/PlaylistModal';
-
-// 서체 변경
-const FONTTYPE_ITEMS = [
-  { key: "normal", label: "평범한" },
-  { key: "library", label: "도서관" },
-  { key: "thin", label: "얇은" },
-] as const;
-
-type FontTypeKey = typeof FONTTYPE_ITEMS[number]["key"];
-
-const FONTTYPE_CLASS: Record<FontTypeKey, string> = {
-  normal: "font-normal", // 나중에 실제 폰트 넣기
-  library: "font-serif", 
-  thin: "font-light",
-};
-
-// 행사 일정 타입(프론트 내부)
-export type ScheduleType = {
-    startAt: Date | null;
-    endAt: Date | null;
-}; 
+import { type LeftFormPanelProps, ModalKey, ScheduleType } from '../types/types';
+import { FONTTYPE_CLASS, FONTTYPE_ITEMS } from '../types/types';
 
 // API 요청 바디(백엔드로 보낼 형태)
 export type SaveEventScheduleRequest = {
@@ -48,43 +29,27 @@ export const toScheduleRequest = (v: ScheduleType): SaveEventScheduleRequest => 
 };
 
 
-// 행사 위치 타입
-export type LocationType = {
-    streetAddress: string;
-    lotNumber: string;
-};
-
-type ModalKey = "schedule" | "location" | "seats" | "price" | "playlist" | null;
-
-export const LeftFormPanel = () => {
-    const [title, setTitle] = useState("같은 행사 참여자 보기");
-    const [fontType, setFontType] = useState<FontTypeKey>("normal");
+export const LeftFormPanel = ({
+  title,
+  setTitle,
+  fontType,
+  setFontType,
+  allowExternal,
+  setAllowExternal,
+  description,
+  setDescription,
+  schedule,
+  setSchedule,
+  location,
+  setLocation,
+  capacity,
+  setCapacity,
+  price,
+  setPrice,
+  playlist,
+  setPlaylist,
+}: LeftFormPanelProps) => {
     const [openModal, setOpenModal] = useState<ModalKey>(null);
-    const [allowExternal, setAllowExternal] = useState(false);
-    const [description, setDescription] = useState("");
-
-    // 행사 일정
-    const [schedule, setSchedule] = useState<ScheduleType>({
-        startAt: null,
-        endAt: null,
-    })
-
-    // 행사 위치
-    const [location, setLocation] = useState<LocationType>({
-        streetAddress: "",
-        lotNumber: "",
-    })
-    
-    // 참여자 ( 여석? 아님 총 인원?)
-    const [capacity, setCapacity] = useState<number | null>(null);
-
-    // 참여 가격
-    const [price, setPrice] = useState<number | null>(null);
-
-    // 플레이리스트
-    const [playlist, setPlaylist] = useState("");
-
-    // 모달 닫기
     const close = () => setOpenModal(null);
 
     // 행사 일정 함수(아직 몰라...??)
@@ -102,7 +67,7 @@ export const LeftFormPanel = () => {
                 <input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className={["w-full text-xl font-semibold outline-none", FONTTYPE_CLASS[fontType]].join("")}
+                className={["w-full text-xl font-semibold outline-none", FONTTYPE_CLASS[fontType]].join(" ")}
                 />
             </div>
 
