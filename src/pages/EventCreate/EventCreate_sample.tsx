@@ -1,119 +1,88 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
 import { LeftFormPanel } from "./components/LeftFormPanel";
-import { CoverPreviewPanel } from "./components/CoverPreviewPanel";
-import { ActionPanel } from "./components/ActionPanel";
-import { useNavigate, useLocation } from "react-router-dom";
-import { type FontTypeKey, ScheduleType, LocationType, DraftEvent } from './types/types.ts';
+import { RightFormPanel } from "./components/RightFormPanel";
+import { ActionPanel } from "./components/BottomActionBar";
+
+import { useEventDraftStore } from "./store/useEventDraftStore";
+import { type DraftEvent } from "./types/types";
 
 export default function EventCreate() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    // 개별 상태 관리
-    const [title, setTitle] = useState("같은 행사 참여자 보기");
-    const [fontType, setFontType] = useState<FontTypeKey>("normal");
-    const [schedule, setSchedule] = useState<ScheduleType>({
-        startAt: null,
-        endAt: null,
-    })
-    const [location, setLocation] = useState<LocationType>({
-        streetAddress: "",
-        lotNumber: "",
-    })
-    const [capacity, setCapacity] = useState<number | null>(null);
-    const [price, setPrice] = useState<number | null>(null);
-    const [allowExternal, setAllowExternal] = useState(false);
-    const [playlist, setPlaylist] = useState("");
-    const [description, setDescription] = useState("");
-    const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
+  const initDraft = useEventDraftStore((s) => s.initDraft);
+  const initStatus = useEventDraftStore((s) => s.initStatus);
+  const initError = useEventDraftStore((s) => s.initError);
 
-    // 초안 생성
-    const buildDraft = (): DraftEvent => ({
-        title,
-        fontType,
-        schedule,
-        location,
-        capacity,
-        price,
-        allowExternal,
-        playlist,
-        description,
-        coverImageUrl,
-    });
+  const data = useEventDraftStore((s) => s.data);
 
-    // 미리보기 버튼 클릭 시 실행
-    const onPreview = () => {
-        navigate("/event-create/preview", { state: { draft: buildDraft() } });
-    };
+  useEffect(() => {
+    initDraft();
+  }, [initDraft]);
 
-    // 저장하기 버튼 클릭 시 실행
-    const onSave = () => {
-        const draft = buildDraft();
-        // 여기서 draft 조각으로 PATCH 호출?
-    };
+  const buildDraft = (): DraftEvent => ({
+    title: data.title,
+    fontType: data.fontType,
+    schedule: data.schedule,
+    location: data.location,
+    capacity: data.capacity,
+    price: data.price,
+    allowExternal: data.allowExternal,
+    playlist: data.playlist,
+    description: data.information, // LeftFormPanel props 이름 때문에 매핑
+    coverImageUrl: data.coverImageUrl,
+  });
 
+  const onPreview = () => {
+    navigate("/event-create/preview", { state: { draft: buildDraft() } });
+  };
 
-    /*-- 미리보기에서 돌아가기 버튼 눌렀을 때 안날아가게 하기 위한 임시 조치--*/
-    const { state } = useLocation();
-    const draftFromPreview = (state as { draft?: DraftEvent } | null)?.draft;
+  // ✅ 여기서는 “전체 저장”을 하지 않음.
+  // 저장은 각 모달/패널의 저장 버튼에서 saveTitle/saveSchedule... 호출하도록 설계 추천.
+  const onSave = async () => {
+    // 원하면 여기서 "임시저장 안내" 토스트만 띄워도 됨
+    // 또는 나중에 "전체 저장" 기능을 넣고 싶으면 그때 추가
+  };
 
-    // 이미 한 번 반영했는지 체크 (입력 덮어쓰기 방지)
-    const hydratedRef = useRef(false);
-
-    useEffect(() => {
-        if (!draftFromPreview) return;
-        if (hydratedRef.current) return;
-        hydratedRef.current = true;
-
-        // ✅ 너가 부모(EventCreate)에서 들고 있는 개별 상태들 전부 여기서 복원
-        setTitle(draftFromPreview.title);
-        setFontType(draftFromPreview.fontType);
-        setSchedule(draftFromPreview.schedule);
-        setLocation(draftFromPreview.location);
-        setCapacity(draftFromPreview.capacity);
-        setPrice(draftFromPreview.price);
-        setPlaylist(draftFromPreview.playlist);
-        setDescription(draftFromPreview.description);
-        setAllowExternal(draftFromPreview.allowExternal);
-        setCoverImageUrl(draftFromPreview.coverImageUrl ?? null);
-    }, [draftFromPreview]);
-
+  if (initStatus === "loading") {
     return (
-        <div className="w-full bg-white">
-        <div className="mx-auto max-w-[1280px] px-8 pt-6">
-            <div className="flex gap-10">
-
-                {/* Left Panel*/}
-                <LeftFormPanel
-                    title={title}
-                    setTitle={setTitle}
-                    fontType={fontType}
-                    setFontType={setFontType}
-                    allowExternal={allowExternal}
-                    setAllowExternal={setAllowExternal}
-                    description={description}
-                    setDescription={setDescription}
-                    schedule={schedule}
-                    setSchedule={setSchedule}
-                    location={location}
-                    setLocation={setLocation}
-                    capacity={capacity}
-                    setCapacity={setCapacity}
-                    price={price}
-                    setPrice={setPrice}
-                    playlist={playlist}
-                    setPlaylist={setPlaylist}
-                />
-            
-                {/* Middle Panel */}
-                <CoverPreviewPanel
-                    coverImageUrl={coverImageUrl}
-                    setCoverImageUrl={setCoverImageUrl}
-                />
-
-                {/* Right Panel */}
-                <ActionPanel onPreview={onPreview} onSave={onSave}/>    
-            </div>
-        </div>
-        </div>
+      <div className="w-full bg-white">
+        <div className="mx-auto max-w-[1280px] px-8 pt-6">초안 생성 중...</div>
+      </div>
     );
+  }
+
+  if (initStatus === "error") {
+    return (
+      <div className="w-full bg-white">
+        <div className="mx-auto max-w-[1280px] px-8 pt-6">
+          초안 생성 실패: {initError ?? "알 수 없는 오류"}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    // 전체 화면(1920 기준) 중앙 정렬 + 세로 플렉스
+    <main className="min-h-screen bg-white">
+      <div className="w-full max-w-[1920px] flex flex-col">
+        {/* ====== 상단/중앙: 왼쪽 패널 + 오른쪽 패널 ====== */}
+        <section className="flex flex-1 pl-[137px] pr-[348px] gap-[102px] pt-10">
+          {/* 왼쪽 패널: 793px */}
+          <div className="w-[793px]">
+            <LeftFormPanel/>
+          </div>
+
+          {/* 오른쪽 패널: 540px */}
+          <div className="w-[540px]">
+            <RightFormPanel/>
+          </div>
+        </section>
+
+        {/* ====== 하단: BottomActionBar (사진처럼 맨 아래) ====== */}
+        <ActionPanel onPreview={onPreview} />
+      </div>
+    </main>
+  );
 }

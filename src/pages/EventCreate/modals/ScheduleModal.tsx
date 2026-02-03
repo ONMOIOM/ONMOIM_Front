@@ -10,6 +10,7 @@ export type ScheduleModalProps = {
   onClose: () => void;
   value: ScheduleValue;
   onSave: (next: ScheduleValue) => void;
+  saving?: boolean;
 };
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
@@ -49,7 +50,7 @@ const sameYMD = (a: Date, b: Date) =>
   a.getMonth() === b.getMonth() &&
   a.getDate() === b.getDate();
 
-export function ScheduleModal({ open, onClose, value, onSave }: ScheduleModalProps) {
+export function ScheduleModal({ open, onClose, value, onSave, saving }: ScheduleModalProps) {
   const [draft, setDraft] = useState<ScheduleValue>(value);
   const [active, setActive] = useState<"start" | "end">("start");
   const [viewMonth, setViewMonth] = useState(() => new Date());

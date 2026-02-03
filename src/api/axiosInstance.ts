@@ -7,6 +7,8 @@ const axiosInstance: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json', // 서버한테 보낼 때 json 형식으로 보낸다고 알려줌
   },
+  // refreshToken이 쿠키
+  // withCredentials: true,
 });
 
 // 요청 인터셉터

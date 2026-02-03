@@ -10,22 +10,12 @@ import {
   saveEventPrice,
   saveEventPlaylist,
   saveEventInformation,
-} from "../../../api/event_updated";
+  publishEvent,
+} from "../../../api/event_updated"; // 네 경로대로
 
-// ---- 타입(너 프로젝트 타입으로 바꿔도 됨) ----
-export type FieldKey =
-  | "title"
-  | "schedule"
-  | "location"
-  | "capacity"
-  | "price"
-  | "playlist"
-  | "information";
-
-export type FieldStatus = "idle" | "dirty" | "saving" | "saved" | "error";
+type SaveStatus = "idle" | "saving" | "error";
 
 export type DraftData = {
-  // 서버 저장 대상
   title: string;
   schedule: { startAt: Date | null; endAt: Date | null };
   location: { streetAddress: string; lotNumber: string | null };
@@ -34,7 +24,7 @@ export type DraftData = {
   playlist: string;
   information: string;
 
-  // UI 전용 (서버 명세 없으면 로컬만)
+  // UI-only
   fontType: "normal" | "library" | "thin";
   allowExternal: boolean;
   coverImageUrl: string | null;
@@ -54,8 +44,19 @@ const defaultDraft = (): DraftData => ({
   coverImageUrl: null,
 });
 
-// ---- store ----
-type DraftStore = {
+// persist로 Date가 string이 될 수 있어서 복원
+const reviveDates = (data: DraftData): DraftData => {
+  const toDate = (v: any) => (typeof v === "string" ? new Date(v) : v);
+  return {
+    ...data,
+    schedule: {
+      startAt: data.schedule.startAt ? toDate(data.schedule.startAt) : null,
+      endAt: data.schedule.endAt ? toDate(data.schedule.endAt) : null,
+    },
+  };
+};
+
+export type EventDraftStore = {
   // meta
   eventId: number | null;
   initStatus: "idle" | "loading" | "ready" | "error";
@@ -64,58 +65,63 @@ type DraftStore = {
   // data
   data: DraftData;
 
-  // field status
-  status: Record<FieldKey, FieldStatus>;
-  error: Record<FieldKey, string | null>;
+  // field status/error
+  titleStatus: SaveStatus;
+  titleError: string | null;
+
+  scheduleStatus: SaveStatus;
+  scheduleError: string | null;
+
+  locationStatus: SaveStatus;
+  locationError: string | null;
+
+  capacityStatus: SaveStatus;
+  capacityError: string | null;
+
+  priceStatus: SaveStatus;
+  priceError: string | null;
+
+  playlistStatus: SaveStatus;
+  playlistError: string | null;
+
+  informationStatus: SaveStatus;
+  informationError: string | null;
 
   // actions
   initDraft: () => Promise<void>;
-  update: <K extends keyof DraftData>(key: K, value: DraftData[K]) => void;
 
-  saveField: (field: FieldKey) => Promise<void>;
-  hasUnsaved: () => boolean;
+  // setters
+  setTitle: (v: string) => void;
+  setSchedule: (v: DraftData["schedule"]) => void;
+  setLocation: (v: DraftData["location"]) => void;
+  setCapacity: (v: number | null) => void;
+  setPrice: (v: number | null) => void;
+  setPlaylist: (v: string) => void;
+  setInformation: (v: string) => void;
 
-  // (선택) 최종 버튼용: dirty만 저장
-  saveAllDirty: () => Promise<void>;
+  // UI-only setters
+  setFontType: (v: DraftData["fontType"]) => void;
+  setAllowExternal: (v: boolean) => void;
+  setCoverImageUrl: (v: string | null) => void;
 
-  // 완료/취소 시 정리
+  // save actions (필드별 저장 유지!)
+  saveTitle: () => Promise<void>;
+  saveSchedule: () => Promise<void>;
+  saveLocation: () => Promise<void>;
+  saveCapacity: () => Promise<void>;
+  savePrice: () => Promise<void>;
+  savePlaylist: () => Promise<void>;
+  saveInformation: () => Promise<void>;
+
+  // publish
+  publish: () => Promise<void>;
+  publishStatus: SaveStatus;
+  publishError: string | null;
+
   reset: () => void;
 };
 
-const initialStatus: Record<FieldKey, FieldStatus> = {
-  title: "idle",
-  schedule: "idle",
-  location: "idle",
-  capacity: "idle",
-  price: "idle",
-  playlist: "idle",
-  information: "idle",
-};
-
-const initialError: Record<FieldKey, string | null> = {
-  title: null,
-  schedule: null,
-  location: null,
-  capacity: null,
-  price: null,
-  playlist: null,
-  information: null,
-};
-
-// Date를 persist 할 때 string으로 바뀌니까 복원해주는 함수
-const reviveDates = (data: DraftData): DraftData => {
-  const s: any = data.schedule;
-  const toDate = (v: any) => (typeof v === "string" ? new Date(v) : v);
-  return {
-    ...data,
-    schedule: {
-      startAt: s?.startAt ? toDate(s.startAt) : null,
-      endAt: s?.endAt ? toDate(s.endAt) : null,
-    },
-  };
-};
-
-export const useEventDraftStore = create<DraftStore>()(
+export const useEventDraftStore = create<EventDraftStore>()(
   persist(
     (set, get) => ({
       eventId: null,
@@ -124,10 +130,31 @@ export const useEventDraftStore = create<DraftStore>()(
 
       data: defaultDraft(),
 
-      status: { ...initialStatus },
-      error: { ...initialError },
+      titleStatus: "idle",
+      titleError: null,
 
-      // ✅ 페이지 진입 시 초안 생성(1번)
+      scheduleStatus: "idle",
+      scheduleError: null,
+
+      locationStatus: "idle",
+      locationError: null,
+
+      capacityStatus: "idle",
+      capacityError: null,
+
+      priceStatus: "idle",
+      priceError: null,
+
+      playlistStatus: "idle",
+      playlistError: null,
+
+      informationStatus: "idle",
+      informationError: null,
+
+      publishStatus: "idle",
+      publishError: null,
+
+      // 1) 초안 생성
       initDraft: async () => {
         const { initStatus } = get();
         if (initStatus === "loading" || initStatus === "ready") return;
@@ -150,120 +177,198 @@ export const useEventDraftStore = create<DraftStore>()(
         }
       },
 
-      // ✅ 입력 변경: data 업데이트 + 해당 필드 dirty 처리
-      update: (key, value) => {
-        set((state) => {
-          const next = { ...state.data, [key]: value };
-          const mapping: Partial<Record<keyof DraftData, FieldKey>> = {
-            title: "title",
-            schedule: "schedule",
-            location: "location",
-            capacity: "capacity",
-            price: "price",
-            playlist: "playlist",
-            information: "information",
-          };
+      // setters (입력 바뀌면 해당 필드 에러는 지우는 정도만)
+      setTitle: (v) =>
+        set((s) => ({ data: { ...s.data, title: v }, titleError: null })),
 
-          const field = mapping[key];
-          return {
-            data: next,
-            ...(field
-              ? {
-                  status: { ...state.status, [field]: state.status[field] === "saving" ? "saving" : "dirty" },
-                  error: { ...state.error, [field]: null },
-                }
-              : {}),
-          };
-        });
-      },
+      setSchedule: (v) =>
+        set((s) => ({ data: { ...s.data, schedule: v }, scheduleError: null })),
 
-      // ✅ 필드별 저장(단계 저장)
-      saveField: async (field) => {
+      setLocation: (v) =>
+        set((s) => ({ data: { ...s.data, location: v }, locationError: null })),
+
+      setCapacity: (v) =>
+        set((s) => ({ data: { ...s.data, capacity: v }, capacityError: null })),
+
+      setPrice: (v) =>
+        set((s) => ({ data: { ...s.data, price: v }, priceError: null })),
+
+      setPlaylist: (v) =>
+        set((s) => ({ data: { ...s.data, playlist: v }, playlistError: null })),
+
+      setInformation: (v) =>
+        set((s) => ({ data: { ...s.data, information: v }, informationError: null })),
+
+      setFontType: (v) =>
+        set((s) => ({ data: { ...s.data, fontType: v } })),
+
+      setAllowExternal: (v) =>
+        set((s) => ({ data: { ...s.data, allowExternal: v } })),
+
+      setCoverImageUrl: (v) =>
+        set((s) => ({ data: { ...s.data, coverImageUrl: v } })),
+
+      // ---- save: title ----
+      saveTitle: async () => {
         const { eventId, data } = get();
-        if (!eventId) throw new Error("eventId가 없어. initDraft부터 해야 해.");
+        if (!eventId) throw new Error("eventId 없음: initDraft 먼저");
 
-        // 필드 저장 시작
-        set((s) => ({
-          status: { ...s.status, [field]: "saving" },
-          error: { ...s.error, [field]: null },
-        }));
-
+        set({ titleStatus: "saving", titleError: null });
         try {
-          let res: any;
+          const title = data.title.trim();
+          if (!title) throw new Error("제목을 입력해줘.");
 
-          switch (field) {
-            case "title":
-              if (!data.title.trim()) throw new Error("제목을 입력해줘.");
-              res = await saveEventTitle({ title: data.title.trim() });
-              break;
+          const res = await saveEventTitle({ title });
+          if (!res.success) throw new Error(res.message ?? "제목 저장 실패");
 
-            case "schedule":
-              if (!data.schedule.startAt || !data.schedule.endAt) throw new Error("일자를 입력해줘.");
-              res = await saveEventSchedule({
-                schedule: {
-                  startDate: data.schedule.startAt.toISOString(),
-                  endDate: data.schedule.endAt.toISOString(),
-                },
-              });
-              break;
-
-            case "location":
-              if (!data.location.streetAddress.trim()) throw new Error("장소를 입력해줘.");
-              res = await saveEventLocation({
-                location: {
-                  streetAddress: data.location.streetAddress.trim(),
-                  lotNumber: data.location.lotNumber?.trim() ? data.location.lotNumber.trim() : null,
-                },
-              });
-              break;
-
-            case "capacity":
-              res = await saveEventCapacity({ capacity: data.capacity });
-              break;
-
-            case "price":
-              res = await saveEventPrice({ price: data.price });
-              break;
-
-            case "playlist":
-              res = await saveEventPlaylist({ playlist: data.playlist.trim() });
-              break;
-
-            case "information":
-              res = await saveEventInformation({ information: data.information.trim() });
-              break;
-
-            default:
-              throw new Error("알 수 없는 필드");
-          }
-
-          if (!res.success) throw new Error(res.message ?? "저장 실패");
-
-          set((s) => ({
-            status: { ...s.status, [field]: "saved" },
-          }));
+          set({ titleStatus: "idle" });
         } catch (e: any) {
-          const msg = e?.response?.data?.message ?? e?.message ?? "저장 실패";
-          set((s) => ({
-            status: { ...s.status, [field]: "error" },
-            error: { ...s.error, [field]: msg },
-          }));
+          const msg = e?.response?.data?.message ?? e?.message ?? "제목 저장 실패";
+          set({ titleStatus: "error", titleError: msg });
           throw e;
         }
       },
 
-      hasUnsaved: () => {
-        const s = get().status;
-        return Object.values(s).some((v) => v === "dirty" || v === "error" || v === "saving");
+      // ---- save: schedule ----
+      saveSchedule: async () => {
+        const { eventId, data } = get();
+        if (!eventId) throw new Error("eventId 없음: initDraft 먼저");
+
+        set({ scheduleStatus: "saving", scheduleError: null });
+        try {
+          const { startAt, endAt } = data.schedule;
+          if (!startAt || !endAt) throw new Error("일자를 입력해줘.");
+
+          const res = await saveEventSchedule({
+            schedule: {
+              startDate: startAt.toISOString(),
+              endDate: endAt.toISOString(),
+            },
+          });
+          if (!res.success) throw new Error(res.message ?? "일정 저장 실패");
+
+          set({ scheduleStatus: "idle" });
+        } catch (e: any) {
+          const msg = e?.response?.data?.message ?? e?.message ?? "일정 저장 실패";
+          set({ scheduleStatus: "error", scheduleError: msg });
+          throw e;
+        }
       },
 
-      saveAllDirty: async () => {
-        const s = get().status;
-        const fields: FieldKey[] = ["title", "schedule", "location", "capacity", "price", "playlist", "information"];
-        for (const f of fields) {
-          if (s[f] === "dirty" || s[f] === "error") {
-            await get().saveField(f);
-          }
+      // ---- save: location ----
+      saveLocation: async () => {
+        const { eventId, data } = get();
+        if (!eventId) throw new Error("eventId 없음: initDraft 먼저");
+
+        set({ locationStatus: "saving", locationError: null });
+        try {
+          const streetAddress = data.location.streetAddress.trim();
+          if (!streetAddress) throw new Error("장소를 입력해줘.");
+
+          const lotNumber = data.location.lotNumber?.trim()
+            ? data.location.lotNumber.trim()
+            : null;
+
+          const res = await saveEventLocation({
+            location: { streetAddress, lotNumber },
+          });
+          if (!res.success) throw new Error(res.message ?? "장소 저장 실패");
+
+          set({ locationStatus: "idle" });
+        } catch (e: any) {
+          const msg = e?.response?.data?.message ?? e?.message ?? "장소 저장 실패";
+          set({ locationStatus: "error", locationError: msg });
+          throw e;
+        }
+      },
+
+      // ---- save: capacity ----
+      saveCapacity: async () => {
+        const { eventId, data } = get();
+        if (!eventId) throw new Error("eventId 없음: initDraft 먼저");
+
+        set({ capacityStatus: "saving", capacityError: null });
+        try {
+          const res = await saveEventCapacity({ capacity: data.capacity });
+          if (!res.success) throw new Error(res.message ?? "정원 저장 실패");
+
+          set({ capacityStatus: "idle" });
+        } catch (e: any) {
+          const msg = e?.response?.data?.message ?? e?.message ?? "정원 저장 실패";
+          set({ capacityStatus: "error", capacityError: msg });
+          throw e;
+        }
+      },
+
+      // ---- save: price ----
+      savePrice: async () => {
+        const { eventId, data } = get();
+        if (!eventId) throw new Error("eventId 없음: initDraft 먼저");
+
+        set({ priceStatus: "saving", priceError: null });
+        try {
+          const res = await saveEventPrice({ price: data.price });
+          if (!res.success) throw new Error(res.message ?? "가격 저장 실패");
+
+          set({ priceStatus: "idle" });
+        } catch (e: any) {
+          const msg = e?.response?.data?.message ?? e?.message ?? "가격 저장 실패";
+          set({ priceStatus: "error", priceError: msg });
+          throw e;
+        }
+      },
+
+      // ---- save: playlist ----
+      savePlaylist: async () => {
+        const { eventId, data } = get();
+        if (!eventId) throw new Error("eventId 없음: initDraft 먼저");
+
+        set({ playlistStatus: "saving", playlistError: null });
+        try {
+          const res = await saveEventPlaylist({ playlist: data.playlist.trim() });
+          if (!res.success) throw new Error(res.message ?? "플레이리스트 저장 실패");
+
+          set({ playlistStatus: "idle" });
+        } catch (e: any) {
+          const msg = e?.response?.data?.message ?? e?.message ?? "플레이리스트 저장 실패";
+          set({ playlistStatus: "error", playlistError: msg });
+          throw e;
+        }
+      },
+
+      // ---- save: information ----
+      saveInformation: async () => {
+        const { eventId, data } = get();
+        if (!eventId) throw new Error("eventId 없음: initDraft 먼저");
+
+        set({ informationStatus: "saving", informationError: null });
+        try {
+          const res = await saveEventInformation({ information: data.information.trim() });
+          if (!res.success) throw new Error(res.message ?? "소개글 저장 실패");
+
+          set({ informationStatus: "idle" });
+        } catch (e: any) {
+          const msg = e?.response?.data?.message ?? e?.message ?? "소개글 저장 실패";
+          set({ informationStatus: "error", informationError: msg });
+          throw e;
+        }
+      },
+
+      // ---- publish ----
+      publish: async () => {
+        const { eventId } = get();
+        if (!eventId) throw new Error("eventId 없음: initDraft 먼저");
+
+        set({ publishStatus: "saving", publishError: null });
+        try {
+          const res = await publishEvent(eventId);
+          if (!res.success) throw new Error(res.message ?? "발행 실패");
+
+          set({ publishStatus: "idle" });
+        } catch (e: any) {
+          const msg = e?.response?.data?.message ?? e?.message ?? "발행 실패";
+          set({ publishStatus: "error", publishError: msg });
+          throw e;
         }
       },
 
@@ -273,22 +378,39 @@ export const useEventDraftStore = create<DraftStore>()(
           initStatus: "idle",
           initError: null,
           data: defaultDraft(),
-          status: { ...initialStatus },
-          error: { ...initialError },
+
+          titleStatus: "idle",
+          titleError: null,
+
+          scheduleStatus: "idle",
+          scheduleError: null,
+
+          locationStatus: "idle",
+          locationError: null,
+
+          capacityStatus: "idle",
+          capacityError: null,
+
+          priceStatus: "idle",
+          priceError: null,
+
+          playlistStatus: "idle",
+          playlistError: null,
+
+          informationStatus: "idle",
+          informationError: null,
+
+          publishStatus: "idle",
+          publishError: null,
         });
       },
     }),
     {
-      name: "onmoim-event-create-draft",
-      partialize: (state) => ({
-        // ✅ 새로고침 대비: data만 저장해도 되지만,
-        // status까지 저장하면 “저장됨/오류” 표시도 유지됨.
-        data: state.data,
-        status: state.status,
-        error: state.error,
-        eventId: state.eventId,
+      name: "onmoim-event-create-draft-simple-full",
+      partialize: (s) => ({
+        eventId: s.eventId,
+        data: s.data,
       }),
-      // ✅ persist로 저장된 data.schedule이 string이면 Date로 복원
       onRehydrateStorage: () => (state) => {
         if (!state) return;
         // @ts-ignore

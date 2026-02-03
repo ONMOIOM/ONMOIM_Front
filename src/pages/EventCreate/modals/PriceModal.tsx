@@ -5,9 +5,10 @@ export type PriceModalProps = {
   onClose: () => void;
   value: number | null;
   onSave: (next: number | null) => void;
+  saving?: boolean;
 };
 
-export const PriceModal = ({ open, onClose, value, onSave }: PriceModalProps) => {
+export const PriceModal = ({ open, onClose, value, onSave, saving }: PriceModalProps) => {
     const [input, setInput] = useState("");
     if (!open) return null;
 

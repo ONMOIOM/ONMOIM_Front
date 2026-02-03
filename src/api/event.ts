@@ -7,6 +7,8 @@ import { BaseResponse } from '../constants/types';
 사용되는 곳
 - 행사 생성 : Kaya
 */
+
+/* 행사 초안 생성 응답 */
 export type CreateEventData = {
   eventId: string;
   status: string;

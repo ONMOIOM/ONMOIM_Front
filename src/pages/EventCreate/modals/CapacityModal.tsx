@@ -5,9 +5,10 @@ export type CapacityModalProps = {
   onClose: () => void;
   value: number | null;
   onSave: (next: number | null) => void;
+  saving?: boolean;
 };
 
-export const SeatsModal = ({ open, onClose, value, onSave }: CapacityModalProps) => {
+export const SeatsModal = ({ open, onClose, value, onSave, saving }: CapacityModalProps) => {
     const [input, setInput] = useState("");
     if (!open) return null;
 

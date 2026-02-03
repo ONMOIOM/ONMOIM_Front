@@ -5,9 +5,10 @@ export type ModalProps = {
   onClose: () => void;
   value: LocationType;
   onSave: (v: LocationType) => void;
+  saving?: boolean;
 };
 
-export const LocationModal = ({ open, onClose, value, onSave }: ModalProps) => {
+export const LocationModal = ({ open, onClose, value, onSave, saving }: ModalProps) => {
   if (!open) return null;
 
   return (
@@ -42,8 +43,13 @@ export const LocationModal = ({ open, onClose, value, onSave }: ModalProps) => {
           <div className="mb-6">
             <div className="font-semibold mb-2">지번</div>
             <input 
-            value={value.lotNumber}
-            onChange={(e) => onSave({ ...value, lotNumber: e.target.value})}
+            value={value.lotNumber ?? ""}
+            onChange={(e) => onSave(
+              { 
+                ...value, 
+                lotNumber: e.target.value === "" ? null : e.target.value
+              }
+            )}
             className="w-full h-10 border border-gray-300 rounded-md px-4 outline-none"
             placeholder="ex) 제주 서귀포시.."
             />

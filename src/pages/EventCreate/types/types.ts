@@ -17,7 +17,7 @@ export const FONTTYPE_CLASS: Record<FontTypeKey, string> = {
 // 행사 위치 타입
 export type LocationType = {
     streetAddress: string;
-    lotNumber: string;
+    lotNumber: string | null;
 };
 
 // 행사 일정 타입(프론트 내부)
@@ -75,14 +75,8 @@ export type LeftFormPanelProps = {
 // LeftFormPanel에서 쓰는 모달 타입
 export type ModalKey = "schedule" | "location" | "seats" | "price" | "playlist" | null;
 
-// CoverPreviewPanel 인자 타입
-export type CoverPreviewPanelProps = {
-  coverImageUrl: string | null;
-  setCoverImageUrl: (v: string) => void;
-};
 
 // ActionPanel 인자 타입
 export type ActionPanelProps = {
   onPreview: () => void;
-  onSave: () => void;
 };

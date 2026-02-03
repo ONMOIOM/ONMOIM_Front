@@ -3,9 +3,10 @@ export type PlaylistModalProps = {
   onClose: () => void;
   value: string;
   onSave: (next: string) => void;
+  saving?: boolean;
 };
 
-export const PlaylistModal = ({ open, onClose, value, onSave }: PlaylistModalProps) => {
+export const PlaylistModal = ({ open, onClose, value, onSave, saving }: PlaylistModalProps) => {
   if (!open) return null;
 
   return (
