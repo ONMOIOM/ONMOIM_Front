@@ -2,8 +2,8 @@
 
 /* Pretendard JP Variable 폰트 설정 */
 @font-face {
-  font-family: 'Pretendard JP';
-  src: url('/fonts/PretendardJPVariable.ttf') format('truetype');
+  font-family: "Pretendard JP";
+  src: url("/fonts/PretendardJPVariable.ttf") format("truetype");
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
@@ -11,8 +11,12 @@
 
 /* Tailwind CSS 폰트 패밀리, Radius, Color 설정 */
 @theme {
-  --font-family-sans: 'Pretendard JP', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  
+  --font-family-sans: "Pretendard JP", -apple-system, BlinkMacSystemFont,
+    system-ui, sans-serif;
+
+  /* NavBar ↔ 문의하기/분석하기 버튼 간격 (Figma 66.5) */
+  --spacing-nav-bar-to-buttons: 66.5px;
+
   /* Figma Foundation - Radius */
   --radius-0: 0px;
   --radius-4: 4px;
@@ -21,114 +25,114 @@
   --radius-12: 12px;
   --radius-16: 16px;
   --radius-circle: 9999px; /* circle */
-  
+
   /* Figma Foundation - Gray Scale (피드백 이후) */
-  --color-gray-900: #1A1A1A;
+  --color-gray-900: #1a1a1a;
   --color-gray-800: #242424;
   --color-gray-600: #595959;
   --color-gray-400: #919191;
-  --color-gray-300: #BFBFBF;
-  --color-gray-0: #FFFFFF;
-  
+  --color-gray-300: #bfbfbf;
+  --color-gray-0: #ffffff;
+
   /* Figma Foundation - Primary Colors (피드백 이후) */
-  --color-primary-100: #F24148;
-  --color-primary-80: #F5676D;
-  --color-primary-60: #F78091;
-  --color-primary-30: #FCC6C9;
-  --color-primary-10: #FEECED;
-  
+  --color-primary-100: #f24148;
+  --color-primary-80: #f5676d;
+  --color-primary-60: #f78091;
+  --color-primary-30: #fcc6c9;
+  --color-primary-10: #feeced;
+
   /* Figma Foundation - Secondary Colors (피드백 이후) */
-  --color-secondary-dark: #7A4A4A;
-  --color-secondary: #BD7979;
-  --color-secondary-light: #DDB5B5;
-  
+  --color-secondary-dark: #7a4a4a;
+  --color-secondary: #bd7979;
+  --color-secondary-light: #ddb5b5;
+
   /* Figma Foundation - Red Scale (피드백 이후 50-950) */
-  --color-red-50: #FEF2F2;
-  --color-red-100: #FEE2E3;
-  --color-red-200: #FFC9CB;
-  --color-red-300: #FEA3A7;
-  --color-red-400: #FA6F74;
-  --color-red-500: #F24148;
-  --color-red-600: #DF232A;
-  --color-red-700: #BC191F;
-  --color-red-800: #9B191E;
-  --color-red-900: #811B1F;
-  --color-red-950: #46090B;
-  
+  --color-red-50: #fef2f2;
+  --color-red-100: #fee2e3;
+  --color-red-200: #ffc9cb;
+  --color-red-300: #fea3a7;
+  --color-red-400: #fa6f74;
+  --color-red-500: #f24148;
+  --color-red-600: #df232a;
+  --color-red-700: #bc191f;
+  --color-red-800: #9b191e;
+  --color-red-900: #811b1f;
+  --color-red-950: #46090b;
+
   /* Figma Foundation - Link Colors (피드백 이후) */
-  --color-link-correct: #47B781;
-  --color-link-guide: #6F9FFE;
-  
+  --color-link-correct: #47b781;
+  --color-link-guide: #6f9ffe;
+
   /* Figma Foundation - Accent Colors - Teal */
-  --color-teal-100: #E1F5F5;
-  --color-teal-200: #B1E7E4;
-  --color-teal-300: #63CFCA;
-  --color-teal-400: #00B1A8;
-  --color-teal-500: #007F7F;
-  --color-teal-600: #005E66;
-  --color-teal-700: #00484E;
+  --color-teal-100: #e1f5f5;
+  --color-teal-200: #b1e7e4;
+  --color-teal-300: #63cfca;
+  --color-teal-400: #00b1a8;
+  --color-teal-500: #007f7f;
+  --color-teal-600: #005e66;
+  --color-teal-700: #00484e;
   --color-teal-800: #002629;
-  
+
   /* Figma Foundation - Accent Colors - Purple */
-  --color-purple-100: #EFEBFF;
-  --color-purple-200: #C7B8FF;
-  --color-purple-300: #AE99FF;
-  --color-purple-400: #8666FF;
-  --color-purple-500: #6941FF;
-  --color-purple-600: #4C00E5;
-  --color-purple-700: #3900AD;
-  --color-purple-800: #1E005C;
-  
+  --color-purple-100: #efebff;
+  --color-purple-200: #c7b8ff;
+  --color-purple-300: #ae99ff;
+  --color-purple-400: #8666ff;
+  --color-purple-500: #6941ff;
+  --color-purple-600: #4c00e5;
+  --color-purple-700: #3900ad;
+  --color-purple-800: #1e005c;
+
   /* Figma Foundation - Accent Colors - Blue */
-  --color-blue-100: #DBF4FF;
-  --color-blue-200: #5CCBFF;
-  --color-blue-300: #1FB7FF;
+  --color-blue-100: #dbf4ff;
+  --color-blue-200: #5ccbff;
+  --color-blue-300: #1fb7ff;
   --color-blue-400: #009900;
-  --color-blue-500: #007DB8;
+  --color-blue-500: #007db8;
   --color-blue-600: #006899;
-  --color-blue-700: #004C70;
+  --color-blue-700: #004c70;
   --color-blue-800: #002042;
-  
+
   /* Figma Foundation - Accent Colors - Orange */
-  --color-orange-100: #FFF2E5;
-  --color-orange-200: #FFD4A8;
-  --color-orange-300: #FFB770;
-  --color-orange-400: #FF9740;
-  --color-orange-500: #F47920;
-  --color-orange-600: #C66016;
-  --color-orange-700: #BA430F;
+  --color-orange-100: #fff2e5;
+  --color-orange-200: #ffd4a8;
+  --color-orange-300: #ffb770;
+  --color-orange-400: #ff9740;
+  --color-orange-500: #f47920;
+  --color-orange-600: #c66016;
+  --color-orange-700: #ba430f;
   --color-orange-800: #482407;
-  
+
   /* Figma Foundation - Accent Colors - Pink */
-  --color-pink-100: #FEECFB;
-  --color-pink-200: #FED3F7;
-  --color-pink-300: #FFBBF3;
-  --color-pink-400: #FF94ED;
-  --color-pink-500: #F553DA;
-  --color-pink-600: #A81690;
+  --color-pink-100: #feecfb;
+  --color-pink-200: #fed3f7;
+  --color-pink-300: #ffbbf3;
+  --color-pink-400: #ff94ed;
+  --color-pink-500: #f553da;
+  --color-pink-600: #a81690;
   --color-pink-700: #730560;
-  --color-pink-800: #3D0133;
-  
+  --color-pink-800: #3d0133;
+
   /* Figma Foundation - Accent Colors - Deep Cove */
-  --color-deep-cove-100: #E9F4FF;
-  --color-deep-cove-200: #B6D8FF;
-  --color-deep-cove-300: #8ABCFF;
-  --color-deep-cove-400: #5C92FF;
-  --color-deep-cove-500: #3768FF;
-  --color-deep-cove-600: #153AFF;
-  --color-deep-cove-700: #0C29C7;
-  --color-deep-cove-800: #0A144A;
-  
+  --color-deep-cove-100: #e9f4ff;
+  --color-deep-cove-200: #b6d8ff;
+  --color-deep-cove-300: #8abcff;
+  --color-deep-cove-400: #5c92ff;
+  --color-deep-cove-500: #3768ff;
+  --color-deep-cove-600: #153aff;
+  --color-deep-cove-700: #0c29c7;
+  --color-deep-cove-800: #0a144a;
+
   /* Figma Foundation - Accent Colors - Stone */
-  --color-stone-100: #D9D9DA;
-  --color-stone-200: #F5F5F4;
-  --color-stone-300: #D6D3D1;
-  --color-stone-400: #A6A098;
-  --color-stone-500: #79716B;
-  --color-stone-600: #57534D;
+  --color-stone-100: #d9d9da;
+  --color-stone-200: #f5f5f4;
+  --color-stone-300: #d6d3d1;
+  --color-stone-400: #a6a098;
+  --color-stone-500: #79716b;
+  --color-stone-600: #57534d;
   --color-stone-700: #444038;
   --color-stone-800: #292524;
-  
+
   /* Figma Foundation - Typography H1-H7 (피드백 이후) */
   /* pt를 px로 변환: 1pt = 1.333px */
   --font-size-h1: 13px; /* 10pt */
@@ -138,19 +142,21 @@
   --font-size-h5: 27px; /* 20pt - Bold */
   --font-size-h6: 32px; /* 24pt - Bold */
   --font-size-h7: 43px; /* 32pt - Bold */
-  
+
   /* Figma Foundation - Caption 10pt Light (추가 제안) */
   --font-size-caption-10pt: 13px; /* 10pt - Light */
 }
 
 /* 전역 폰트 설정 - 모든 텍스트에 적용 */
 * {
-  font-family: 'Pretendard JP', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-family: "Pretendard JP", -apple-system, BlinkMacSystemFont, system-ui,
+    sans-serif;
 }
 
 html,
 body {
-  font-family: 'Pretendard JP', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-family: "Pretendard JP", -apple-system, BlinkMacSystemFont, system-ui,
+    sans-serif;
 }
 
 /* Figma Foundation - Typography H1-H7 Utility Classes (피드백 이후) */
@@ -188,7 +194,6 @@ body {
   font-size: var(--font-size-h7);
   font-weight: 700;
 }
-
 
 .text-caption-10pt {
   font-size: var(--font-size-caption-10pt);

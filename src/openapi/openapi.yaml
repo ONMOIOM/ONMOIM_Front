@@ -34,7 +34,7 @@ paths:
               email: "user@example.com"
               turnstileToken: "0.4n38..."
       responses:
-        '200':
+        "200":
           description: 인증 메일 발송 성공
           content:
             application/json:
@@ -73,7 +73,7 @@ paths:
                   email: "user@example.com"
                   sentAt: "2026-01-21T22:16:39Z"
                   expireAt: "2026-01-21T22:46:39Z"
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -117,7 +117,7 @@ paths:
               email: "user@example.com"
               authcode: "123456"
       responses:
-        '200':
+        "200":
           description: 이메일 인증 성공
           content:
             application/json:
@@ -155,7 +155,7 @@ paths:
                   email: "user@example.com"
                   verifiedAt: "2026-01-21T22:20:05Z"
                   status: "VERIFIED"
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -198,7 +198,7 @@ paths:
               email: "example@naver.com"
               authcode: "123456"
       responses:
-        '200':
+        "200":
           description: 성공 응답
           content:
             application/json:
@@ -234,7 +234,7 @@ paths:
                     code: "MEMBER_2001"
                     message: "로그인이 성공적으로 처리되었습니다."
                     data: []
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -261,7 +261,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: 회원 조회 성공
           content:
             application/json:
@@ -342,7 +342,7 @@ paths:
                     updatedAt: "2026-01-21T18:00:00Z"
                     email: "test@example.com"
                     imageUrl: "https://example.com/profile/1.jpg"
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -359,7 +359,7 @@ paths:
                   data:
                     type: array
                     items: {}
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -447,7 +447,7 @@ paths:
               email: "test@example.com"
               imageUrl: "https://example.com/profile/1.jpg"
       responses:
-        '200':
+        "200":
           description: 회원정보 수정 성공
           content:
             application/json:
@@ -472,7 +472,7 @@ paths:
                 code: "MEMBER_2002"
                 message: "회원정보 수정이 성공적으로 처리되었습니다."
                 data: []
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -489,7 +489,7 @@ paths:
                   data:
                     type: array
                     items: {}
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -514,7 +514,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: 회원 탈퇴 성공
           content:
             application/json:
@@ -539,7 +539,7 @@ paths:
                 code: "MEMBER_200"
                 message: "탈퇴가 성공적으로 처리되었습니다."
                 data: []
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -556,7 +556,7 @@ paths:
                   data:
                     type: array
                     items: {}
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -592,7 +592,7 @@ paths:
             type: integer
             example: 100
       responses:
-        '200':
+        "200":
           description: 통계 조회 성공
           content:
             application/json:
@@ -700,7 +700,7 @@ paths:
                           minutes: 5
                           seconds: 15
                         participationRate: 43.5
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -717,7 +717,7 @@ paths:
                   data:
                     type: array
                     items: {}
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -767,7 +767,7 @@ paths:
             example:
               eventId: 100
       responses:
-        '200':
+        "200":
           description: 세션 측정 시작 성공
           content:
             application/json:
@@ -795,7 +795,7 @@ paths:
                 message: "세션 측정이 성공적으로 시작되었습니다."
                 data:
                   sessionId: "abc123xyz"
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -809,7 +809,7 @@ paths:
                     type: string
                   message:
                     type: string
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -848,7 +848,7 @@ paths:
             type: string
             example: "abc123xyz"
       responses:
-        '200':
+        "200":
           description: 세션 측정 종료 성공
           content:
             application/json:
@@ -876,7 +876,7 @@ paths:
                 message: "세션 측정이 성공적으로 종료되었습니다."
                 data:
                   sessionId: "abc123xyz"
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -890,7 +890,7 @@ paths:
                     type: string
                   message:
                     type: string
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -915,7 +915,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: 행사 초안 생성 성공
           content:
             application/json:
@@ -1010,7 +1010,7 @@ paths:
                   information: null
                   createdAt: "2026-01-01T00:00:00Z"
                   updatedAt: null
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -1026,7 +1026,7 @@ paths:
                     type: string
                   data:
                     type: object
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -1127,7 +1127,7 @@ paths:
                 value:
                   information: "안녕하세요. 이번에는 소개글을 ..."
       responses:
-        '200':
+        "200":
           description: 행사 정보 수정 성공
           content:
             application/json:
@@ -1355,7 +1355,7 @@ paths:
                       information: "안녕하세요. 이번에는 소개글을 ..."
                       createdAt: "2026-01-01T00:00:00Z"
                       updatedAt: "2026-01-25T00:00:00Z"
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -1371,7 +1371,7 @@ paths:
                     type: string
                   data:
                     type: object
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -1405,7 +1405,7 @@ paths:
             type: number
             example: 123
       responses:
-        '200':
+        "200":
           description: 행사 생성 성공
           content:
             application/json:
@@ -1504,7 +1504,7 @@ paths:
                   information: "안녕하세요. 이번에는 소개글을 ..."
                   createdAt: "2026-01-01T00:00:00Z"
                   updatedAt: "2026-01-25T00:00:00Z"
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -1520,7 +1520,7 @@ paths:
                     type: string
                   data:
                     type: object
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -1554,7 +1554,7 @@ paths:
             type: integer
             example: 123
       responses:
-        '200':
+        "200":
           description: 행사 조회 성공
           headers:
             Location:
@@ -1576,7 +1576,7 @@ paths:
                   message:
                     type: string
                     example: "행사가 조회 되었습니다."
-                  data: 
+                  data:
                     type: object
                     properties:
                       eventId:
@@ -1659,7 +1659,7 @@ paths:
                   information: "안녕하세요."
                   createdAt: "2026-01-01T00:00:00Z"
                   updatedAt: "2026-01-02T00:00:00Z"
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -1675,7 +1675,7 @@ paths:
                     type: string
                   data:
                     type: object
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -1753,13 +1753,13 @@ paths:
             example:
               capacity: 8
       responses:
-        '200':
+        "200":
           description: 행사 수정 성공
           headers:
             Location:
               description: 수정된 행사의 위치
               schema:
-                type: string  
+                type: string
                 example: "api/v1/users/events/123"
           content:
             application/json:
@@ -1858,7 +1858,7 @@ paths:
                   information: "안녕하세요."
                   createdAt: "2026-01-01T00:00:00Z"
                   updatedAt: "2026-01-02T00:00:00Z"
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -1874,7 +1874,7 @@ paths:
                     type: string
                   data:
                     type: object
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -1906,7 +1906,7 @@ paths:
             type: integer
             example: 123
       responses:
-        '200':
+        "200":
           description: 행사 삭제 성공
           content:
             application/json:
@@ -1926,7 +1926,7 @@ paths:
                 success: true
                 code: "EVENT_DELETED"
                 message: "행사가 삭제되었습니다."
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -1940,7 +1940,7 @@ paths:
                     type: string
                   message:
                     type: string
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -1972,7 +1972,7 @@ paths:
             type: integer
             example: 123
       responses:
-        '200':
+        "200":
           description: 투표 참여자 목록 조회 성공
           content:
             application/json:
@@ -2017,7 +2017,7 @@ paths:
                   - userId: "user_789"
                     name: "ghi"
                     status: "못가요..."
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -2034,7 +2034,7 @@ paths:
                   data:
                     type: array
                     items: {}
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -2091,7 +2091,7 @@ paths:
             example:
               status: "참여!"
       responses:
-        '200':
+        "200":
           description: 행사 참여 여부 등록 성공
           content:
             application/json:
@@ -2132,7 +2132,7 @@ paths:
                   eventId: 123
                   userId: "user_123"
                   status: "참여!"
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -2148,7 +2148,7 @@ paths:
                     type: string
                   data:
                     type: object
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
