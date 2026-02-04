@@ -12,6 +12,7 @@
     "mock:api:dynamic": "prism mock src/openapi/openapi.yaml --dynamic --errors"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.9",
     "@tailwindcss/vite": "^4.1.18",
     "axios": "^1.7.7",
     "react": "^19.1.1",

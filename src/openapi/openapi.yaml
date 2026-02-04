@@ -278,70 +278,68 @@ paths:
                     type: string
                     example: "회원 조회가 성공적으로 처리되었습니다."
                   data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        memberId:
-                          type: integer
-                          example: 1
-                        username:
-                          type: string
-                          example: "testuser"
-                        nickname:
-                          type: string
-                          example: "테스트닉"
-                        introduction:
-                          type: string
-                          example: "안녕하세요!"
-                        status:
-                          type: string
-                          example: "ACTIVE"
-                        instagramId:
-                          type: string
-                          nullable: true
-                          example: "test_insta"
-                        twitterId:
-                          type: string
-                          nullable: true
-                          example: null
-                        linkedinId:
-                          type: string
-                          nullable: true
-                          example: null
-                        createdAt:
-                          type: string
-                          format: date-time
-                          example: "2026-01-01T10:00:00Z"
-                        updatedAt:
-                          type: string
-                          format: date-time
-                          example: "2026-01-21T18:00:00Z"
-                        email:
-                          type: string
-                          format: email
-                          example: "test@example.com"
-                        imageUrl:
-                          type: string
-                          format: uri
-                          example: "https://example.com/profile/1.jpg"
+                    type: object
+                    properties:
+                      memberId:
+                        type: integer
+                        example: 1
+                      username:
+                        type: string
+                        example: "testuser"
+                      nickname:
+                        type: string
+                        example: "테스트닉"
+                      introduction:
+                        type: string
+                        example: "안녕하세요!"
+                      status:
+                        type: string
+                        example: "ACTIVE"
+                      instagramId:
+                        type: string
+                        nullable: true
+                        example: "test_insta"
+                      twitterId:
+                        type: string
+                        nullable: true
+                        example: null
+                      linkedinId:
+                        type: string
+                        nullable: true
+                        example: null
+                      createdAt:
+                        type: string
+                        format: date-time
+                        example: "2026-01-01T10:00:00Z"
+                      updatedAt:
+                        type: string
+                        format: date-time
+                        example: "2026-01-21T18:00:00Z"
+                      email:
+                        type: string
+                        format: email
+                        example: "test@example.com"
+                      imageUrl:
+                        type: string
+                        format: uri
+                        example: "https://example.com/profile/1.jpg"
               example:
                 success: true
                 code: "MEMBER_2004"
                 message: "회원 조회가 성공적으로 처리되었습니다."
                 data:
-                  - memberId: 1
-                    username: "testuser"
-                    nickname: "테스트닉"
-                    introduction: "안녕하세요!"
-                    status: "ACTIVE"
-                    instagramId: "test_insta"
-                    twitterId: null
-                    linkedinId: null
-                    createdAt: "2026-01-01T10:00:00Z"
-                    updatedAt: "2026-01-21T18:00:00Z"
-                    email: "test@example.com"
-                    imageUrl: "https://example.com/profile/1.jpg"
+                  memberId: 1
+                  username: "testuser"
+                  nickname: "테스트닉"
+                  introduction: "안녕하세요!"
+                  status: "ACTIVE"
+                  instagramId: "test_insta"
+                  twitterId: null
+                  linkedinId: null
+                  createdAt: "2026-01-01T10:00:00Z"
+                  updatedAt: "2026-01-21T18:00:00Z"
+                  email: "test@example.com"
+                  imageUrl: "https://example.com/profile/1.jpg"
         "400":
           description: Bad Request
           content:

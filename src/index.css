@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Tailwind theme: pt-nav-bar-to-buttons 등 커스텀 spacing 유틸 생성 */
+@theme {
+  --spacing-nav-bar-to-buttons: 67.5px;
+}
+
 /* Pretendard JP Variable 폰트 설정 */
 @font-face {
   font-family: "Pretendard JP";
@@ -9,13 +14,31 @@
   font-display: swap;
 }
 
+/* 이사만루(esamanru) - Figma 메인 환영 문구용 */
+@font-face {
+  font-family: "esamanru";
+  src: url("/fonts/Esamanru-Light.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "esamanru";
+  src: url("/fonts/Esamanru-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Tailwind CSS 폰트 패밀리, Radius, Color 설정 */
-@theme {
+:root {
   --font-family-sans: "Pretendard JP", -apple-system, BlinkMacSystemFont,
     system-ui, sans-serif;
+  --font-family-esamanru: "esamanru", "Pretendard JP", sans-serif;
 
-  /* NavBar ↔ 문의하기/분석하기 버튼 간격 (Figma 66.5) */
-  --spacing-nav-bar-to-buttons: 66.5px;
+  /* NavBar ↔ 문의하기/분석하기 버튼 간격 (Figma 67.5) */
+  --spacing-nav-bar-to-buttons: 67.5px;
 
   /* Figma Foundation - Radius */
   --radius-0: 0px;
@@ -198,4 +221,8 @@ body {
 .text-caption-10pt {
   font-size: var(--font-size-caption-10pt);
   font-weight: 300; /* Light */
+}
+
+.font-esamanru {
+  font-family: "esamanru", "Pretendard JP", sans-serif;
 }
