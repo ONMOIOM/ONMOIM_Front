@@ -1,0 +1,82 @@
+import { useState } from "react";
+import twitterIconSrc from "../../assets/icons/Twitter_perspective_matte.png";
+
+type TwitterAddModalProps = {
+  isOpen: boolean;
+  onClose?: () => void;
+  onConfirm?: (twitterId: string) => void;
+  initialTwitterId?: string | null;
+};
+
+const TwitterAddModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  initialTwitterId = null,
+}: TwitterAddModalProps) => {
+  if (!isOpen) {
+    return null;
+  }
+
+  const initialTwitterValue = initialTwitterId ? `@ ${initialTwitterId}` : "@ ";
+  const [twitterValue, setTwitterValue] = useState(initialTwitterValue);
+
+  return (
+    <div className="fixed inset-0 z-50">
+      <div className="absolute inset-0 bg-black/30" aria-hidden="true" />
+      <div
+        className="absolute left-1/2 top-1/2 h-[535px] w-[521px] -translate-x-1/2 -translate-y-1/2 rounded-[20px] bg-white"
+        role="dialog"
+        aria-modal="true"
+        aria-label="트위터 추가하기"
+      >
+        <p className="absolute left-[43px] top-[62px] text-h7 text-[#1A1A1A]">
+          트위터 추가하기
+        </p>
+        <img
+          src={twitterIconSrc}
+          alt=""
+          className="absolute left-1/2 top-[159px] h-[130px] w-[130px] -translate-x-1/2"
+          aria-hidden="true"
+        />
+        <div className="absolute left-1/2 top-[304px] -translate-x-1/2">
+          <div className="h-[58px] w-[321px] rounded-[10px] border border-[#BFBFBF] bg-white">
+            <input
+              type="text"
+              value={twitterValue}
+              onChange={(event) => setTwitterValue(event.target.value)}
+              className="h-full w-full bg-transparent pl-[24px] text-h3 text-gray-400 outline-none"
+              aria-label="트위터 아이디"
+            />
+          </div>
+        </div>
+        <div className="absolute left-1/2 top-[430px] flex -translate-x-1/2 items-center gap-[15px]">
+          <button
+            type="button"
+            className="flex h-[61px] w-[210px] items-center justify-center rounded-[10px] border border-[#BFBFBF] bg-white text-h4 text-gray-600"
+            onClick={onClose}
+          >
+            취소
+          </button>
+          <button
+            type="button"
+            className="flex h-[61px] w-[210px] items-center justify-center rounded-[10px] bg-[#F24148] text-h5 font-semibold text-white"
+            onClick={() => {
+              const trimmed = twitterValue.replace("@", "").trim();
+              if (!trimmed) {
+                onClose?.();
+                return;
+              }
+              onConfirm?.(trimmed);
+              onClose?.();
+            }}
+          >
+            확인
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default TwitterAddModal;

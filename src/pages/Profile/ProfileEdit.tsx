@@ -1,18 +1,28 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import profileSrc from "../../assets/icons/profile.svg";
 import editProfileSrc from "../../assets/icons/edit.png";
 import instagramSrc from "../../assets/icons/icons_instagram.svg";
 import twitterSrc from "../../assets/icons/TwitterGroup.svg";
 import linkedinSrc from "../../assets/icons/icons_linkedin.svg";
 import editProfileIconSrc from "../../assets/icons/editprofile.png";
-import EmailChangeModal from "../../components/profile/EmailChangeModal";
+import EmailFlowModal from "../../components/profile/EmailFlowModal";
+import InstagramAddModal from "../../components/profile/InstagramAddModal";
+import TwitterAddModal from "../../components/profile/TwitterAddModal";
+import LinkedinAddModal from "../../components/profile/LinkedinAddModal";
 
 const ProfileEdit = () => {
-  const profileSns = {
+  const navigate = useNavigate();
+  const [profileSns, setProfileSns] = useState<{
+    instagramId: string | null;
+    twitterId: string | null;
+    linkedinId: string | null;
+  }>({
     instagramId: null,
     twitterId: null,
     linkedinId: null,
-  };
+  });
 
   const instagramLabel = profileSns.instagramId
     ? profileSns.instagramId
@@ -31,9 +41,34 @@ const ProfileEdit = () => {
   const [introductionText, setIntroductionText] = useState(
     "일일일일일일일일일일일일일",
   );
-  const profileEmail = "lixx7273@gmail.com";
+  const [profileEmail, setProfileEmail] = useState("lixx7273@gmail.com");
   const joinedAtText = "2026년 10월 1일부터 이용중입니다";
-  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [isInstagramModalOpen, setIsInstagramModalOpen] = useState(false);
+  const [isTwitterModalOpen, setIsTwitterModalOpen] = useState(false);
+  const [isLinkedinModalOpen, setIsLinkedinModalOpen] = useState(false);
+  const emailStepParam = searchParams.get("emailStep");
+  const emailModalStep =
+    emailStepParam === "change" ||
+    emailStepParam === "verify" ||
+    emailStepParam === "result" ||
+    emailStepParam === "code" ||
+    emailStepParam === "success"
+      ? emailStepParam
+      : null;
+
+  const setEmailStep = (
+    step: "change" | "verify" | "result" | "code" | "success" | null,
+    options?: { replace?: boolean },
+  ) => {
+    const nextParams = new URLSearchParams(searchParams);
+    if (step) {
+      nextParams.set("emailStep", step);
+    } else {
+      nextParams.delete("emailStep");
+    }
+    setSearchParams(nextParams, options);
+  };
 
   return (
     <div className="relative min-h-screen">
@@ -99,7 +134,7 @@ const ProfileEdit = () => {
                 type="button"
                 className="absolute right-[22px] top-1/2 -translate-y-1/2"
                 aria-label="이메일 수정"
-                onClick={() => setIsEmailModalOpen(true)}
+                onClick={() => setEmailStep("change")}
               >
                 <img
                   src={editProfileIconSrc}
@@ -114,6 +149,7 @@ const ProfileEdit = () => {
             <button
               type="button"
               className="flex h-[64px] w-[234px] items-center justify-center rounded-[10px] border border-[#BFBFBF] bg-white text-h4 text-gray-600"
+              onClick={() => navigate(-1)}
             >
               취소
             </button>
@@ -130,6 +166,7 @@ const ProfileEdit = () => {
           <button
             type="button"
             className="mt-[13px] w-[485px] text-center text-h3 text-[#FB2C36]"
+            onClick={() => navigate("/profile/withdraw")}
           >
             탈퇴하기
           </button>
@@ -158,6 +195,7 @@ const ProfileEdit = () => {
           <button
             type="button"
             className="flex flex-1 items-center gap-[19px] pl-[31px] text-left"
+            onClick={() => setIsInstagramModalOpen(true)}
           >
             <img src={instagramSrc} alt="" className="h-6 w-6 shrink-0" />
             <span className="text-h4 text-gray-600">{instagramLabel}</span>
@@ -168,6 +206,7 @@ const ProfileEdit = () => {
           <button
             type="button"
             className="flex flex-1 items-center gap-[19px] pl-[31px] text-left"
+            onClick={() => setIsTwitterModalOpen(true)}
           >
             <img src={twitterSrc} alt="" className="h-6 w-6 shrink-0" />
             <span className="text-h4 text-gray-600">{twitterLabel}</span>
@@ -178,16 +217,55 @@ const ProfileEdit = () => {
           <button
             type="button"
             className="flex flex-1 items-center gap-[19px] pl-[31px] text-left"
+            onClick={() => setIsLinkedinModalOpen(true)}
           >
             <img src={linkedinSrc} alt="" className="h-6 w-6 shrink-0" />
             <span className="text-h4 text-gray-600">{linkedinLabel}</span>
           </button>
         </div>
       </div>
-      <EmailChangeModal
-        isOpen={isEmailModalOpen}
+      <EmailFlowModal
+        step={emailModalStep}
         email={profileEmail}
-        onClose={() => setIsEmailModalOpen(false)}
+        onClose={() => setEmailStep(null, { replace: true })}
+        onRequestVerification={() => setEmailStep("verify")}
+        onConfirmVerification={() => setEmailStep("result")}
+        onConfirmEmail={() => setEmailStep("code")}
+        onConfirmCode={() => setEmailStep("success")}
+        onCompleteEmailChange={(nextEmail) => setProfileEmail(nextEmail)}
+      />
+      <InstagramAddModal
+        isOpen={isInstagramModalOpen}
+        onClose={() => setIsInstagramModalOpen(false)}
+        initialInstagramId={profileSns.instagramId}
+        onConfirm={(instagramId) =>
+          setProfileSns((prev) => ({
+            ...prev,
+            instagramId,
+          }))
+        }
+      />
+      <TwitterAddModal
+        isOpen={isTwitterModalOpen}
+        onClose={() => setIsTwitterModalOpen(false)}
+        initialTwitterId={profileSns.twitterId}
+        onConfirm={(twitterId) =>
+          setProfileSns((prev) => ({
+            ...prev,
+            twitterId,
+          }))
+        }
+      />
+      <LinkedinAddModal
+        isOpen={isLinkedinModalOpen}
+        onClose={() => setIsLinkedinModalOpen(false)}
+        initialLinkedinId={profileSns.linkedinId}
+        onConfirm={(linkedinId) =>
+          setProfileSns((prev) => ({
+            ...prev,
+            linkedinId,
+          }))
+        }
       />
     </div>
   );

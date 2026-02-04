@@ -4,6 +4,7 @@ import Login from './pages/Login/Login';
 import Home from './pages/Home/Home';
 import Profile from './pages/Profile/Profile';
 import ProfileEdit from './pages/Profile/ProfileEdit';
+import ProfileWithdraw from './pages/Profile/ProfileWithdraw';
 import EventParticipants from './pages/EventParticipants/EventParticipants';
 import EventCreate from './pages/EventCreate/EventCreate';
 import Analysis from './pages/Analysis/Analysis';
@@ -14,6 +15,7 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/profile/withdraw" element={<ProfileWithdraw />} />
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="profile" element={<Profile />} />
