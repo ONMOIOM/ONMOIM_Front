@@ -134,14 +134,13 @@
   --color-stone-800: #292524;
 
   /* Figma Foundation - Typography H1-H7 (피드백 이후) */
-  /* pt를 px로 변환: 1pt = 1.333px */
-  --font-size-h1: 13px; /* 10pt */
-  --font-size-h2: 16px; /* 12pt */
-  --font-size-h3: 19px; /* 14pt */
-  --font-size-h4: 21px; /* 16pt */
-  --font-size-h5: 27px; /* 20pt - Bold */
-  --font-size-h6: 32px; /* 24pt - Bold */
-  --font-size-h7: 43px; /* 32pt - Bold */
+  --font-size-h1: 12px; /* 10pt */
+  --font-size-h2: 14px; /* 12pt */
+  --font-size-h3: 17px; /* 14pt */
+  --font-size-h4: 19px; /* 16pt */
+  --font-size-h5: 24px; /* 20pt - Bold */
+  --font-size-h6: 29px; /* 24pt - Bold */
+  --font-size-h7: 38px; /* 32pt - Bold */
 
   /* Figma Foundation - Caption 10pt Light (추가 제안) */
   --font-size-caption-10pt: 13px; /* 10pt - Light */
