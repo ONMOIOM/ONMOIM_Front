@@ -5,6 +5,7 @@ import instagramSrc from "../../assets/icons/icons_instagram.svg";
 import twitterSrc from "../../assets/icons/TwitterGroup.svg";
 import linkedinSrc from "../../assets/icons/icons_linkedin.svg";
 import editProfileIconSrc from "../../assets/icons/editprofile.png";
+import EmailChangeModal from "../../components/profile/EmailChangeModal";
 
 const ProfileEdit = () => {
   const profileSns = {
@@ -32,6 +33,7 @@ const ProfileEdit = () => {
   );
   const profileEmail = "lixx7273@gmail.com";
   const joinedAtText = "2026년 10월 1일부터 이용중입니다";
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
 
   return (
     <div className="relative min-h-screen">
@@ -76,7 +78,7 @@ const ProfileEdit = () => {
             <div className="w-[485px] rounded-[10px] border border-[#BFBFBF] bg-white px-[21px] py-[20px]">
               <textarea
                 value={introductionText}
-              onChange={(event) => setIntroductionText(event.target.value)}
+                onChange={(event) => setIntroductionText(event.target.value)}
                 className="min-h-[24px] w-full resize-none bg-transparent text-h4 text-gray-900 outline-none"
                 aria-label="자기소개"
               />
@@ -97,6 +99,7 @@ const ProfileEdit = () => {
                 type="button"
                 className="absolute right-[22px] top-1/2 -translate-y-1/2"
                 aria-label="이메일 수정"
+                onClick={() => setIsEmailModalOpen(true)}
               >
                 <img
                   src={editProfileIconSrc}
@@ -110,7 +113,7 @@ const ProfileEdit = () => {
           <div className="mt-[25px] flex items-center gap-[17px]">
             <button
               type="button"
-              className="flex h-[64px] w-[234px] items-center justify-center rounded-[10px] border border-[#BFBFBF] bg-white text-h4 text-[#595959]"
+              className="flex h-[64px] w-[234px] items-center justify-center rounded-[10px] border border-[#BFBFBF] bg-white text-h4 text-gray-600"
             >
               취소
             </button>
@@ -181,6 +184,11 @@ const ProfileEdit = () => {
           </button>
         </div>
       </div>
+      <EmailChangeModal
+        isOpen={isEmailModalOpen}
+        email={profileEmail}
+        onClose={() => setIsEmailModalOpen(false)}
+      />
     </div>
   );
 };
