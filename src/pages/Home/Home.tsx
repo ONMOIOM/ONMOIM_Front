@@ -1,6 +1,7 @@
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { useEffect, useState } from "react";
 import { HiOutlineSearch } from "react-icons/hi";
+import { useNavigate } from "react-router-dom";
 import { profileAPI } from "../../api/profile";
 import EventCard from "./components/EventCard";
 
@@ -12,6 +13,7 @@ const TAB_ITEMS = [
 ] as const;
 
 const Home = () => {
+  const navigate = useNavigate();
   const [nickname, setNickname] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
