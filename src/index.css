@@ -226,3 +226,29 @@ body {
 .font-esamanru {
   font-family: "esamanru", "Pretendard JP", sans-serif;
 }
+
+/* 알람 모달 커스텀 스크롤바 (scrollbar-width/scrollbar-color 없이 ::-webkit만 사용) */
+.custom-scrollbar {
+  padding-right: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+/* 스크롤 영역(트랙)이 보이도록 연한 회색 */
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #e8e8e8;
+  border-radius: 0 0 20px 20px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #bfbfbf;
+  border-radius: 20px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #999999;
+}
