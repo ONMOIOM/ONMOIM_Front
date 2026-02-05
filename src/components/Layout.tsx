@@ -12,11 +12,13 @@ const Layout = () => {
           <Outlet />
         </main>
         <aside
-          className="flex shrink-0 flex-col items-end gap-4 pr-[54px] pt-nav-bar-to-buttons"
+          className="pointer-events-none flex shrink-0 flex-col items-end gap-4 pr-[54px] pt-nav-bar-to-buttons"
           aria-label="문의 및 분석"
         >
-          <InquiryButton />
-          <AnalyzeButton />
+          <div className="pointer-events-auto flex flex-col gap-4">
+            <InquiryButton />
+            <AnalyzeButton />
+          </div>
         </aside>
       </div>
     </div>

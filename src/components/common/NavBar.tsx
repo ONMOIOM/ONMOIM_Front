@@ -1,13 +1,24 @@
 import { useEffect, useRef, useState } from "react";
-
+import { useNavigate } from "react-router-dom";
 import logoSrc from "../../assets/icons/onmoim logo_big.svg";
 import notificationsSrc from "../../assets/icons/notifications.svg";
 import profileSrc from "../../assets/icons/profile.svg";
+import AlarmModal from "./AlarmModal";
 import ProfileMenu from "./ProfileMenu";
 
 const NavBar = () => {
-  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const alarmButtonRef = useRef<HTMLButtonElement>(null);
   const profileMenuRef = useRef<HTMLDivElement>(null);
+  const [isAlarmOpen, setIsAlarmOpen] = useState(false);
+  const [alarmModalTop, setAlarmModalTop] = useState(0);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+
+  const openAlarmModal = () => {
+    const rect = alarmButtonRef.current?.getBoundingClientRect();
+    if (rect) setAlarmModalTop(rect.bottom + 20);
+    setIsAlarmOpen(true);
+  };
 
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
@@ -23,22 +34,35 @@ const NavBar = () => {
 
   return (
     <header
-      className="w-full h-[133.5px] flex items-center justify-between bg-gradient-to-t from-[var(--color-red-50)] to-[var(--color-red-400)] pl-[46px] pr-[46px]"
+      className="w-full h-[133.5px] flex items-center justify-between bg-gradient-to-t from-red-50 to-red-400 pl-[46px] pr-[46px]"
       role="banner"
     >
-      <img
-        src={logoSrc}
-        alt="ONMOIM"
-        className="h-[45px] w-auto object-contain"
-      />
+      <button
+        type="button"
+        onClick={() => navigate("/")}
+        className="cursor-pointer"
+        aria-label="메인으로"
+      >
+        <img
+          src={logoSrc}
+          alt="ONMOIM"
+          className="h-[45px] w-auto object-contain"
+        />
+      </button>
       <div className="flex items-center gap-6">
-        <span className="text-h6 font-normal text-gray-600">
-          이벤트 생성하기
-        </span>
         <button
           type="button"
-          className="flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-full bg-red-800/20"
+          onClick={() => navigate("/event-create")}
+          className="text-h6 font-normal text-gray-600 hover:opacity-80 transition-opacity"
+        >
+          이벤트 생성하기
+        </button>
+        <button
+          ref={alarmButtonRef}
+          type="button"
+          className="flex h-[50px] w-[50px] shrink-0 cursor-pointer items-center justify-center rounded-full bg-red-800/20"
           aria-label="알림"
+          onClick={openAlarmModal}
         >
           <img src={notificationsSrc} alt="" className="h-[28px] w-auto" />
         </button>
@@ -61,6 +85,11 @@ const NavBar = () => {
           />
         </div>
       </div>
+      <AlarmModal
+        isOpen={isAlarmOpen}
+        onClose={() => setIsAlarmOpen(false)}
+        top={alarmModalTop}
+      />
     </header>
   );
 };
