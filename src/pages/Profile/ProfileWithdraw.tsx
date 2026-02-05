@@ -1,12 +1,29 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { profileAPI } from "../../api/profile";
+import useProfile from "../../hooks/useProfile";
 
 const ProfileWithdraw = () => {
   const navigate = useNavigate();
-  const profileEmail = "lixx7273@gmail.com";
+  const { profile } = useProfile();
+  const profileEmail = profile?.email || "lixx7273@gmail.com";
   const [isFirstChecked, setIsFirstChecked] = useState(false);
   const [isSecondChecked, setIsSecondChecked] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const isWithdrawEnabled = isFirstChecked && isSecondChecked;
+
+  const handleWithdraw = async () => {
+    if (!isWithdrawEnabled || isDeleting) return;
+    setIsDeleting(true);
+    try {
+      await profileAPI.deleteProfile();
+      navigate("/login", { replace: true });
+    } catch (error) {
+      console.warn("[ProfileWithdraw] 회원 탈퇴 실패:", error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen">
@@ -79,7 +96,8 @@ const ProfileWithdraw = () => {
         <button
           type="button"
           className="flex h-[64px] w-[311px] items-center justify-center rounded-[10px] bg-[#F24148] text-h4 text-white disabled:opacity-50"
-          disabled={!isWithdrawEnabled}
+          disabled={!isWithdrawEnabled || isDeleting}
+          onClick={handleWithdraw}
         >
           탈퇴하기
         </button>

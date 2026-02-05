@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
 import profileSrc from "../../assets/icons/profile.svg";
@@ -7,13 +7,22 @@ import instagramSrc from "../../assets/icons/icons_instagram.svg";
 import twitterSrc from "../../assets/icons/TwitterGroup.svg";
 import linkedinSrc from "../../assets/icons/icons_linkedin.svg";
 import editProfileIconSrc from "../../assets/icons/editprofile.png";
+import { profileAPI } from "../../api/profile";
 import EmailFlowModal from "../../components/profile/EmailFlowModal";
 import InstagramAddModal from "../../components/profile/InstagramAddModal";
 import TwitterAddModal from "../../components/profile/TwitterAddModal";
 import LinkedinAddModal from "../../components/profile/LinkedinAddModal";
+import useProfile from "../../hooks/useProfile";
+import { formatDate } from "../../utils/formatDate";
+import { compressImage } from "../../utils/imageCompression";
 
 const ProfileEdit = () => {
   const navigate = useNavigate();
+  const { profile } = useProfile();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [localImageUrl, setLocalImageUrl] = useState<string | null>(null);
+  const profileImageUrl = localImageUrl || profile?.imageUrl || profileSrc;
+  const hasInitializedProfile = useRef(false);
   const [profileSns, setProfileSns] = useState<{
     instagramId: string | null;
     twitterId: string | null;
@@ -41,12 +50,15 @@ const ProfileEdit = () => {
   const [introductionText, setIntroductionText] = useState(
     "일일일일일일일일일일일일일",
   );
-  const [profileEmail, setProfileEmail] = useState("lixx7273@gmail.com");
-  const joinedAtText = "2026년 10월 1일부터 이용중입니다";
+  const [profileEmail, setProfileEmail] = useState(profile?.email ?? "");
+  const joinedAtText = profile?.createdAt
+    ? `${formatDate(profile.createdAt, "YYYY년 MM월 DD일")}부터 이용중입니다`
+    : "2026년 10월 1일부터 이용중입니다";
   const [searchParams, setSearchParams] = useSearchParams();
   const [isInstagramModalOpen, setIsInstagramModalOpen] = useState(false);
   const [isTwitterModalOpen, setIsTwitterModalOpen] = useState(false);
   const [isLinkedinModalOpen, setIsLinkedinModalOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const emailStepParam = searchParams.get("emailStep");
   const emailModalStep =
     emailStepParam === "change" ||
@@ -69,6 +81,129 @@ const ProfileEdit = () => {
     }
     setSearchParams(nextParams, options);
   };
+
+  const handleUpdateSns = async (
+    key: "instagramId" | "twitterId" | "linkedinId",
+    value: string,
+  ) => {
+    setProfileSns((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+
+    try {
+      await profileAPI.updateProfile({
+        memberId: profile?.memberId,
+        [key]: value,
+      });
+    } catch (error) {
+      console.warn("[ProfileEdit] SNS 저장 실패:", error);
+    }
+  };
+
+  const handleSelectProfileImage = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleProfileImageChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      event.target.value = "";
+      return;
+    }
+
+    try {
+      const compressed = await compressImage(file, 512, 0.85);
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result === "string") {
+            resolve(reader.result);
+          } else {
+            reject(new Error("Failed to read image"));
+          }
+        };
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(compressed);
+      });
+
+      setLocalImageUrl(dataUrl);
+      await profileAPI.updateProfile({
+        memberId: profile?.memberId,
+        imageUrl: dataUrl,
+      });
+    } catch (error) {
+      console.warn("[ProfileEdit] 프로필 이미지 변경 실패:", error);
+    } finally {
+      event.target.value = "";
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    if (isSaving) return;
+    const firstName = profileName.firstName.trim();
+    const lastName = profileName.lastName.trim();
+    const combinedName = `${lastName}${firstName}`.trim() || firstName || lastName;
+
+    setIsSaving(true);
+    try {
+      await profileAPI.updateProfile({
+        memberId: profile?.memberId,
+        username: combinedName,
+        nickname: combinedName,
+        introduction: introductionText,
+        email: profileEmail,
+        instagramId: profileSns.instagramId,
+        twitterId: profileSns.twitterId,
+        linkedinId: profileSns.linkedinId,
+      });
+      navigate("/profile");
+    } catch (error) {
+      console.warn("[ProfileEdit] 회원 정보 수정 실패:", error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!profile || hasInitializedProfile.current) return;
+
+    const baseName = profile.username?.trim() || profile.nickname?.trim();
+    if (baseName) {
+      const parts = baseName.split(/\s+/);
+      if (parts.length >= 2) {
+        setProfileName({
+          lastName: parts[0],
+          firstName: parts.slice(1).join(" "),
+        });
+      } else {
+        setProfileName({
+          lastName: "",
+          firstName: parts[0],
+        });
+      }
+    }
+
+    if (profile.introduction) {
+      setIntroductionText(profile.introduction);
+    }
+
+    if (profile.email) {
+      setProfileEmail(profile.email);
+    }
+
+    setProfileSns({
+      instagramId: profile.instagramId ?? null,
+      twitterId: profile.twitterId ?? null,
+      linkedinId: profile.linkedinId ?? null,
+    });
+
+    hasInitializedProfile.current = true;
+  }, [profile]);
 
   return (
     <div className="relative min-h-screen">
@@ -155,7 +290,9 @@ const ProfileEdit = () => {
             </button>
             <button
               type="button"
-              className="flex h-[64px] w-[234px] items-center justify-center rounded-[10px] bg-[#F24148] text-h4 text-white"
+            className="flex h-[64px] w-[234px] items-center justify-center rounded-[10px] bg-[#F24148] text-h4 text-white disabled:opacity-60"
+            onClick={handleSaveProfile}
+            disabled={isSaving}
             >
               저장
             </button>
@@ -173,14 +310,15 @@ const ProfileEdit = () => {
         </div>
         <div className="relative h-[331px] w-[331px]">
           <img
-            src={profileSrc}
+            src={profileImageUrl}
             alt="프로필"
             className="h-full w-full rounded-full object-cover"
           />
           <button
             type="button"
-            className="absolute bottom-0 right-0 z-10 h-[65px] w-[65px] -translate-x-1/2 -translate-y-1/2"
+            className="absolute bottom-[16px] right-[16px] z-10 h-[65px] w-[65px]"
             aria-label="프로필 이미지 변경"
+            onClick={handleSelectProfileImage}
           >
             <img
               src={editProfileSrc}
@@ -188,6 +326,15 @@ const ProfileEdit = () => {
               className="h-full w-full object-contain"
             />
           </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleProfileImageChange}
+            aria-hidden="true"
+            tabIndex={-1}
+          />
         </div>
       </div>
       <div className="ml-[204.5px] mt-[60px] h-[232px] w-[280px] rounded-12 border border-[#BFBFBF]">
@@ -238,34 +385,19 @@ const ProfileEdit = () => {
         isOpen={isInstagramModalOpen}
         onClose={() => setIsInstagramModalOpen(false)}
         initialInstagramId={profileSns.instagramId}
-        onConfirm={(instagramId) =>
-          setProfileSns((prev) => ({
-            ...prev,
-            instagramId,
-          }))
-        }
+        onConfirm={(instagramId) => handleUpdateSns("instagramId", instagramId)}
       />
       <TwitterAddModal
         isOpen={isTwitterModalOpen}
         onClose={() => setIsTwitterModalOpen(false)}
         initialTwitterId={profileSns.twitterId}
-        onConfirm={(twitterId) =>
-          setProfileSns((prev) => ({
-            ...prev,
-            twitterId,
-          }))
-        }
+        onConfirm={(twitterId) => handleUpdateSns("twitterId", twitterId)}
       />
       <LinkedinAddModal
         isOpen={isLinkedinModalOpen}
         onClose={() => setIsLinkedinModalOpen(false)}
         initialLinkedinId={profileSns.linkedinId}
-        onConfirm={(linkedinId) =>
-          setProfileSns((prev) => ({
-            ...prev,
-            linkedinId,
-          }))
-        }
+        onConfirm={(linkedinId) => handleUpdateSns("linkedinId", linkedinId)}
       />
     </div>
   );

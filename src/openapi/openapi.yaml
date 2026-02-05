@@ -298,7 +298,7 @@ paths:
                       instagramId:
                         type: string
                         nullable: true
-                        example: "test_insta"
+                        example: "k_dohyun_0503"
                       twitterId:
                         type: string
                         nullable: true
@@ -318,11 +318,11 @@ paths:
                       email:
                         type: string
                         format: email
-                        example: "test@example.com"
+                        example: "rlaehgus4418@naver.com"
                       imageUrl:
                         type: string
                         format: uri
-                        example: "https://example.com/profile/1.jpg"
+                        example: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=facearea&w=400&h=400&q=80"
               example:
                 success: true
                 code: "MEMBER_2004"
@@ -333,13 +333,13 @@ paths:
                   nickname: "테스트닉"
                   introduction: "안녕하세요!"
                   status: "ACTIVE"
-                  instagramId: "test_insta"
+                  instagramId: "k_dohyun_0503"
                   twitterId: null
                   linkedinId: null
                   createdAt: "2026-01-01T10:00:00Z"
                   updatedAt: "2026-01-21T18:00:00Z"
-                  email: "test@example.com"
-                  imageUrl: "https://example.com/profile/1.jpg"
+                  email: "rlaehgus4418@naver.com"
+                  imageUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=facearea&w=400&h=400&q=80"
         "400":
           description: Bad Request
           content:
@@ -430,7 +430,7 @@ paths:
                 imageUrl:
                   type: string
                   format: uri
-                  example: "https://example.com/profile/1.jpg"
+                  example: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=facearea&w=400&h=400&q=80"
             example:
               memberId: 1
               username: "testuser"
@@ -443,7 +443,7 @@ paths:
               createdAt: "2026-01-01T10:00:00Z"
               updatedAt: "2026-01-21T18:00:00Z"
               email: "test@example.com"
-              imageUrl: "https://example.com/profile/1.jpg"
+              imageUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=facearea&w=400&h=400&q=80"
       responses:
         "200":
           description: 회원정보 수정 성공

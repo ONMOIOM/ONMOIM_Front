@@ -3,6 +3,7 @@ import closeIconSrc from "../../assets/icons/close.png";
 import shieldIconSrc from "../../assets/icons/Shield_perspective_matte.png";
 import envelopeIconSrc from "../../assets/icons/Envelope_perspective_matte.png";
 import successIconSrc from "../../assets/icons/Success_perspective_matte.png";
+import { requestEmailVerification, verifyEmail } from "../../api/auth";
 
 type EmailModalStep = "change" | "verify" | "result" | "code" | "success";
 
@@ -32,6 +33,7 @@ const EmailFlowModal = ({
   }
 
   const [newEmail, setNewEmail] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
   const emailStatus = useMemo(() => {
     if (!newEmail) {
       return "none";
@@ -63,6 +65,52 @@ const EmailFlowModal = ({
           : step === "code"
             ? 599
             : 535;
+
+  const handleRequestVerification = async () => {
+    try {
+      const res = await requestEmailVerification({
+        email,
+        turnstileToken: "dummy-token-for-dev",
+      });
+      if (res.success) {
+        onRequestVerification();
+      } else {
+        console.warn("[EmailFlowModal] 인증 메일 발송 실패:", res.message);
+      }
+    } catch (error) {
+      console.warn("[EmailFlowModal] 인증 메일 발송 실패:", error);
+    }
+  };
+
+  const handleConfirmVerification = async () => {
+    try {
+      const res = await verifyEmail({
+        email,
+        authcode: verificationCode,
+      });
+      if (res.success) {
+        onConfirmVerification();
+      } else {
+        console.warn("[EmailFlowModal] 인증번호가 올바르지 않습니다.");
+      }
+    } catch (error) {
+      console.warn("[EmailFlowModal] 인증번호 확인 실패:", error);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    try {
+      const res = await requestEmailVerification({
+        email,
+        turnstileToken: "dummy-token-for-dev",
+      });
+      if (!res.success) {
+        console.warn("[EmailFlowModal] 인증 메일 재발송 실패:", res.message);
+      }
+    } catch (error) {
+      console.warn("[EmailFlowModal] 인증 메일 재발송 실패:", error);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50">
@@ -109,7 +157,7 @@ const EmailFlowModal = ({
                   <button
                     type="button"
                     className="mt-[80px] h-[71px] w-[435px] rounded-[10px] bg-[#F24148] text-h5 font-semibold text-white"
-                    onClick={onRequestVerification}
+                    onClick={handleRequestVerification}
                   >
                     인증 이메일 받기
                   </button>
@@ -136,6 +184,8 @@ const EmailFlowModal = ({
                   <input
                     type="text"
                     placeholder="000000"
+                    value={verificationCode}
+                    onChange={(event) => setVerificationCode(event.target.value)}
                     className="h-full w-full bg-transparent pl-[24px] text-h5 text-[#1A1A1A] outline-none"
                     aria-label="인증번호 입력"
                   />
@@ -149,6 +199,7 @@ const EmailFlowModal = ({
                       type="button"
                       className="text-h2 text-[#5C92FF]"
                       aria-label="인증번호 재발송"
+                      onClick={handleResendVerification}
                     >
                       재발송
                     </button>
@@ -157,7 +208,7 @@ const EmailFlowModal = ({
                 <button
                   type="button"
                   className="mt-[53px] flex h-[71px] w-[435px] items-center justify-center rounded-[10px] border border-[#BFBFBF] bg-[#F7F7F8] text-h5 font-semibold text-gray-600"
-                  onClick={onConfirmVerification}
+                  onClick={handleConfirmVerification}
                 >
                   확인
                 </button>
@@ -290,6 +341,7 @@ const EmailFlowModal = ({
                       type="button"
                       className="text-h2 text-[#5C92FF]"
                       aria-label="인증번호 재발송"
+                      onClick={handleResendVerification}
                     >
                       재발송
                     </button>
