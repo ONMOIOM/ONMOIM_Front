@@ -6,12 +6,13 @@ import type { EventInfoData } from "../../api/eventInfo";
 import { profileAPI } from "../../api/profile";
 import { formatEventDateTime } from "../../utils/formatDate";
 import AddEventCard from "./components/AddEventCard";
-import ParticipantSectionArrows from "./components/ParticipantSectionArrows";
 import EventCard from "./components/EventCard";
+import EventCardRoller from "./components/EventCardCarousel.tsx";
 import JoinUserCard from "./components/JoinUserCard";
+import ParticipantSectionArrows from "./components/ParticipantSectionArrows";
 
 const TAB_ITEMS = [
-  { key: "search", label: "검색하기", withIcon: true },
+  { key: "search", label: "행사 목록", withIcon: true },
   { key: "week", label: "일주일 이내", withIcon: false },
   { key: "hosting", label: "내가 여는 행사", withIcon: false },
   { key: "joined", label: "참여한 행사", withIcon: false },
@@ -107,7 +108,7 @@ const Home = () => {
               <TabPanel key={item.key} className="outline-none">
                 {item.key === "search" ? (
                   <>
-                    <div className="mt-6 flex flex-nowrap items-stretch gap-[52px]">
+                    <EventCardRoller>
                       {events.length > 0
                         ? events.map((event) => (
                             <EventCard
@@ -116,7 +117,7 @@ const Home = () => {
                               dateTime={
                                 event.schedule?.startDate
                                   ? formatEventDateTime(
-                                      event.schedule.startDate
+                                      event.schedule.startDate,
                                     )
                                   : "일시 미정"
                               }
@@ -126,20 +127,20 @@ const Home = () => {
                           ))
                         : null}
                       <AddEventCard />
-                    </div>
-                    <div className="mt-[134px] flex items-center">
+                    </EventCardRoller>
+                    <div className="mt-[130px] flex items-center">
                       <h2 className="text-h6 text-gray-900">
                         같은 행사에 참여한 분들
                       </h2>
                       <ParticipantSectionArrows />
                     </div>
-                    <div className="mt-[42px]">
+                    <div className="mt-[42px] mb-[100px]">
                       <JoinUserCard name={displayName} />
                     </div>
                   </>
                 ) : item.key === "week" ? (
                   <>
-                    <div className="mt-6 flex flex-nowrap items-stretch gap-[52px]">
+                    <EventCardRoller>
                       {events.length > 0
                         ? events.map((event) => (
                             <EventCard
@@ -148,7 +149,7 @@ const Home = () => {
                               dateTime={
                                 event.schedule?.startDate
                                   ? formatEventDateTime(
-                                      event.schedule.startDate
+                                      event.schedule.startDate,
                                     )
                                   : "일시 미정"
                               }
@@ -158,7 +159,7 @@ const Home = () => {
                           ))
                         : null}
                       <AddEventCard />
-                    </div>
+                    </EventCardRoller>
                     <div className="mt-[134px] flex items-center">
                       <h2 className="text-h6 text-gray-900">
                         같은 행사에 참여한 분들

@@ -6,8 +6,8 @@
   --spacing-nav-bar-to-buttons: 67.5px;
 
   /* Font family */
-  --font-family-sans: "Pretendard JP", -apple-system, BlinkMacSystemFont,
-    system-ui, sans-serif;
+  --font-family-sans:
+    "Pretendard JP", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-family-esamanru: "esamanru", "Pretendard JP", sans-serif;
 
   /* Radius */
@@ -239,4 +239,22 @@ body {
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #999999;
+}
+
+/* 분석 차트 범례 아이콘: border-radius 8.511px, 디자인 토큰 색상 */
+.analysis-chart .recharts-legend-item rect {
+  rx: 8.511;
+  ry: 8.511;
+}
+.analysis-chart .recharts-legend-item:nth-child(1) rect {
+  fill: var(--color-gray-300);
+}
+.analysis-chart .recharts-legend-item:nth-child(2) rect {
+  fill: var(--color-link-guide);
+}
+.analysis-chart .recharts-legend-item:nth-child(3) rect {
+  fill: var(--color-link-correct);
+}
+.analysis-chart .recharts-legend-item:nth-child(4) rect {
+  fill: var(--color-red-500);
 }

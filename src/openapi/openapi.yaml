@@ -647,57 +647,57 @@ paths:
                 code: "STATS_200"
                 message: "통계 조회가 성공적으로 처리되었습니다."
                 data:
-                  - eventId: 123
+                  - eventId: 101
                     stats:
                       - date: "2026-01-15"
                         clickCount: 120
-                        participantCount: 110
+                        participantCount: 95
                         avgSession:
-                          minutes: 5
-                          seconds: 15
-                        participationRate: 43.5
-                      - date: "2026-01-15"
-                        clickCount: 120
-                        participantCount: 110
+                          minutes: 0
+                          seconds: 43
+                        participationRate: 83.44
+                      - date: "2026-01-16"
+                        clickCount: 98
+                        participantCount: 88
                         avgSession:
-                          minutes: 5
-                          seconds: 15
-                        participationRate: 43.5
-                      - date: "2026-01-15"
-                        clickCount: 120
-                        participantCount: 110
+                          minutes: 1
+                          seconds: 12
+                        participationRate: 78.5
+                      - date: "2026-01-17"
+                        clickCount: 145
+                        participantCount: 120
                         avgSession:
-                          minutes: 5
-                          seconds: 15
-                        participationRate: 43.5
-                      - date: "2026-01-15"
-                        clickCount: 120
-                        participantCount: 110
+                          minutes: 0
+                          seconds: 55
+                        participationRate: 92.0
+                      - date: "2026-01-18"
+                        clickCount: 132
+                        participantCount: 105
                         avgSession:
-                          minutes: 5
-                          seconds: 15
-                        participationRate: 43.5
-                      - date: "2026-01-15"
-                        clickCount: 120
-                        participantCount: 110
+                          minutes: 1
+                          seconds: 5
+                        participationRate: 85.2
+                      - date: "2026-01-19"
+                        clickCount: 110
+                        participantCount: 92
                         avgSession:
-                          minutes: 5
-                          seconds: 15
-                        participationRate: 43.5
-                      - date: "2026-01-15"
-                        clickCount: 120
-                        participantCount: 110
+                          minutes: 0
+                          seconds: 38
+                        participationRate: 80.1
+                      - date: "2026-01-20"
+                        clickCount: 158
+                        participantCount: 130
                         avgSession:
-                          minutes: 5
-                          seconds: 15
-                        participationRate: 43.5
-                      - date: "2026-01-15"
-                        clickCount: 120
-                        participantCount: 110
+                          minutes: 1
+                          seconds: 22
+                        participationRate: 88.6
+                      - date: "2026-01-21"
+                        clickCount: 142
+                        participantCount: 118
                         avgSession:
-                          minutes: 5
-                          seconds: 15
-                        participationRate: 43.5
+                          minutes: 0
+                          seconds: 51
+                        participationRate: 95.0
         "400":
           description: Bad Request
           content:
@@ -1057,9 +1057,77 @@ paths:
                     playlist: null
                     information: "첫 만남 네트워킹 자리입니다."
                     hostName: "온모임"
-                    imageUrl: "https://c.pxhere.com/photos/c0/fe/architecture_building_dome_historic_india_landmark_mausoleum_mosque-1552957.jpg!d"
+                    imageUrl: "https://c.pxhere.com/photos/c0/fe/architecture_building_dome_historic_india_landmark_mosque-1552957.jpg!d"
                     createdAt: "2026-01-05T00:00:00Z"
                     updatedAt: "2026-01-15T00:00:00Z"
+                  - eventId: 104
+                    status: "published"
+                    title: "제주도 감귤 줍기"
+                    schedule:
+                      startDate: "2026-02-01T09:00:00Z"
+                      endDate: "2026-02-01T12:00:00Z"
+                    location:
+                      streetAddress: "제주 서귀포시 감귤농장"
+                      lotNumber: null
+                    capacity: 15
+                    price: 25000
+                    playlist: null
+                    information: "제주 감귤 수확 체험"
+                    hostName: "제주농장"
+                    imageUrl: null
+                    createdAt: "2026-01-10T00:00:00Z"
+                    updatedAt: "2026-01-20T00:00:00Z"
+                  - eventId: 105
+                    status: "published"
+                    title: "서울 한강 러닝"
+                    schedule:
+                      startDate: "2026-02-08T07:00:00Z"
+                      endDate: "2026-02-08T09:00:00Z"
+                    location:
+                      streetAddress: "서울 영등포구 여의도동"
+                      lotNumber: null
+                    capacity: 30
+                    price: 0
+                    playlist: null
+                    information: "한강 조깅 모임"
+                    hostName: "러너"
+                    imageUrl: null
+                    createdAt: "2026-01-12T00:00:00Z"
+                    updatedAt: null
+                  - eventId: 106
+                    status: "published"
+                    title: "부산 해운대 달맞이"
+                    schedule:
+                      startDate: "2026-02-14T18:00:00Z"
+                      endDate: "2026-02-14T21:00:00Z"
+                    location:
+                      streetAddress: "부산 해운대구 해운대해변로"
+                      lotNumber: null
+                    capacity: 25
+                    price: 15000
+                    playlist: null
+                    information: "해운대에서 달 보며 모임"
+                    hostName: "부산사랑"
+                    imageUrl: null
+                    createdAt: "2026-01-14T00:00:00Z"
+                    updatedAt: null
+                  - eventId: 107
+                    status: "published"
+                    title: "제주 동문시장 투어"
+                    schedule:
+                      startDate: "2026-02-20T10:00:00Z"
+                      endDate: "2026-02-20T13:00:00Z"
+                    location:
+                      streetAddress: "제주 제주시 관덕로"
+                      lotNumber: null
+                    capacity: 12
+                    price: 20000
+                    playlist: null
+                    information: "동문시장 먹거리 투어"
+                    hostName: "제주가이드"
+                    imageUrl: null
+                    createdAt: "2026-01-18T00:00:00Z"
+                    updatedAt: null
         "400":
           description: Bad Request
           content:
