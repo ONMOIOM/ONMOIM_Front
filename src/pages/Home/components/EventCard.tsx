@@ -49,15 +49,15 @@ const EventCard = ({
   return (
     <article
       ref={cardRef}
-      className="relative flex h-[379px] w-[456px] shrink-0 flex-col overflow-visible rounded-[var(--radius-8)] bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
+      className="relative flex h-[379px] w-[456px] shrink-0 flex-col overflow-visible rounded-8 bg-gray-0 shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
     >
       {/* 상단 이미지 영역 (Rectangle 4364) - 메뉴가 나오므로 overflow-visible */}
-      <div className="relative h-[256px] w-[456px] shrink-0 overflow-visible rounded-t-[var(--radius-8)] bg-[#E0E0E0]">
+      <div className="relative h-[256px] w-[456px] shrink-0 overflow-visible rounded-t-8 bg-[#E0E0E0]">
         {imageUrl ? (
           <img
             src={imageUrl}
             alt=""
-            className="h-full w-full object-cover rounded-t-[var(--radius-8)]"
+            className="h-full w-full object-cover rounded-t-8"
           />
         ) : null}
 
@@ -68,7 +68,7 @@ const EventCard = ({
             e.stopPropagation();
             setMenuOpen((prev) => !prev);
           }}
-          className="absolute right-[24px] top-3 flex h-[33px] w-[33px] items-center justify-center rounded-[var(--radius-4)] text-gray-700 transition-colors hover:bg-black/10 focus:outline-none focus:ring-2 focus:ring-gray-400/30"
+          className="absolute right-[24px] top-3 flex h-[33px] w-[33px] items-center justify-center rounded-4 text-gray-700 transition-colors hover:bg-black/10 focus:outline-none focus:ring-2 focus:ring-gray-400/30"
           aria-label="행사 메뉴"
           aria-expanded={menuOpen}
         >

@@ -11,7 +11,7 @@ export interface EventCardMenuProps {
   onStopNotification?: () => void;
 }
 
-/** 디자인: 177×58, border-radius 20px, border var(--color-gray-600), bg var(--color-gray-0). 아이콘 25×25 */
+/** 디자인: 177×58, border-radius 20px, border-gray-600, bg-gray-0. 아이콘 25×25 */
 const EventCardMenu = ({ onStopNotification }: EventCardMenuProps) => {
   return (
     <button
@@ -20,7 +20,7 @@ const EventCardMenu = ({ onStopNotification }: EventCardMenuProps) => {
         e.stopPropagation();
         onStopNotification?.();
       }}
-      className="box-border flex h-[58px] w-[177px] items-center justify-center gap-2 rounded-[20px] border border-gray-600 bg-white transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-gray-600/30 focus:ring-offset-2"
+      className="box-border flex h-[58px] w-[177px] items-center justify-center gap-2 rounded-[20px] border border-gray-600 bg-gray-0 transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-gray-600/30 focus:ring-offset-2"
       aria-label="알람 그만받기"
     >
       <img
