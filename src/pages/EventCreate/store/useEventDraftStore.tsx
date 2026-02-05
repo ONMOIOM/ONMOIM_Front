@@ -409,7 +409,10 @@ export const useEventDraftStore = create<EventDraftStore>()(
       name: "onmoim-event-create-draft-simple-full",
       partialize: (s) => ({
         eventId: s.eventId,
-        data: s.data,
+        data: {
+          ...s.data,
+          coverImageUrl: null,
+        },
       }),
       onRehydrateStorage: () => (state) => {
         if (!state) return;

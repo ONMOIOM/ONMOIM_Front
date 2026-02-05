@@ -1,4 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+// 에셋
+import price_icon from '../../../assets/icons/price_icon.svg';
+import close from '../../../assets/icons/close.svg';
 
 export type PriceModalProps = {
   open: boolean;
@@ -10,8 +13,15 @@ export type PriceModalProps = {
 
 export const PriceModal = ({ open, onClose, value, onSave, saving }: PriceModalProps) => {
     const [input, setInput] = useState("");
-    if (!open) return null;
 
+    // ✅ 모달 열릴 때 value로 input 초기화
+    useEffect(() => {
+      if (!open) return;
+      setInput(value == null ? "" : String(value));
+    }, [open, value]);
+
+    if (!open) return null;
+    
   return (
     <div className="fixed inset-0 z-50">
       {/* overlay 클릭 → 닫힘 */}
@@ -21,46 +31,58 @@ export const PriceModal = ({ open, onClose, value, onSave, saving }: PriceModalP
       />
 
       {/* modal box */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="pointer-events-auto w-[720px] h-[300px] bg-white rounded-xl p-6">
-          <div className="flex justify-between items-center mb-4">
-            <div className="font-semibold">$ 참여 가격</div>
-            {/* X 클릭 → 닫힘 */}
-            <button onClick={onClose}>✕</button>
+      <div className="absolute inset-0 flex mt-[273px] ml-[265px] h-[570px] pointer-events-none">
+        <div className="pointer-events-auto w-[520px] rounded-[20px] bg-[#FFFFFF]">
+          {/* Header */}
+          <div className="flex items-center justify-between pt-[66px] pl-[46px] mb-[102px]">
+            <div className="flex items-center gap-2">
+              <img src={price_icon} alt="price_icon" className="h-[30px] w-[30px]"/>
+              <span className="text-base font-bold text-[32px] text-[#1A1A1A]">참여 가격</span>
+            </div>
+
+            <button
+              onClick={onClose}
+              className="pr-[43px] text-[#1A1A1A] hover:text-[#1A1A1A]"
+            >
+              <img src={close} alt='close_icon' className='w-[39px] h-[39px]'/>
+            </button>
           </div>
 
           {/* 참여 가격 */}
-          <div className="px-6 pb-6 pt-16">
-            <div className="flex justify-center">
-                <div className="relative w-[420px]">
-                    <input
-                    value={input}
-                    onChange={(e) => {
-                        // 숫자만 허용
-                        const onlyNum = e.target.value.replace(/[^\d]/g, "");
-                        setInput(onlyNum);
-                    }}
-                    inputMode="numeric"
-                    className="w-full h-[54px] px-5 pr-12 outline-none border border-gray-300 rounded-md"
-                    />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-base text-gray-900">
-                        ₩
-                    </span>
-                </div>
+          <div className="pl-[46px] pr-[43px] mb-[111px]">
+            <div className="font-semibold text-[24px] text-[#1A1A1A] mb-[20px]">참여 가격</div>
+            {/* ✅ ₩ absolute 기준을 위해 relative wrapper 추가 */}
+            <div className="relative">
+              <input
+                value={input}
+                onChange={(e) => {
+                  // 숫자만 허용
+                  const onlyNum = e.target.value.replace(/[^\d]/g, "");
+                  setInput(onlyNum);
+                }}
+                inputMode="numeric"
+                className="w-[435px] h-[58px] border border-gray-300 border-[#BFBFBF] rounded-[20px] bg-[#FFFFFF] px-[24px] pr-[56px] text-[20px] font-semibold text-[#595959] outline-none"
+              />
+              <span className="pr-[1px] absolute right-4 top-1/2 -translate-y-1/2 text-base text-[20px] font-semibold text-[#1A1A1A]">
+                ₩
+              </span>
             </div>
           </div>
 
-          {/* 저장 버튼 → 닫힘 */}
-          <div className="mt-6 flex justify-center">
+          {/* 확인 */}
+          <div className="flex justify-center mb-[44px]">
             <button
-              className="h-10 w-[220px] border border-gray-300 rounded-md bg-gray-100"
+              className={[
+                "h-[71px] w-[435px] rounded-[10px]",
+                "bg-[#F7F7F8] text-[#595959]"
+              ].join(" ")}
               onClick={() => {
                 const next = input.trim() === "" ? null : Number(input);
                 onSave(next);
                 onClose();
               }}
             >
-              저장
+              <span className="text-[20px] font-semibold text-[#595959]">확인</span>
             </button>
           </div>
         </div>

@@ -36,7 +36,7 @@ export type DraftEvent = {
   capacity: number | null;
   price: number | null;
   playlist: string;
-  description: string;
+  information: string;
   allowExternal: boolean;
   coverImageUrl?: string | null;
 };
@@ -78,5 +78,6 @@ export type ModalKey = "schedule" | "location" | "seats" | "price" | "playlist" 
 
 // ActionPanel 인자 타입
 export type ActionPanelProps = {
-  onPreview: () => void;
+  left: { label: string; onClick: () => void | Promise<void>; disabled?: boolean };
+  right?: { label: string; onClick: () => void | Promise<void>; disabled?: boolean };
 };

@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { formatKoreanDate } from "../utils/formatKoreanDate";
+import { formatKoreanTime } from "../utils/formatKoreanTime"; // 경로 맞게 수정
 
 export type ScheduleValue = {
   startAt: Date | null;
@@ -15,18 +17,9 @@ export type ScheduleModalProps = {
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
-const formatKDateTime = (d: Date | null) => {
+const formatTimeBox = (d: Date | null) => {
   if (!d) return "";
-  const yyyy = d.getFullYear();
-  const mm = pad2(d.getMonth() + 1);
-  const dd = pad2(d.getDate());
-
-  const h = d.getHours();
-  const m = d.getMinutes();
-  const isAM = h < 12;
-  const hh12 = h % 12 === 0 ? 12 : h % 12;
-
-  return `${yyyy}.${mm}.${dd}   ${isAM ? "오전" : "오후"} ${pad2(hh12)}:${pad2(m)}`;
+  return formatKoreanTime(d); // "오전/오후 h:mm"
 };
 
 const buildTimes = () => {
@@ -36,7 +29,7 @@ const buildTimes = () => {
       const isAM = h < 12;
       const hh12 = h % 12 === 0 ? 12 : h % 12;
       list.push({
-        label: `${isAM ? "오전" : "오후"} ${pad2(hh12)}:${pad2(m)}`,
+        label: `${isAM ? "오전" : "오후"} ${hh12}:${pad2(m)}`,
         h,
         m,
       });
@@ -50,7 +43,13 @@ const sameYMD = (a: Date, b: Date) =>
   a.getMonth() === b.getMonth() &&
   a.getDate() === b.getDate();
 
-export function ScheduleModal({ open, onClose, value, onSave, saving }: ScheduleModalProps) {
+export function ScheduleModal({
+  open,
+  onClose,
+  value,
+  onSave,
+  saving = false,
+}: ScheduleModalProps) {
   const [draft, setDraft] = useState<ScheduleValue>(value);
   const [active, setActive] = useState<"start" | "end">("start");
   const [viewMonth, setViewMonth] = useState(() => new Date());
@@ -61,7 +60,6 @@ export function ScheduleModal({ open, onClose, value, onSave, saving }: Schedule
     if (!open) return;
     setDraft(value);
     setActive("start");
-    // 달력은 시작일 기준으로 보여주고 싶으면:
     if (value.startAt) setViewMonth(new Date(value.startAt));
     else setViewMonth(new Date());
   }, [open, value]);
@@ -78,12 +76,11 @@ export function ScheduleModal({ open, onClose, value, onSave, saving }: Schedule
 
   // 캘린더 데이터
   const year = viewMonth.getFullYear();
-  const month = viewMonth.getMonth(); // 0~11
+  const month = viewMonth.getMonth();
   const first = new Date(year, month, 1);
-  const firstDay = first.getDay(); // 0(일)~6(토)
+  const firstDay = first.getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  // 6주(42칸) 그리드
   const cells = Array.from({ length: 42 }, (_, i) => {
     const day = i - firstDay + 1;
     if (day < 1 || day > daysInMonth) return null;
@@ -91,30 +88,25 @@ export function ScheduleModal({ open, onClose, value, onSave, saving }: Schedule
   });
 
   const applyDay = (d: Date) => {
-    // 기존 시간 유지 (없으면 06:00으로 맞춤 — 피그마 느낌에 가깝게)
-    const base = activeDate ?? new Date();
     const next = new Date(d);
     if (activeDate) next.setHours(activeDate.getHours(), activeDate.getMinutes(), 0, 0);
     else next.setHours(6, 0, 0, 0);
+
     setActiveDate(next);
 
-    // 시작일 바꾸면 종료일이 비어있을 때 자동 세팅(원하면 유지)
     if (active === "start" && !draft.endAt) {
-      const end = new Date(next);
-      setDraft((prev) => ({ ...prev, endAt: end }));
+      setDraft((prev) => ({ ...prev, endAt: new Date(next) }));
     }
   };
 
   const applyTime = (h: number, m: number) => {
-    if (!activeDate) return; // 날짜 먼저 선택하게
+    if (!activeDate) return;
     const next = new Date(activeDate);
     next.setHours(h, m, 0, 0);
     setActiveDate(next);
 
-    // 시작 시간 바꿀 때 종료가 없으면 같이 맞추기(피그마 UX에 자주 있음)
     if (active === "start" && !draft.endAt) {
-      const end = new Date(next);
-      setDraft((prev) => ({ ...prev, endAt: end }));
+      setDraft((prev) => ({ ...prev, endAt: new Date(next) }));
     }
   };
 
@@ -130,141 +122,132 @@ export function ScheduleModal({ open, onClose, value, onSave, saving }: Schedule
     setViewMonth(next);
   };
 
-  const setToday = () => {
+  // 사진처럼: 오늘로 설정 = 저장 트리거
+  const handleTodaySave = () => {
+    if (saving) return;
+
     const now = new Date();
     const rounded = new Date(now);
-    // 15분 단위로 내림(원하면 반올림으로 바꿔도 됨)
-    const m = Math.floor(rounded.getMinutes() / 15) * 15;
-    rounded.setMinutes(m, 0, 0);
+    const mm = Math.floor(rounded.getMinutes() / 15) * 15;
+    rounded.setMinutes(mm, 0, 0);
 
-    setDraft((prev) => ({
-      startAt: rounded,
-      endAt: prev.endAt ?? new Date(rounded),
-    }));
-    setActive("start");
-    setViewMonth(new Date(now));
-  };
+    const end = new Date(rounded);
+    end.setHours(end.getHours() + 3); // 기본 3시간(원하면 1로)
 
-  const handleSave = () => {
-    onSave(draft);
+    onSave({ startAt: rounded, endAt: end });
     onClose();
   };
 
   const monthLabel = `${year}년 ${month + 1}월`;
+  const dateText = draft.startAt ? formatKoreanDate(draft.startAt) : "";
 
   return (
     <div className="fixed inset-0 z-50">
-      {/* overlay */}
+      {/* overlay: saving이면 닫기 막기 */}
       <button
         type="button"
-        className="absolute inset-0 bg-black/20"
+        className="absolute inset-0 bg-black/30"
         onClick={onClose}
         aria-label="close overlay"
       />
 
-      {/* center */}
       <div className="absolute inset-0 flex items-center justify-center px-6 pointer-events-none">
-        <div className="pointer-events-auto w-[760px] rounded-2xl bg-white border border-gray-200 shadow-sm">
-          {/* content padding */}
-          <div className="p-6">
-            {/* Top row: 시작일/종료일 */}
-            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-              <div>
-                <div className="text-sm font-semibold text-gray-900 mb-2">시작일</div>
-                <button
-                  type="button"
-                  onClick={() => setActive("start")}
-                  className={[
-                    "w-full h-11 rounded-lg border px-4 text-left text-sm",
-                    active === "start" ? "border-gray-900" : "border-gray-200",
-                  ].join(" ")}
-                >
-                  <span className="text-gray-900">{formatKDateTime(draft.startAt) || "날짜/시간 선택"}</span>
-                </button>
-              </div>
+        <div className="pointer-events-auto w-[760px] rounded-2xl bg-white shadow-lg">
+          <div className="p-8">
+            <div className="text-[18px] font-semibold text-gray-900">날짜 시간</div>
 
-              <div className="pt-6 text-gray-400 select-none">»</div>
+            {/* 상단: 날짜 1칸 + 시간 2칸 */}
+            <div className="mt-4 flex items-center gap-3">
+              <button
+                type="button"
+                className="h-11 w-[180px] rounded-lg border border-gray-200 px-4 text-sm text-gray-900 text-left"
+                onClick={() => setActive("start")}
+              >
+                {dateText || "날짜 선택"}
+              </button>
 
-              <div>
-                <div className="text-sm font-semibold text-gray-900 mb-2 text-right">종료일</div>
-                <button
-                  type="button"
-                  onClick={() => setActive("end")}
-                  className={[
-                    "w-full h-11 rounded-lg border px-4 text-left text-sm",
-                    active === "end" ? "border-gray-900" : "border-gray-200",
-                  ].join(" ")}
-                >
-                  <span className="text-gray-900">{formatKDateTime(draft.endAt) || "날짜/시간 선택"}</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setActive("start")}
+                className={[
+                  "h-11 w-[160px] rounded-lg border px-4 text-sm text-gray-900 text-left",
+                  active === "start" ? "border-gray-900" : "border-gray-200",
+                ].join(" ")}
+              >
+                {formatTimeBox(draft.startAt) || "시간"}
+              </button>
+
+              <div className="text-gray-500 font-medium select-none">~</div>
+
+              <button
+                type="button"
+                onClick={() => setActive("end")}
+                className={[
+                  "h-11 w-[160px] rounded-lg border px-4 text-sm text-gray-900 text-left",
+                  active === "end" ? "border-gray-900" : "border-gray-200",
+                ].join(" ")}
+              >
+                {formatTimeBox(draft.endAt) || "시간"}
+              </button>
             </div>
 
-            {/* Middle: calendar + time list */}
-            <div className="mt-6 grid grid-cols-[1fr_220px] gap-6">
+            {/* 본문 */}
+            <div className="mt-6 grid grid-cols-[1fr_200px] gap-8">
               {/* Calendar */}
-              <div className="rounded-xl">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="text-lg font-semibold text-gray-900">{monthLabel}</div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={goPrevMonth}
-                      className="h-8 w-8 rounded-md border border-gray-200 text-gray-600 hover:bg-gray-50"
-                      aria-label="prev month"
-                    >
-                      ‹
-                    </button>
-                    <button
-                      type="button"
-                      onClick={goNextMonth}
-                      className="h-8 w-8 rounded-md border border-gray-200 text-gray-600 hover:bg-gray-50"
-                      aria-label="next month"
-                    >
-                      ›
-                    </button>
-                  </div>
-                </div>
+              <div>
+                <div className="text-[20px] font-bold text-gray-900 mb-4">{monthLabel}</div>
 
-                {/* Weekday header */}
-                <div className="grid grid-cols-7 text-xs text-gray-500 mb-2">
+                <div className="grid grid-cols-7 text-[12px] text-gray-400 mb-2">
                   {["일", "월", "화", "수", "목", "금", "토"].map((w) => (
-                    <div key={w} className="h-8 flex items-center justify-center">
+                    <div key={w} className="h-7 flex items-center justify-center">
                       {w}
                     </div>
                   ))}
                 </div>
 
-                {/* Days */}
-                <div className="grid grid-cols-7 gap-y-2">
+                <div className="grid grid-cols-7 gap-y-3">
                   {cells.map((d, idx) => {
-                    const isEmpty = !d;
-                    if (isEmpty) {
-                      return <div key={idx} className="h-10" />;
-                    }
+                    if (!d) return <div key={idx} className="h-9" />;
 
-                    const isSelected = activeDate ? sameYMD(d!, activeDate) : false;
+                    const selected = activeDate ? sameYMD(d, activeDate) : false;
 
                     return (
                       <button
                         key={idx}
                         type="button"
-                        onClick={() => applyDay(d!)}
+                        onClick={() => applyDay(d)}
                         className={[
-                          "h-10 w-10 mx-auto rounded-full text-sm",
-                          isSelected ? "bg-blue-600 text-white" : "text-gray-900 hover:bg-gray-100",
+                          "h-9 w-9 mx-auto rounded-full text-[13px] font-medium",
+                          selected
+                            ? "bg-red-500 text-white"
+                            : "text-gray-900 hover:bg-gray-100",
                         ].join(" ")}
                       >
-                        {d!.getDate()}
+                        {d.getDate()}
                       </button>
                     );
                   })}
                 </div>
+
+                {/* 오늘로 설정 (사진처럼 크게) */}
+                <button
+                  type="button"
+                  onClick={handleTodaySave}
+                  disabled={saving}
+                  className={[
+                    "mt-8 h-12 w-full rounded-lg text-sm font-semibold",
+                    saving
+                      ? "bg-red-400 text-white opacity-70 cursor-not-allowed"
+                      : "bg-red-500 text-white hover:bg-red-600",
+                  ].join(" ")}
+                >
+                  {saving ? "설정 중..." : "오늘로 설정"}
+                </button>
               </div>
 
               {/* Time list */}
-              <div className="rounded-xl">
-                <div className="max-h-[360px] overflow-y-auto">
+              <div className="pt-[52px]">
+                <div className="max-h-[420px] overflow-y-auto pr-1">
                   <div className="space-y-2">
                     {times.map((t) => {
                       const isActiveTime =
@@ -278,9 +261,9 @@ export function ScheduleModal({ open, onClose, value, onSave, saving }: Schedule
                           type="button"
                           onClick={() => applyTime(t.h, t.m)}
                           className={[
-                            "w-full h-9 rounded-lg border text-xs",
+                            "w-full h-10 rounded-lg border text-[12px] font-medium",
                             isActiveTime
-                              ? "border-gray-900 bg-gray-50 text-gray-900"
+                              ? "border-red-400 text-red-500"
                               : "border-gray-200 text-gray-700 hover:bg-gray-50",
                           ].join(" ")}
                         >
@@ -293,24 +276,7 @@ export function ScheduleModal({ open, onClose, value, onSave, saving }: Schedule
               </div>
             </div>
 
-            {/* Footer */}
-            <div className="mt-6 flex items-center justify-between">
-              <button
-                type="button"
-                onClick={setToday}
-                className="h-11 w-[220px] rounded-xl border border-gray-200 bg-gray-50 text-sm font-medium text-gray-900 hover:bg-gray-100"
-              >
-                오늘로 설정
-              </button>
-
-              <button
-                type="button"
-                onClick={handleSave}
-                className="h-11 w-[220px] rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-900 hover:bg-gray-50"
-              >
-                저장
-              </button>
-            </div>
+            {/* 사진에는 저장 버튼 없으니 유지 안 함 */}
           </div>
         </div>
       </div>

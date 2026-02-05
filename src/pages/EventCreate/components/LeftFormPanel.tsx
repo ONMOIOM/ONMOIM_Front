@@ -7,6 +7,12 @@ import { PlaylistModal } from "../modals/PlaylistModal";
 import { type ModalKey } from "../types/types";
 import { FONTTYPE_CLASS, FONTTYPE_ITEMS } from "../types/types";
 import { useEventDraftStore } from "../store/useEventDraftStore";
+import { formatScheduleView, formatLocation, formatCapacity, formatPrice } from "../utils/formatters";
+import { Toggle } from './Toggle';
+// 에셋
+import check from '../../../assets/icons/check.svg';
+import arrow_down from '../../../assets/icons/arrow_down.svg';
+import play_circle from '../../../assets/icons/play_circle.svg';
 
 export const LeftFormPanel = () => {
   const [openModal, setOpenModal] = useState<ModalKey>(null);
@@ -51,29 +57,29 @@ export const LeftFormPanel = () => {
   const playlistSaving = useEventDraftStore((s) => s.playlistStatus === "saving");
 
   // ---------- 화면 표시용 포맷 ----------
-  const scheduleView = formatSchedule(schedule);
+  const scheduleView = formatScheduleView(schedule);
   const locationView = formatLocation(location);
   const capacityView = formatCapacity(capacity);
   const priceView = formatPrice(price);
 
   return (
-    <div className="w-full">
+    <div className="w-full mt-[138px]">
       {/* 제목 */}
-      <div className="h-[38px] mb-2 text-sm font-semibold text-gray-900">제목</div>
+      <div className="mb-[16px] h-[38px] w-[56px] text-[32px] font-bold text-[#1A1A1A]">제목</div>
       <input
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="행사 제목을 입력하세요"
         className={[
-          "w-full h-10 rounded-md border border-gray-200 bg-white px-4 text-sm outline-none",
+          "w-full h-[67px] text-[24px] text-[#595959] rounded-[10px] border border-[#BFBFBF] focus:border-[#595959] bg-[#FFFFFF] px-[24px] py-[18px] outline-none",
           FONTTYPE_CLASS[fontType],
         ].join(" ")}
       />
 
       {/* 서체 */}
-      <div className="mt-7">
-        <div className="h-[38px] mb-2 text-sm font-semibold text-gray-900">서체</div>
-        <div className="flex gap-2">
+      <div className="mt-[70px]">
+        <div className="mb-[16px] w-full h-[38px] items-center font-semibold text-[32px] text-[#1A1A1A]">서체</div>
+        <div className="flex gap-[20px]">
           {FONTTYPE_ITEMS.map((t) => {
             const selected = fontType === t.key;
             return (
@@ -82,12 +88,16 @@ export const LeftFormPanel = () => {
                 type="button"
                 onClick={() => setFontType(t.key)}
                 className={[
-                  "h-9 px-4 rounded-md border text-sm",
+                  "h-[62px] px-[34px] rounded-[10px] border text-[20px] font-semibold",
+                  "flex items-center justify-center gap-[10px]",
                   selected
-                    ? "border-red-200 bg-red-50 text-red-500"
-                    : "border-gray-200 bg-gray-50 text-gray-700",
+                    ? "border-[#F241481A] bg-[#F241481A] text-[#F24148]"
+                    : "border-[#EEEEEE] bg-[#EEEEEE] text-[#595959]",
                 ].join(" ")}
               >
+                {selected && (
+                  <img src={check} alt='check_icon' className="w-[29px] h-[29px]"/>
+                )}
                 {t.label}
               </button>
             );
@@ -96,160 +106,168 @@ export const LeftFormPanel = () => {
       </div>
 
       {/* 날짜/시간 */}
-      <div className="mt-7">
-        <div className="h-[38px] mb-2 text-sm font-semibold text-gray-900">날짜 시간</div>
+      <div className="mt-[75px]">
+        <div className="mb-[16px] h-[38px] font-bold text-[32px] text-[#1A1A1A]">날짜 시간</div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-[20px]">
           {/* 날짜 */}
           <button
             type="button"
             onClick={() => setOpenModal("schedule")}
             className={[
-              "h-10 rounded-md border border-gray-200 bg-white px-4",
-              "flex items-center justify-between text-sm",
-              "w-[190px]",
+              "w-[348px] h-[89px] rounded-[10px] border border-[#BFBFBF] bg-[#FFFFFF] pl-[38px] pr-[24px]",
+              "flex items-center justify-between text-[24px] font-semibold text-[#595959]",
             ].join(" ")}
           >
-            <span className={scheduleView.dateText ? "text-gray-900" : "text-gray-400"}>
-              {scheduleView.dateText && scheduleView.dateText.trim() !== ""
-                ? scheduleView.dateText
-                : "날짜 선택"}
+            <span>
+              {scheduleView.dateText?.trim() ? scheduleView.dateText : "날짜 선택"}
             </span>
-            <span className="text-gray-400">▾</span>
+            <img src={arrow_down} alt="arrow_down_icon" className="h-[46px] w-[46px]"/>
           </button>
 
           {/* 시작 시간 */}
           <button
             type="button"
-            onClick={() => setOpenModal("schedule")}
             className={[
-              "h-10 rounded-md border border-gray-200 bg-white px-4",
-              "flex items-center justify-between text-sm",
-              "w-[120px]",
+              "w-[179px] h-[89px] rounded-[10px] border border-[#BFBFBF] bg-[#FFFFFF] px-[38px]",
+              "flex items-center justify-center text-[24px] font-semibold text-[#595959]",
             ].join(" ")}
           >
-            <span className={scheduleView.startTimeText ? "text-gray-900" : "text-gray-400"}>
-              {scheduleView.startTimeText && scheduleView.startTimeText.trim() !== ""
-                ? scheduleView.startTimeText
-                : "시작"}
+            <span className="whitespace-nowrap">
+              {scheduleView.startTimeText?.trim() ? scheduleView.startTimeText : "시작"}
             </span>
           </button>
 
-          <span className="px-1 text-gray-400">~</span>
+          <span className="py-[21px] text-[40px] font-bold text-[#000000]">~</span>
 
           {/* 종료 시간 */}
           <button
             type="button"
-            onClick={() => setOpenModal("schedule")}
             className={[
-              "h-10 rounded-md border border-gray-200 bg-white px-4",
-              "flex items-center justify-between text-sm",
-              "w-[120px]",
+              "w-[179px] h-[89px] rounded-[10px] border border-[#BFBFBF] bg-[#FFFFFF] px-[38px]",
+              "flex items-center justify-center text-[24px] font-semibold text-[#595959]",
             ].join(" ")}
           >
-            <span className={scheduleView.endTimeText ? "text-gray-900" : "text-gray-400"}>
-              {scheduleView.endTimeText && scheduleView.endTimeText.trim() !== ""
-                ? scheduleView.endTimeText
-                : "종료"}
+            <span className="whitespace-nowrap">
+              {scheduleView.endTimeText?.trim() ? scheduleView.endTimeText : "종료"}
             </span>
           </button>
         </div>
 
-        <div className="mt-3 flex items-center gap-2 text-sm text-gray-700">
+        {/* 종일 체크박스 */}
+        <div className="mt-3 flex items-center gap-[16px]">
           <input
             type="checkbox"
             checked={!!scheduleView.isAllDay}
-            onChange={() => setOpenModal("schedule")}
-            className="h-4 w-4"
+            onPointerDown={(e) => {
+              e.preventDefault(); // 기본 체크 토글 막고
+              const nextChecked = !scheduleView.isAllDay;
+
+              const start = schedule.startAt ? new Date(schedule.startAt) : new Date();
+              const end = schedule.endAt ? new Date(schedule.endAt) : new Date(start);
+
+              if (nextChecked) {
+                start.setHours(0, 0, 0, 0);
+                end.setHours(23, 59, 0, 0);
+              } else {
+                start.setHours(6, 0, 0, 0);
+                end.setHours(9, 0, 0, 0);
+              }
+
+              setSchedule({ startAt: start, endAt: end });
+            }}
+            onChange={() => { /* preventDefault 때문에 비워둬도 됨 */ }}
+            className="w-[38px] h-[38px] appearance-none rounded-[13.1px]
+              border-[3px] border-[#D9D9D9] bg-white cursor-pointer
+              checked:bg-[#F24148] checked:border-[#F24148]"
           />
-          <span>종일</span>
+
+          <span className="py-[7px] text-[20px] font-semibold text-[#000000]">종일</span>
         </div>
       </div>
 
       {/* 행사 위치 */}
-      <div className="mt-7">
-        <div className="h-[38px] mb-2 text-sm font-semibold text-gray-900">행사 위치</div>
+      <div className="mt-[70px]">
+        <div className="h-[38px] mb-[16px] font-bold text-[32px] text-[#1A1A1A]">행사 위치</div>
         <button
           type="button"
           onClick={() => setOpenModal("location")}
-          className="h-10 w-full rounded-md border border-gray-200 bg-white px-4 flex items-center justify-between text-sm"
+          className="w-[793px] h-[67px] rounded-[10px] border border-[#BFBFBF] bg-[#FFFFFF] px-[24px] py-[18px] flex items-center justify-between"
         >
-          <span className={locationView ? "text-gray-900" : "text-gray-400"}>
+          <span className={[
+            locationView ? "text-[#595959]" : "text-[#BFBFBF]",
+            "text-[24px] font-semibold"
+          ].join(" ")}>
             {locationView && locationView.trim() !== "" ? locationView : "주소를 입력하세요"}
           </span>
         </button>
       </div>
 
       {/* 남은 자리 */}
-      <div className="mt-7">
-        <div className="h-[38px] mb-2 text-sm font-semibold text-gray-900">남은 자리</div>
+      <div className="mt-[28px]">
+        <div className="h-[38px] mb-[16px] font-bold text-[32px] text-[#1A1A1A]">남은 자리</div>
         <button
           type="button"
           onClick={() => setOpenModal("seats")}
-          className="h-10 w-full rounded-md border border-gray-200 bg-white px-4 flex items-center justify-between text-sm"
+          className="w-[793px] h-[67px] rounded-[10px] border border-[#BFBFBF] bg-[#FFFFFF] px-[24px] flex items-center justify-between"
         >
-          <span className={capacityView ? "text-gray-900" : "text-gray-400"}>
+          <span className={[
+            capacityView ? "text-[#595959]" : "text-[#BFBFBF]",
+            "text-[24px] font-semibold"
+          ].join(" ")}>
             {capacityView && capacityView.trim() !== "" ? capacityView : "인원 수를 입력하세요"}
           </span>
         </button>
       </div>
 
       {/* 참여 가격 */}
-      <div className="mt-7">
-        <div className="h-[38px] mb-2 text-sm font-semibold text-gray-900">참여 가격</div>
+      <div className="mt-[28px]">
+        <div className="h-[38px] mb-2 font-bold text-[32px] text-[#1A1A1A]">참여 가격</div>
         <button
           type="button"
           onClick={() => setOpenModal("price")}
-          className="h-10 w-full rounded-md border border-gray-200 bg-white px-4 flex items-center justify-between text-sm"
+          className="w-[793px] h-[67px] rounded-[10px] border border-[#BFBFBF] bg-[#FFFFFF] px-[24px] flex items-center justify-between"
         >
-          <span className={priceView ? "text-gray-900" : "text-gray-400"}>
+          <span className={[
+             priceView ? "text-[#595959]" : "text-[#BFBFBF]",
+            "text-[24px] font-semibold"
+          ].join(" ")}>
             {priceView && priceView.trim() !== "" ? priceView : "가격을 입력하세요"}
           </span>
         </button>
       </div>
 
       {/* 외부인원 참여가능 */}
-      <div className="mt-7 flex items-center justify-between">
-        <div className="h-[38px] text-sm font-semibold text-gray-900 flex items-center">
+      <div className="mt-[70px] flex items-center justify-between">
+        <div className="h-[38px] font-bold text-[32px] text-[#1A1A1A] flex items-center">
           외부인원 참여가능
         </div>
 
-        <button
-          type="button"
-          onClick={() => setAllowExternal(!allowExternal)}
-          className={[
-            "relative inline-flex h-6 w-11 items-center rounded-full transition",
-            allowExternal ? "bg-gray-900" : "bg-gray-200",
-          ].join(" ")}
-          aria-pressed={allowExternal}
-        >
-          <span
-            className={[
-              "inline-block h-5 w-5 transform rounded-full bg-white transition",
-              allowExternal ? "translate-x-5" : "translate-x-1",
-            ].join(" ")}
-          />
-        </button>
+        <Toggle
+          checked={allowExternal}
+          onChange={setAllowExternal}
+        />
+
       </div>
 
       {/* 플레이리스트 */}
-      <div className="mt-6">
+      <div className="mt-[70px]">
         <button
           type="button"
-          className="h-9 px-4 rounded-md bg-blue-50 text-blue-600 text-sm inline-flex items-center gap-2"
+          className="w-[252px] h-[62px] px-[34px] rounded-[10px] bg-[#6F9FFE1A] text-[#6F9FFE] inline-flex items-center justify-center gap-[12px]"
           onClick={() => setOpenModal("playlist")}
         >
-          <span className="text-base leading-none">+</span>
-          플레이리스트 추가
+          <img src={play_circle} alt='play_circle_icon' className="w-[20px] h-[20px]"/>
+          <span className="text-[20px] font-semibold">플레이리스트 추가</span>
         </button>
       </div>
 
       {/* 소개글 */}
-      <div className="mt-4">
+      <div className="mt-[28px]">
         <textarea
           value={information}
           onChange={(e) => setInformation(e.target.value)}
-          className="w-full h-[220px] rounded-md border border-gray-200 bg-white p-4 text-sm outline-none resize-none"
+          className="w-full h-[321px] text-[24px] text-[#595959] font-semibold rounded-[10px] border border-[#BFBFBF] bg-[#FFFFFF] placeholder:text-[#BFBFBF] px-[24px] pt-[24px] pb-[18px] outline-none resize-none"
           placeholder="행사 소개글을 적어주세요."
         />
       </div>
@@ -327,63 +345,3 @@ export const LeftFormPanel = () => {
     </div>
   );
 };
-
-/* -------------------- formatting helpers -------------------- */
-
-function formatSchedule(schedule: any): {
-  dateText: string;
-  startTimeText: string;
-  endTimeText: string;
-  isAllDay: boolean;
-} {
-  const isAllDay = !!(schedule?.isAllDay ?? schedule?.allDay);
-
-  const rawDate =
-    schedule?.startDate ??
-    schedule?.date ??
-    schedule?.start?.date ??
-    schedule?.start;
-
-  const rawStartTime =
-    schedule?.startTime ??
-    schedule?.start?.time ??
-    schedule?.startAt ??
-    schedule?.start;
-
-  const rawEndTime =
-    schedule?.endTime ??
-    schedule?.end?.time ??
-    schedule?.endAt ??
-    schedule?.end;
-
-  const dateText = rawDate ? String(rawDate) : "";
-  const startTimeText = rawStartTime ? String(rawStartTime) : "";
-  const endTimeText = rawEndTime ? String(rawEndTime) : "";
-
-  return { dateText, startTimeText, endTimeText, isAllDay };
-}
-
-function formatLocation(location: any): string {
-  if (!location) return "";
-  const street = location.streetAddress ?? location.roadAddress ?? "";
-  const lot = location.lotNumber ?? "";
-  return street || lot ? String(street || lot) : String(location);
-}
-
-function formatCapacity(capacity: any): string {
-  if (capacity === null || capacity === undefined || capacity === "") return "";
-  if (typeof capacity === "number") return `${capacity} 명`;
-  if (typeof capacity === "object" && capacity?.count != null) return `${capacity.count} 명`;
-  return String(capacity);
-}
-
-function formatPrice(price: any): string {
-  if (price === null || price === undefined || price === "") return "";
-  if (typeof price === "number") return `${price.toLocaleString()} ₩`;
-  if (typeof price === "string") return price;
-  if (typeof price === "object" && price?.amount != null) {
-    const n = Number(price.amount);
-    return Number.isFinite(n) ? `${n.toLocaleString()} ₩` : String(price.amount);
-  }
-  return String(price);
-}
