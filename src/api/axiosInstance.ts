@@ -14,37 +14,40 @@ const axiosInstance: AxiosInstance = axios.create({
   headers: {
     "Content-Type": "application/json", // 서버한테 보낼 때 json 형식으로 보낸다고 알려줌
   },
-  // refreshToken이 쿠키
+  // ✅ refreshToken이 쿠키면 나중에 켜기
   // withCredentials: true,
 });
 
-// 요청 인터셉터
+// ✅ 요청 인터셉터: accessToken 있으면만 붙이기 (dummy 토큰 제거)
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // 토큰이 있으면 실제 토큰 사용, 없으면 더미 토큰 사용 (임시 조치)
-    const token = localStorage.getItem("token") || "dummy-token-for-dev"; // 임시 토큰 사용 (임시 조치)
-    if (config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const accessToken =
+      localStorage.getItem("accessToken") || "dummy-token-for-dev"; // 임시 토큰 사용 (임시 조치);
+
+    if (accessToken) {
+      config.headers = config.headers ?? {};
+      config.headers.Authorization = `Bearer ${accessToken}`;
+    } else {
+      // 토큰이 없으면 Authorization 자체를 보내지 않는 게 정상
+      if (config.headers?.Authorization) {
+        delete config.headers.Authorization;
+      }
     }
+
     return config;
   },
-  (error: AxiosError) => {
-    return Promise.reject(error);
-  }
+  (error: AxiosError) => Promise.reject(error),
 );
 
-// 응답 인터셉터
+// ✅ 응답 인터셉터: 401이면 accessToken 제거 (리다이렉트는 라우터/가드에서)
 axiosInstance.interceptors.response.use(
-  (response: AxiosResponse) => {
-    return response;
-  },
+  (response: AxiosResponse) => response,
   (error: AxiosError) => {
-    // 401 에러 시 토큰만 제거 (자동 리다이렉트 제거)
     if (error.response?.status === 401) {
-      localStorage.removeItem("token");
+      localStorage.removeItem("accessToken");
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default axiosInstance;

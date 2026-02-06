@@ -3,7 +3,7 @@ import {
   verifyEmailCode,
   signUp,
   login,
-} from "../../../api/auth_updated";
+} from "../../../api/auth";
 
 // ✅ 환경변수로 mock 모드 켜기
 const USE_MOCK = import.meta.env.VITE_USE_AUTH_MOCK === "true";
@@ -16,6 +16,8 @@ const mockDelay = (ms = 400) => new Promise((r) => setTimeout(r, ms));
 
 export type AuthMode = "login" | "signup";
 
+
+// 이메일 전송 -> 로그인 / 회원가입
 export async function sendEmailAndGetMode(email: string, turnstileToken: string): Promise<AuthMode> {
   if (USE_MOCK) {
     await mockDelay();
@@ -31,6 +33,8 @@ export async function sendEmailAndGetMode(email: string, turnstileToken: string)
   return isRegistered ? "login" : "signup";
 }
 
+
+// 인증 코드 검증
 export async function completeAuth(email: string, authcode: string, mode: AuthMode): Promise<string> {
   if (USE_MOCK) {
     await mockDelay();

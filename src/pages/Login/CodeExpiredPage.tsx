@@ -33,7 +33,7 @@ export default function CodeExpiredPage({ onConfirm }: Props) {
         type="button"
         className="
           mt-[28px]
-          w-full
+          w-[331px]
           h-[64px]
           rounded-[10px]
           bg-[#F24148]
@@ -43,7 +43,7 @@ export default function CodeExpiredPage({ onConfirm }: Props) {
         "
         onClick={onConfirm}
       >
-        <span className="w-[83px]">이해했습니다</span>
+        이해했습니다
       </button>
       </div>
     </div>

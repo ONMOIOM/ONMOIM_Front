@@ -1,31 +1,24 @@
-import { useState, useEffect, useMemo } from 'react';
-import EmailSendPage from './EmailSendPage';
-import CodeExpiredPage from './CodeExpiredPage';
-import { type Step } from './types/types';
-import { verifyEmailCode, signUp, login } from '../../api/auth_updated';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useMemo } from "react";
+import EmailSendPage from "./EmailSendPage";
+import CodeExpiredPage from "./CodeExpiredPage";
+import { type Step } from "./types/types";
+import { useNavigate } from "react-router-dom";
+// authFlow 사용
+import { completeAuth } from "./services/authFlow";
 // 에셋
-import onmoim_logo from '../../assets/icons/onmoim_logo.png';
-import Email from '../../assets/icons/Email.svg';
-import Success from '../../assets/icons/Success.svg';
-import Fail from '../../assets/icons/Fail.svg';
-
+import onmoim_logo from "../../assets/icons/onmoim_logo.png";
+import Email from "../../assets/icons/Email.svg";
+import Success from "../../assets/icons/Success.svg";
+import Fail from "../../assets/icons/Fail.svg";
 
 export default function Login() {
-  // 백엔드 없이 임시
-  const USE_MOCK = import.meta.env.VITE_USE_AUTH_MOCK === "true";
-
-
   const [email, setEmail] = useState("");
   const [authCode, setAuthCode] = useState("");
-  const [step, setStep] = useState<Step>("email");
-
-  // 인증 메일 전송 후 -> 로그인 / 회원가입
-  const [isRegistered, setIsRegistered] = useState<boolean | null>(null);
+  const [step, setStep] = useState<Step>("expired");
 
   const isValidEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  }
+  };
 
   const emailStatus = useMemo<"idle" | "invalid" | "valid">(() => {
     if (email.length === 0) return "idle";
@@ -35,11 +28,9 @@ export default function Login() {
   const canGoNext = emailStatus === "valid";
 
   const title = useMemo(() => {
-    if (step === "email") return "로그인 혹은 회원가입";
     if (step === "signup") return "회원가입";
     return "로그인";
   }, [step]);
-
 
   // === 재전송 쿨다운 === //
   const [resendCooldown, setResendCooldown] = useState(0); // 남은 초 (0이면 가능)
@@ -57,19 +48,19 @@ export default function Login() {
   const handleResend = () => {
     if (resendCooldown > 0) return;
 
-    // 재전송 ui 확인 위해서 밑 막음
+    // 재전송 ui 확인 위해서 밑 막음 (나중에 지울 것)
     setResendCooldown(30);
     if (true) return;
 
     // ✅ 여기서 실제 재발송 로직(= sending step 이동) 실행
     setAuthCode("");
     setErrorMsg(null);
-    setStep("sending");
 
     // ✅ 30초 쿨다운 시작
     setResendCooldown(30);
-  };
 
+    setStep("sending");
+  };
 
   // === 로그인/회원 가입 완료 버튼 클릭 === //
   const [submitting, setSubmitting] = useState(false);
@@ -77,11 +68,11 @@ export default function Login() {
 
   const navigate = useNavigate();
 
-  
   // 만료 판별 함수
   const isExpiredError = (e: any) => {
-    const code = e?.response?.data?.code;
-    const msg = e?.response?.data?.message ?? "";
+    const code = e?.response?.data?.code ?? e?.code; // mock 대비
+    const msg = e?.response?.data?.message ?? e.message ?? "";
+
     // ✅ 나중에 백엔드 code 확정되면 code 하나만 남기기
     return (
       code === "EMAIL_AUTH_CODE_EXPIRED" ||
@@ -91,72 +82,32 @@ export default function Login() {
     );
   };
 
-  // 완료 버튼 핸들러 함수
+  // 완료 버튼 핸들러 함수 (authFlow)
   const handleComplete = async () => {
     const code = authCode.trim();
     if (!code) return;
-
-    // ✅ MOCK 모드: 백엔드 없이도 로직 끝까지 테스트
-    if (USE_MOCK) {
-      setSubmitting(true);
-      setErrorMsg(null);
-
-      // 가짜 지연(UX/로딩 테스트용)
-      await new Promise((r) => setTimeout(r, 400));
-
-      // 만료 테스트
-      if (code === "000000") {
-        setSubmitting(false);
-        setStep("expired");
-        return;
-      }
-
-      // 실패 테스트
-      if (code === "111111") {
-        setSubmitting(false);
-        setErrorMsg("인증 코드가 올바르지 않습니다. (MOCK)");
-        return;
-      }
-
-      // 성공 테스트
-      localStorage.setItem("accessToken", "mock_access_token_123");
-      setSubmitting(false);
-      navigate("/", { replace: true });
-      return;
-    }
-
 
     setSubmitting(true);
     setErrorMsg(null);
 
     try {
-      // 1) 코드 검증
-      const v = await verifyEmailCode({ email, authcode: code });
-      if (!v.success) throw new Error(v.message ?? "인증 코드 검증 실패");
+      const mode: "login" | "signup" = step === "signup" ? "signup" : "login";
 
-      // 2) 회원가입이면 회원가입 먼저
-      if (step === "signup") {
-        const s = await signUp({ email, authcode: code });
-        if (!s.success) throw new Error(s.message ?? "회원가입 실패");
-      }
+      const accessToken = await completeAuth(email, code, mode);
 
-      // 3) 로그인(토큰 받기)
-      const l = await login({ email, authcode: code });
-      if (!l.success || !l.data?.accessToken) {
-        throw new Error(l.message ?? "로그인 실패(토큰 없음)");
-      }
+      // 토큰 저장
+      localStorage.setItem("accessToken", accessToken);
 
-      // 4) 토큰 저장
-      localStorage.setItem("accessToken", l.data.accessToken);
-
-      // 5) 메인 화면 이동
+      // 메인 화면 이동
       navigate("/", { replace: true });
     } catch (e: any) {
       if (isExpiredError(e)) {
         setStep("expired");
         return;
       }
-      setErrorMsg(e?.response?.data?.message ?? e?.message ?? "처리에 실패했어.");
+      setErrorMsg(
+        e?.response?.data?.message ?? e?.message ?? "처리에 실패했어.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -177,18 +128,23 @@ export default function Login() {
       {/* 카드 */}
       <section
         className={[
-          "w-[512px] min-h-[511px] rounded-[35.654px] shadow-[24px_24px_30px_0_rgba(0,0,0,0.25)] flex items-center justify-center"
-        , (step === "expired" || step === "sending") ? "bg-[#F7F7F8]" : "bg-[#FFF]"
-      ].join(" ")}
+          "w-[512px] min-h-[511px] rounded-[35.654px] shadow-[24px_24px_30px_0_rgba(0,0,0,0.25)] flex items-center justify-center",
+          step === "expired" || step === "sending"
+            ? "bg-[#F7F7F8]"
+            : "bg-[#FFF]",
+        ].join(" ")}
       >
         {/* 1. 로그인 페이지 */}
         <div className="w-full max-w-[372px]">
-
           {/* 이메일 입력 */}
           {step === "email" && (
             <div className="pt-[118px]">
               <div className="flex justify-center mb-[24px]">
-                <img src={onmoim_logo} alt="ONMOIM" className="h-[69px] w-auto" />
+                <img
+                  src={onmoim_logo}
+                  alt="ONMOIM"
+                  className="h-[69px] w-auto"
+                />
               </div>
               <div className="text-[16px] font-medium text-[#1A1A1A] mb-[7px]">
                 이메일
@@ -196,7 +152,11 @@ export default function Login() {
 
               <div className="relative">
                 <span className="absolute left-[16px] top-1/2 -translate-y-1/2 text-[#BFBFBF]">
-                  <img src={Email} alt='email_icon' className="w-[18px] h-[18px]"/>
+                  <img
+                    src={Email}
+                    alt="email_icon"
+                    className="w-[18px] h-[18px]"
+                  />
                 </span>
                 <input
                   className="w-full h-[54px] rounded-[10px] border border-[#BFBFBF] bg-[#FFF] pl-[41px] text-[16px] font-medium text-[#1A1A1A] outline-none placeholder:text-[#BFBFBF] focus:border-gray-400"
@@ -216,13 +176,25 @@ export default function Login() {
                 <span className="inline-flex w-[16px] h-[16px] items-center justify-center">
                   <img
                     src={emailStatus === "valid" ? Success : Fail} // ⬅️ invalid용 아이콘 추가
-                    alt={emailStatus === "valid" ? "올바른 이메일 양식" : "올바르지 않은 이메일 양식"}
+                    alt={
+                      emailStatus === "valid"
+                        ? "올바른 이메일 양식"
+                        : "올바르지 않은 이메일 양식"
+                    }
                     className="w-[16px] h-[16px]"
                   />
                 </span>
 
-                <p className={emailStatus === "valid" ? "text-[#47B781]" : "text-[#FF8173]"}>
-                  {emailStatus === "valid" ? "올바른 이메일 양식" : "올바르지 않은 이메일 양식"}
+                <p
+                  className={
+                    emailStatus === "valid"
+                      ? "text-[#47B781]"
+                      : "text-[#FF8173]"
+                  }
+                >
+                  {emailStatus === "valid"
+                    ? "올바른 이메일 양식"
+                    : "올바르지 않은 이메일 양식"}
                 </p>
               </div>
 
@@ -244,25 +216,24 @@ export default function Login() {
             <EmailSendPage
               email={email}
               onClose={() => setStep("email")}
-              onResult={(registered) => {
-                setIsRegistered(registered);
-                setStep(registered ? "login" : "signup");
+              onResult={(mode) => {
+                setStep(mode);
               }}
             />
           )}
 
-          {/* 1.2.1 오래된 코드*/} 
+          {/* 1.2.1 오래된 코드*/}
           {step === "expired" && (
-              <CodeExpiredPage
-                onConfirm={() => {
-                  setEmail("");
-                  setAuthCode("");
-                  setIsRegistered(null);
-                  setStep("email");
-                }}
+            <CodeExpiredPage
+              onConfirm={() => {
+                setEmail("");
+                setAuthCode("");
+                setErrorMsg(null);
+                setResendCooldown(0);
+                setStep("email");
+              }}
             />
           )}
-
 
           {/* 1-2. 인증 코드 입력 (회원가입 / 로그인) */}
           {(step === "signup" || step === "login") && (
@@ -277,7 +248,11 @@ export default function Login() {
 
               <div className="relative">
                 <span className="absolute left-[16px] top-1/2 -translate-y-1/2 text-[#BFBFBF]">
-                  <img src={Email} alt='email_icon' className="w-[18px] h-[18px]"/>
+                  <img
+                    src={Email}
+                    alt="email_icon"
+                    className="w-[18px] h-[18px]"
+                  />
                 </span>
                 <input
                   className="w-full h-[54px] rounded-[10px] border border-[#BFBFBF] bg-[#FFF] pl-[41px] text-[16px] font-medium text-[#1A1A1A] outline-none placeholder:text-[#BFBFBF] focus:border-gray-400"
@@ -296,14 +271,26 @@ export default function Login() {
               >
                 <span className="inline-flex w-[16px] h-[16px] items-center justify-center">
                   <img
-                    src={emailStatus === "valid" ? Success : Fail} 
-                    alt={emailStatus === "valid" ? "올바른 이메일 양식" : "올바르지 않은 이메일 양식"}
+                    src={emailStatus === "valid" ? Success : Fail}
+                    alt={
+                      emailStatus === "valid"
+                        ? "올바른 이메일 양식"
+                        : "올바르지 않은 이메일 양식"
+                    }
                     className="w-[16px] h-[16px]"
                   />
                 </span>
 
-                <p className={emailStatus === "valid" ? "text-[#47B781]" : "text-[#FF8173]"}>
-                  {emailStatus === "valid" ? "올바른 이메일 양식" : "올바르지 않은 이메일 양식"}
+                <p
+                  className={
+                    emailStatus === "valid"
+                      ? "text-[#47B781]"
+                      : "text-[#FF8173]"
+                  }
+                >
+                  {emailStatus === "valid"
+                    ? "올바른 이메일 양식"
+                    : "올바르지 않은 이메일 양식"}
                 </p>
               </div>
 
@@ -316,7 +303,9 @@ export default function Login() {
 
               {/* 재발송 링크 */}
               <div className="flex items-center pl-[16px] gap-[6px] text-[12px] font-medium">
-                <span className="text-[#919191]">인증번호를 받지 못하셨나요?</span>
+                <span className="text-[#919191]">
+                  인증번호를 받지 못하셨나요?
+                </span>
                 {resendCooldown === 0 ? (
                   <button
                     type="button"
@@ -334,27 +323,6 @@ export default function Login() {
 
               {errorMsg && <p className="text-sm text-red-600">{errorMsg}</p>}
 
-              {/* 회원가입 시, '동의합니다' 버튼 없음 */}
-              {/*
-              <button
-                type="button"
-                className={[
-                  "w-full h-[52px] rounded-[10px] border border-gray-300 bg-white text-[14px] font-semibold",
-                  submitting
-                    ? "text-gray-400 cursor-not-allowed"
-                    : "text-gray-900 hover:bg-gray-50 active:bg-gray-100",
-                ].join(" ")}
-                onClick={handleComplete}
-                disabled={submitting}
-              >
-                {submitting
-                  ? "처리 중..."
-                  : step === "signup"
-                  ? "동의합니다"
-                  : "로그인하기"}
-              </button>
-              */}
-
               {/* 회원가입 ui */}
               {step === "signup" && (
                 <div className="mt-[110px] mb-[88px]">
@@ -364,16 +332,31 @@ export default function Login() {
                     <span className="font-medium text-[#5C92FF]">ONMOIM</span>
                     으로부터 이벤트 알람 이메일을 수신하는 데 동의합니다.
                     <br />
-                    이메일 빈도는 일정하지 않으며 데이터 전송 속도가 적용될 수 있습니다.
+                    이메일 빈도는 일정하지 않으며 데이터 전송 속도가 적용될 수
+                    있습니다.
                     <br />
-                    도움이 필요하실 경우 lixx17@naver.com으로 연락주시면 빠르게 도움
-                    드리겠습니다.
+                    도움이 필요하실 경우 lixx17@naver.com으로 연락주시면 빠르게
+                    도움 드리겠습니다.
                   </p>
+
+                  {/* 회원가입 버튼 */}
+                  <div className="mt-[22px]">
+                    <button
+                      type="button"
+                      className={
+                        "w-full h-[64px] px-[74px] rounded-[10px] bg-[#F24148] text-[#FFFFFF] text-[16px] font-medium"
+                      }
+                      onClick={handleComplete}
+                      disabled={submitting}
+                    >
+                      {submitting ? "처리 중..." : "동의합니다"}
+                    </button>
+                  </div>
                 </div>
               )}
 
               {/* 로그인 ui */}
-              { step === "login" &&
+              {step === "login" && (
                 <div className="mt-[22px] pb-[93px]">
                   <button
                     type="button"
@@ -381,12 +364,12 @@ export default function Login() {
                       "w-full h-[64px] px-[74px] rounded-[10px] bg-[#F24148] text-[#FFFFFF] text-[16px] font-medium"
                     }
                     disabled={!canGoNext}
-                    onClick={() => setStep("sending")}
+                    onClick={handleComplete}
                   >
                     로그인하기
                   </button>
                 </div>
-              }
+              )}
             </div>
           )}
         </div>

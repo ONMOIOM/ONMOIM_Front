@@ -1,59 +1,48 @@
 // 백엔드 없이 로직 검증 위해서 
-
 import { useState } from "react";
 import Turnstile from "react-turnstile";
-import { sendVerificationEmail } from "../../api/auth_updated";
+// authFlow
+import { sendEmailAndGetMode } from "./services/authFlow";
 
 type Props = {
   email: string;
-  onResult: (isRegistered: boolean) => void;
+  onResult: (mode: "login" | "signup") => void;
   onClose: () => void;
 };
 
 export default function EmailSendPage({ email, onResult, onClose }: Props) {
   const sitekey = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
 
-  // ✅ 백엔드 없이 로직 테스트하려면 .env에 VITE_USE_AUTH_MOCK=true
-  const USE_MOCK = import.meta.env.VITE_USE_AUTH_MOCK === "true";
 
   const [token, setToken] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
-  // ✅ Mock 규칙(테스트용): 이메일에 "new" 포함이면 신규회원(signup), 아니면 기존회원(login)
-  const mockIsRegistered = (emailAddr: string) => !emailAddr.includes("new");
+  const canSend = !!email.trim() && !!sitekey && !!token && !loading;
 
   const sendMail = async () => {
-    // 0) Mock 모드면 서버 없이도 바로 분기 가능
-    if (USE_MOCK) {
-      const registered = mockIsRegistered(email);
-      console.log("[EmailSendPage][MOCK] isRegistered =", registered);
-      onResult(registered);
+    if (!email.trim()) {
+      alert("이메일을 입력해주세요.");
+      return;
+    } 
+
+    if (!sitekey) {
+      alert("Turnstile site key가 설정되지 않았습니다. (.env 확인)");
       return;
     }
 
-    // 1) sitekey가 있을 때는 Turnstile 인증이 먼저 필요
-    if (sitekey && !token) {
+    if (!token) {
       alert("보안 확인을 먼저 완료해주세요.");
       return;
     }
 
     setLoading(true);
     try {
+      // 실제 turnstileToken 필요
       const turnstileToken = sitekey ? token : "mock_token";
-      console.log("[EmailSendPage] sendMail called", { email, turnstileToken });
+      
+      const mode = await sendEmailAndGetMode(email, turnstileToken);
 
-      const res = await sendVerificationEmail({ email, turnstileToken });
-      console.log("[EmailSendPage] sendVerificationEmail res", res);
-
-      if (!res.success || !res.data) {
-        throw new Error(res.message ?? "인증 메일 발송 실패");
-      }
-
-      // ✅ isRegistered가 없으면 분기가 깨지니까 안전장치
-      const registered = Boolean(res.data.isRegistered);
-      console.log("[EmailSendPage] calling onResult", registered);
-
-      onResult(registered);
+      onResult(mode);
     } catch (err) {
       console.log("[EmailSendPage] sendMail error", err);
       alert("인증 메일 발송에 실패했습니다.");
@@ -64,7 +53,6 @@ export default function EmailSendPage({ email, onResult, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      {/* 오버레이 */}
       <button
         className="absolute inset-0 bg-black/0"
         onClick={onClose}
@@ -73,14 +61,11 @@ export default function EmailSendPage({ email, onResult, onClose }: Props) {
 
       {/* 카드 */}
       <div className="relative bg-[#F7F7F8] w-[372px] h-[511px] rounded-[40px] flex flex-col text-center">
-        {/* 내부 컨텐츠 폭 */}
         <div className="w-full max-w-[372px] flex flex-col items-center text-center">
-          {/* 타이틀 */}
           <h2 className="mt-[102.71px] text-[32px] font-bold text-[#1A1A1A]">
             인증 이메일 전송
           </h2>
 
-          {/* 설명 */}
           <p className="mt-[14px] text-[12px] font-medium text-[#595959]">
             원활한 환경을 제공하기 위해 인증을 진행해주세요.
           </p>
@@ -96,7 +81,14 @@ export default function EmailSendPage({ email, onResult, onClose }: Props) {
                     console.log("[EmailSendPage] turnstile success", t);
                     setToken(t);
                   }}
-                  onError={() => alert("보안 인증에 실패했습니다.")}
+                  onError={() => {
+                    setToken("");
+                    alert("보안 인증에 실패했습니다.");
+                  }}
+                  onExpire={() => {
+                    setToken("");
+                    alert("보안 인증이 만료됐어요. 다시 진행해주세요.");
+                  }}
                 />
               ) : (
                 // sitekey 없을 때도 동일한 높이로 "자리"만 유지 (스샷 느낌)
@@ -120,7 +112,7 @@ export default function EmailSendPage({ email, onResult, onClose }: Props) {
               font-semibold
             "
             onClick={sendMail}
-            disabled={loading}
+            disabled={!canSend}
           >
             {loading ? "발송 중..." : "인증 이메일 받기"}
           </button>
