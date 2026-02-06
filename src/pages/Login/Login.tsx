@@ -18,7 +18,7 @@ export default function Login() {
 
   const [email, setEmail] = useState("");
   const [authCode, setAuthCode] = useState("");
-  const [step, setStep] = useState<Step>("sending");
+  const [step, setStep] = useState<Step>("email");
 
   // 인증 메일 전송 후 -> 로그인 / 회원가입
   const [isRegistered, setIsRegistered] = useState<boolean | null>(null);

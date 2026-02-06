@@ -27,7 +27,7 @@ const ProfileMenu = ({
     <div
       id="profile-menu"
       role="menu"
-      className="absolute right-0 mt-4 flex h-[413px] w-[410.61px] flex-col rounded-[15.92px] bg-white shadow-[0_10px_30px_rgba(0,0,0,0.12)]"
+      className="absolute right-0 z-50 mt-4 flex h-[413px] w-[410.61px] flex-col rounded-[15.92px] bg-white shadow-[0_10px_30px_rgba(0,0,0,0.12)]"
     >
       <button
         type="button"

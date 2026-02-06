@@ -38,7 +38,7 @@ const NavBar = () => {
 
   return (
     <header
-      className="w-full h-[133.5px] flex items-center justify-between bg-gradient-to-t from-red-50 to-red-400 pl-[46px] pr-[46px]"
+      className="relative z-20 w-full h-[133.5px] flex items-center justify-between bg-gradient-to-t from-red-50 to-red-400 pl-[46px] pr-[46px]"
       role="banner"
     >
       <button

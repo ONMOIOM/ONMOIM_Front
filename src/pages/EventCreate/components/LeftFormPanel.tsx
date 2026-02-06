@@ -7,11 +7,16 @@ import { PlaylistModal } from "../modals/PlaylistModal";
 import { type ModalKey } from "../types/types";
 import { FONTTYPE_CLASS, FONTTYPE_ITEMS } from "../types/types";
 import { useEventDraftStore } from "../store/useEventDraftStore";
-import { formatScheduleView, formatLocation, formatCapacity, formatPrice } from "../utils/formatters";
-import { Toggle } from './Toggle';
+import {
+  formatScheduleView,
+  formatLocation,
+  formatCapacity,
+  formatPrice,
+} from "../utils/formatters";
+import { Toggle } from "./Toggle";
 // 에셋
-import check from '../../../assets/icons/check.svg';
-import play_circle from '../../../assets/icons/play_circle.svg';
+import check from "../../../assets/icons/check.svg";
+import play_circle from "../../../assets/icons/play_circle.svg";
 
 export const LeftFormPanel = () => {
   const [openModal, setOpenModal] = useState<ModalKey>(null);
@@ -49,11 +54,19 @@ export const LeftFormPanel = () => {
   const savePlaylist = useEventDraftStore((s) => s.savePlaylist);
 
   // ----- status (optional) -----
-  const scheduleSaving = useEventDraftStore((s) => s.scheduleStatus === "saving");
-  const locationSaving = useEventDraftStore((s) => s.locationStatus === "saving");
-  const capacitySaving = useEventDraftStore((s) => s.capacityStatus === "saving");
+  const scheduleSaving = useEventDraftStore(
+    (s) => s.scheduleStatus === "saving",
+  );
+  const locationSaving = useEventDraftStore(
+    (s) => s.locationStatus === "saving",
+  );
+  const capacitySaving = useEventDraftStore(
+    (s) => s.capacityStatus === "saving",
+  );
   const priceSaving = useEventDraftStore((s) => s.priceStatus === "saving");
-  const playlistSaving = useEventDraftStore((s) => s.playlistStatus === "saving");
+  const playlistSaving = useEventDraftStore(
+    (s) => s.playlistStatus === "saving",
+  );
 
   // ---------- 화면 표시용 포맷 ----------
   const scheduleView = formatScheduleView(schedule);
@@ -64,11 +77,13 @@ export const LeftFormPanel = () => {
   return (
     <div className="w-full mt-[138px]">
       {/* 제목 */}
-      <div className="mb-[16px] h-[38px] w-[56px] text-[32px] font-bold text-[#1A1A1A]">제목</div>
+      <div className="mb-[16px] h-[38px] w-fit text-[32px] font-bold text-[#1A1A1A]">
+        제목
+      </div>
       <input
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        placeholder="행사 제목을 입력하세요"
+        placeholder="행사 제목을 입력하세요!"
         className={[
           "w-full h-[67px] text-[24px] text-[#595959] rounded-[10px] border border-[#BFBFBF] focus:border-[#595959] bg-[#FFFFFF] px-[24px] py-[18px] outline-none",
           FONTTYPE_CLASS[fontType],
@@ -77,7 +92,9 @@ export const LeftFormPanel = () => {
 
       {/* 서체 */}
       <div className="mt-[70px]">
-        <div className="mb-[16px] w-full h-[38px] items-center font-semibold text-[32px] text-[#1A1A1A]">서체</div>
+        <div className="mb-[16px] w-full h-[38px] items-center font-semibold text-[32px] text-[#1A1A1A]">
+          서체
+        </div>
         <div className="flex gap-[20px]">
           {FONTTYPE_ITEMS.map((t) => {
             const selected = fontType === t.key;
@@ -95,7 +112,11 @@ export const LeftFormPanel = () => {
                 ].join(" ")}
               >
                 {selected && (
-                  <img src={check} alt='check_icon' className="w-[29px] h-[29px]"/>
+                  <img
+                    src={check}
+                    alt="check_icon"
+                    className="w-[29px] h-[29px]"
+                  />
                 )}
                 {t.label}
               </button>
@@ -106,7 +127,9 @@ export const LeftFormPanel = () => {
 
       {/* 날짜/시간 */}
       <div className="mt-[75px]">
-        <div className="mb-[16px] h-[38px] font-bold text-[32px] text-[#1A1A1A]">날짜 시간</div>
+        <div className="mb-[16px] h-[38px] font-bold text-[32px] text-[#1A1A1A]">
+          날짜 시간
+        </div>
 
         <div className="flex items-center gap-[20px]">
           {/* 날짜 */}
@@ -119,15 +142,21 @@ export const LeftFormPanel = () => {
             ].join(" ")}
           >
             <span>
-              {scheduleView.dateText?.trim() ? scheduleView.dateText : "날짜 선택"}
+              {scheduleView.dateText?.trim()
+                ? scheduleView.dateText
+                : "날짜 선택"}
             </span>
 
             <span className="whitespace-nowrap">
-              {scheduleView.startTimeText?.trim() ? scheduleView.startTimeText : "시작"}
+              {scheduleView.startTimeText?.trim()
+                ? scheduleView.startTimeText
+                : "시작"}
             </span>
           </button>
 
-          <span className="py-[21px] text-[40px] font-bold text-[#000000]">~</span>
+          <span className="py-[21px] text-[40px] font-bold text-[#000000]">
+            ~
+          </span>
 
           <button
             type="button"
@@ -138,15 +167,18 @@ export const LeftFormPanel = () => {
             ].join(" ")}
           >
             <span>
-              {scheduleView.dateText?.trim() ? scheduleView.dateText : "날짜 선택"}
+              {scheduleView.dateText?.trim()
+                ? scheduleView.dateText
+                : "날짜 선택"}
             </span>
 
             <span className="whitespace-nowrap">
-              {scheduleView.endTimeText?.trim() ? scheduleView.endTimeText : "종료"}
+              {scheduleView.endTimeText?.trim()
+                ? scheduleView.endTimeText
+                : "종료"}
             </span>
           </button>
         </div>
-
 
         {/* 종일 체크박스 */}
         <div className="mt-3 flex items-center gap-[16px]">
@@ -157,8 +189,12 @@ export const LeftFormPanel = () => {
               e.preventDefault(); // 기본 체크 토글 막고
               const nextChecked = !scheduleView.isAllDay;
 
-              const start = schedule.startAt ? new Date(schedule.startAt) : new Date();
-              const end = schedule.endAt ? new Date(schedule.endAt) : new Date(start);
+              const start = schedule.startAt
+                ? new Date(schedule.startAt)
+                : new Date();
+              const end = schedule.endAt
+                ? new Date(schedule.endAt)
+                : new Date(start);
 
               if (nextChecked) {
                 start.setHours(0, 0, 0, 0);
@@ -170,63 +206,85 @@ export const LeftFormPanel = () => {
 
               setSchedule({ startAt: start, endAt: end });
             }}
-            onChange={() => { /* preventDefault 때문에 비워둬도 됨 */ }}
+            onChange={() => {
+              /* preventDefault 때문에 비워둬도 됨 */
+            }}
             className="w-[38px] h-[38px] appearance-none rounded-[13.1px]
               border-[3px] border-[#D9D9D9] bg-white cursor-pointer
               checked:bg-[#F24148] checked:border-[#F24148]"
           />
 
-          <span className="py-[7px] text-[20px] font-semibold text-[#000000]">종일</span>
+          <span className="py-[7px] text-[20px] font-semibold text-[#000000]">
+            종일
+          </span>
         </div>
       </div>
 
       {/* 행사 위치 */}
       <div className="mt-[70px]">
-        <div className="h-[38px] mb-[16px] font-bold text-[32px] text-[#1A1A1A]">행사 위치</div>
+        <div className="h-[38px] mb-[16px] font-bold text-[32px] text-[#1A1A1A]">
+          행사 위치
+        </div>
         <button
           type="button"
           onClick={() => setOpenModal("location")}
           className="w-[793px] h-[67px] rounded-[10px] border border-[#BFBFBF] bg-[#FFFFFF] px-[24px] py-[18px] flex items-center justify-between"
         >
-          <span className={[
-            locationView ? "text-[#595959]" : "text-[#BFBFBF]",
-            "text-[24px] font-semibold"
-          ].join(" ")}>
-            {locationView && locationView.trim() !== "" ? locationView : "주소를 입력하세요"}
+          <span
+            className={[
+              locationView ? "text-[#595959]" : "text-[#BFBFBF]",
+              "text-[24px] font-semibold",
+            ].join(" ")}
+          >
+            {locationView && locationView.trim() !== ""
+              ? locationView
+              : "주소를 입력하세요"}
           </span>
         </button>
       </div>
 
       {/* 남은 자리 */}
       <div className="mt-[28px]">
-        <div className="h-[38px] mb-[16px] font-bold text-[32px] text-[#1A1A1A]">남은 자리</div>
+        <div className="h-[38px] mb-[16px] font-bold text-[32px] text-[#1A1A1A]">
+          남은 자리
+        </div>
         <button
           type="button"
           onClick={() => setOpenModal("seats")}
           className="w-[793px] h-[67px] rounded-[10px] border border-[#BFBFBF] bg-[#FFFFFF] px-[24px] flex items-center justify-between"
         >
-          <span className={[
-            capacityView ? "text-[#595959]" : "text-[#BFBFBF]",
-            "text-[24px] font-semibold"
-          ].join(" ")}>
-            {capacityView && capacityView.trim() !== "" ? capacityView : "인원 수를 입력하세요"}
+          <span
+            className={[
+              capacityView ? "text-[#595959]" : "text-[#BFBFBF]",
+              "text-[24px] font-semibold",
+            ].join(" ")}
+          >
+            {capacityView && capacityView.trim() !== ""
+              ? capacityView
+              : "인원 수를 입력하세요"}
           </span>
         </button>
       </div>
 
       {/* 참여 가격 */}
       <div className="mt-[28px]">
-        <div className="h-[38px] mb-2 font-bold text-[32px] text-[#1A1A1A]">참여 가격</div>
+        <div className="h-[38px] mb-2 font-bold text-[32px] text-[#1A1A1A]">
+          참여 가격
+        </div>
         <button
           type="button"
           onClick={() => setOpenModal("price")}
           className="w-[793px] h-[67px] rounded-[10px] border border-[#BFBFBF] bg-[#FFFFFF] px-[24px] flex items-center justify-between"
         >
-          <span className={[
-             priceView ? "text-[#595959]" : "text-[#BFBFBF]",
-            "text-[24px] font-semibold"
-          ].join(" ")}>
-            {priceView && priceView.trim() !== "" ? priceView : "가격을 입력하세요"}
+          <span
+            className={[
+              priceView ? "text-[#595959]" : "text-[#BFBFBF]",
+              "text-[24px] font-semibold",
+            ].join(" ")}
+          >
+            {priceView && priceView.trim() !== ""
+              ? priceView
+              : "가격을 입력하세요"}
           </span>
         </button>
       </div>
@@ -237,11 +295,7 @@ export const LeftFormPanel = () => {
           외부인원 참여가능
         </div>
 
-        <Toggle
-          checked={allowExternal}
-          onChange={setAllowExternal}
-        />
-
+        <Toggle checked={allowExternal} onChange={setAllowExternal} />
       </div>
 
       {/* 플레이리스트 */}
@@ -251,7 +305,11 @@ export const LeftFormPanel = () => {
           className="w-[252px] h-[62px] px-[34px] rounded-[10px] bg-[#6F9FFE1A] text-[#6F9FFE] inline-flex items-center justify-center gap-[12px]"
           onClick={() => setOpenModal("playlist")}
         >
-          <img src={play_circle} alt='play_circle_icon' className="w-[20px] h-[20px]"/>
+          <img
+            src={play_circle}
+            alt="play_circle_icon"
+            className="w-[20px] h-[20px]"
+          />
           <span className="text-[20px] font-semibold">플레이리스트 추가</span>
         </button>
       </div>
