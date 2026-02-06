@@ -1,21 +1,40 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logoSrc from "../../assets/icons/onmoim logo_big.svg";
 import notificationsSrc from "../../assets/icons/notifications.svg";
 import profileSrc from "../../assets/icons/profile.svg";
+import useProfile from "../../hooks/useProfile";
 import AlarmModal from "./AlarmModal";
+import ProfileMenu from "./ProfileMenu";
 
 const NavBar = () => {
   const navigate = useNavigate();
   const alarmButtonRef = useRef<HTMLButtonElement>(null);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
   const [isAlarmOpen, setIsAlarmOpen] = useState(false);
   const [alarmModalTop, setAlarmModalTop] = useState(0);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const { profile } = useProfile();
+  const profileImageUrl = profile?.imageUrl || profileSrc;
+  const profileName = profile?.nickname || "윤수호";
 
   const openAlarmModal = () => {
     const rect = alarmButtonRef.current?.getBoundingClientRect();
     if (rect) setAlarmModalTop(rect.bottom + 20);
     setIsAlarmOpen(true);
   };
+
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (!profileMenuRef.current) return;
+      if (!profileMenuRef.current.contains(event.target as Node)) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
 
   return (
     <header
@@ -51,13 +70,28 @@ const NavBar = () => {
         >
           <img src={notificationsSrc} alt="" className="h-[28px] w-auto" />
         </button>
-        <button
-          type="button"
-          className="h-10 w-10 shrink-0 overflow-hidden rounded-full"
-          aria-label="프로필"
-        >
-          <img src={profileSrc} alt="" className="h-full w-full object-cover" />
-        </button>
+        <div className="relative" ref={profileMenuRef}>
+          <button
+            type="button"
+            className="h-10 w-10 shrink-0 overflow-hidden rounded-full"
+            aria-label="프로필"
+            aria-haspopup="true"
+            aria-expanded={isProfileMenuOpen}
+            aria-controls="profile-menu"
+            onClick={() => setIsProfileMenuOpen((prev) => !prev)}
+          >
+            <img
+              src={profileImageUrl}
+              alt=""
+              className="h-full w-full object-cover"
+            />
+          </button>
+          <ProfileMenu
+            isOpen={isProfileMenuOpen}
+            profileImageSrc={profileImageUrl}
+            profileName={profileName}
+          />
+        </div>
       </div>
       <AlarmModal
         isOpen={isAlarmOpen}

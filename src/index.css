@@ -126,24 +126,17 @@
   --color-stone-700: #444038;
   --color-stone-800: #292524;
 
-  /* Typography */
-  --font-size-h1: 13px;
-  --font-size-h2: 16px;
-  --font-size-h3: 19px;
-  --font-size-h4: 21px;
-  --font-size-h5: 27px;
-  --font-size-h6: 32px;
-  --font-size-h7: 43px;
-  --font-size-caption-10pt: 13px;
-}
+  /* Figma Foundation - Typography H1-H7 (피드백 이후) */
+  --font-size-h1: 12px; /* 10pt */
+  --font-size-h2: 14px; /* 12pt */
+  --font-size-h3: 17px; /* 14pt */
+  --font-size-h4: 19px; /* 16pt */
+  --font-size-h5: 24px; /* 20pt - Bold */
+  --font-size-h6: 29px; /* 24pt - Bold */
+  --font-size-h7: 38px; /* 32pt - Bold */
 
-/* Pretendard JP Variable 폰트 설정 */
-@font-face {
-  font-family: "Pretendard JP";
-  src: url("/fonts/PretendardJPVariable.ttf") format("truetype");
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
+  /* Figma Foundation - Caption 10pt Light (추가 제안) */
+  --font-size-caption-10pt: 13px; /* 10pt - Light */
 }
 
 /* 이사만루(esamanru) - Figma 메인 환영 문구용 */
