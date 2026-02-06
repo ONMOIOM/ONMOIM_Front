@@ -1,7 +1,8 @@
-// 날짜 포맷팅 유틸리티 함수
+// === 날짜 포맷팅 유틸리티 함수 === //
+// 서버 저장용
 export const formatDate = (
   date: Date | string,
-  format: string = "YYYY-MM-DD"
+  format: string = "YYYY-MM-DD",
 ): string => {
   const d = new Date(date);
   const year = d.getFullYear();
