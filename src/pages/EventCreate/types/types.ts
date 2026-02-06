@@ -73,7 +73,7 @@ export type LeftFormPanelProps = {
 };
 
 // LeftFormPanel에서 쓰는 모달 타입
-export type ModalKey = "schedule" | "location" | "seats" | "price" | "playlist" | null;
+export type ModalKey = "schedule" | "location" | "seats" | "price" | "playlist" | "participants" | null;
 
 
 // ActionPanel 인자 타입

@@ -11,6 +11,8 @@ import User from "../../assets/icons/User.svg";
 import Music from "../../assets/icons/Music.svg";
 import add from "../../assets/icons/add.svg";
 import participant_icon from "../../assets/icons/participant_icon.svg";
+import { ModalKey } from "./types/types";
+import { ParticipantsModal } from './modals/ParticipantsModal';
 
 function formatDateRange(data: DraftData) {
   const s1 = data.schedule?.startAt ?? null;
@@ -76,6 +78,9 @@ export default function EventPreview() {
     []
   );
 
+  const [openModal, setOpenModal] = useState<ModalKey>(null);
+  const close = () => setOpenModal(null);
+
   const dateRange = formatDateRange(data);
 
   return (
@@ -83,10 +88,7 @@ export default function EventPreview() {
       left={
         // ✅ Layout이 left 폭을 w-[793px]로 잡아주니까, 여기서는 w-full로 쓰면 됨
         <section className="w-full mt-[192px] ml-[161px]">
-          <div 
-            className="text-[42px] text-[#1A1A1A]"
-            style={{ fontFamily: "esamanru" }}
-          >
+          <div className="text-[42px] text-[#1A1A1A]">
             {data.title || "행사 제목"}
           </div>
 
@@ -136,10 +138,13 @@ export default function EventPreview() {
                   <img src={participant_icon} alt="participant_icon" className="w-[52px] h-[52px]"/>
                 ))}
               </div>
-              <button className="
+              <button 
+                className="
                 ml-[12px]
                 flex items-center w-[118px] h-[44px] rounded-[20px]
-                bg-[#F7F7F8] border border-[#919191] px-[18px]">
+                bg-[#F7F7F8] border border-[#919191] px-[18px]"
+                onClick={() => setOpenModal("participants")}
+              >
                 <img src={add} alt="add_icon" className="w-[24px] h-[24px]"/>
                 <span className="text-[16px] text-[#919191]">모두보기</span>
               </button>
@@ -193,6 +198,18 @@ export default function EventPreview() {
             <div className="mt-[16px] h-[1px] w-[644px] bg-[#F24148]" />
             <div className="mt-[12px] h-[1px] w-[644px] bg-[#F24148]" />
           </div>
+
+          <ParticipantsModal
+            open={openModal === "participants"}
+            onClose={close}
+            participants={[
+              { id: "1", name: "윤수호", status: "going" },
+              { id: "2", name: "YOUN SUHOOOOOOOOO", status: "going" },
+              { id: "3", name: "TOO LONG NAME @@@@@@@@@@@@@", status: "going" },
+              { id: "4", name: "누군가", status: "pending" },
+              { id: "5", name: "못감", status: "declined" },
+            ]}
+          />
         </section>
       }
       right={<RightFormPanel mode="preview" />}

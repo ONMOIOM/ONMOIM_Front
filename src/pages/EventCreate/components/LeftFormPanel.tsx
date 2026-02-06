@@ -11,7 +11,6 @@ import { formatScheduleView, formatLocation, formatCapacity, formatPrice } from 
 import { Toggle } from './Toggle';
 // 에셋
 import check from '../../../assets/icons/check.svg';
-import arrow_down from '../../../assets/icons/arrow_down.svg';
 import play_circle from '../../../assets/icons/play_circle.svg';
 
 export const LeftFormPanel = () => {
@@ -115,24 +114,14 @@ export const LeftFormPanel = () => {
             type="button"
             onClick={() => setOpenModal("schedule")}
             className={[
-              "w-[348px] h-[89px] rounded-[10px] border border-[#BFBFBF] bg-[#FFFFFF] pl-[38px] pr-[24px]",
+              "w-[372px] h-[89px] rounded-[10px] border border-[#BFBFBF] bg-[#FFFFFF] px-[38px]",
               "flex items-center justify-between text-[24px] font-semibold text-[#595959]",
             ].join(" ")}
           >
             <span>
               {scheduleView.dateText?.trim() ? scheduleView.dateText : "날짜 선택"}
             </span>
-            <img src={arrow_down} alt="arrow_down_icon" className="h-[46px] w-[46px]"/>
-          </button>
 
-          {/* 시작 시간 */}
-          <button
-            type="button"
-            className={[
-              "w-[179px] h-[89px] rounded-[10px] border border-[#BFBFBF] bg-[#FFFFFF] px-[38px]",
-              "flex items-center justify-center text-[24px] font-semibold text-[#595959]",
-            ].join(" ")}
-          >
             <span className="whitespace-nowrap">
               {scheduleView.startTimeText?.trim() ? scheduleView.startTimeText : "시작"}
             </span>
@@ -140,19 +129,24 @@ export const LeftFormPanel = () => {
 
           <span className="py-[21px] text-[40px] font-bold text-[#000000]">~</span>
 
-          {/* 종료 시간 */}
           <button
             type="button"
+            onClick={() => setOpenModal("schedule")}
             className={[
-              "w-[179px] h-[89px] rounded-[10px] border border-[#BFBFBF] bg-[#FFFFFF] px-[38px]",
-              "flex items-center justify-center text-[24px] font-semibold text-[#595959]",
+              "w-[372px] h-[89px] rounded-[10px] border border-[#BFBFBF] bg-[#FFFFFF] px-[38px]",
+              "flex items-center justify-between text-[24px] font-semibold text-[#595959]",
             ].join(" ")}
           >
+            <span>
+              {scheduleView.dateText?.trim() ? scheduleView.dateText : "날짜 선택"}
+            </span>
+
             <span className="whitespace-nowrap">
               {scheduleView.endTimeText?.trim() ? scheduleView.endTimeText : "종료"}
             </span>
           </button>
         </div>
+
 
         {/* 종일 체크박스 */}
         <div className="mt-3 flex items-center gap-[16px]">
