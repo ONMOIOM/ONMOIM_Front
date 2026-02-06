@@ -8,9 +8,9 @@ import { BaseResponse } from '../constants/types';
 - 행사 생성 : Kaya
 */
 
-/* 행사 초안 생성 응답 */
-export type CreateEventData = {
-  eventId: string;
+/* 1. 행사 초안 생성, 2. 행사 필드 생성, 3. 행사 최종 생성 응답 */
+export type CreateEventResponse = {
+  eventId: number;
   status: string;
   title?: string | null;
   schedule?: { startDate: string; endDate: string } | null;
@@ -23,12 +23,12 @@ export type CreateEventData = {
   updatedAt?: string | null;
 };
 
-/** 행사 제목 생성 요청 data */
+/** 2. 행사 제목 생성 요청 */
 export type SaveEventTitleRequest = {
   title?: string | null;
 };
 
-/** 행사 일자 생성 요청 data */
+/** 2. 행사 일자 생성 요청 */
 export type SaveEventScheduleRequest = {
   schedule?: {
     startDate: string;
@@ -36,7 +36,7 @@ export type SaveEventScheduleRequest = {
   } | null;
 };
 
-/** 행사 위치 생성 요청 data */
+/** 2. 행사 위치 생성 요청 */
 export type SaveEventLocationRequest = {
   location?: {
     streetAddress: string;
@@ -44,149 +44,121 @@ export type SaveEventLocationRequest = {
   } | null;
 };
 
-/** 행사 참여자 생성 요청 data */
+/** 2. 행사 참여자 생성 요청 */
 export type SaveEventCapacityRequest = {
   capacity?: number | null;
 };
 
-/** 행사 참여 가격 생성 요청 data */
+/** 2. 행사 참여 가격 생성 요청 data */
 export type SaveEventPriceRequest = {
   price?: number | null;
 };
 
-/** 행사 플레이리스트 생성 요청 data */
+/** 2. 행사 플레이리스트 생성 요청 data */
 export type SaveEventPlaylistRequest = {
   playlist?: string | null;
 };
 
-/** 행사 소개글 생성 요청 data */
+/** 2. 행사 소개글 생성 요청 data */
 export type SaveEventInformationRequest = {
   information?: string | null;
 };
 
-/** 행사 정보 수정 요청 body: PATCH /api/v1/users/events/{eventId}*/
-export type SaveEventFieldsBody = {
-  title?: string;
-  schedule?: {
-    startDate: string;
-    endDate: string;
-  };
-  location?: {
-    streetAddress: string;
-    lotNumber?: string | null;
-  };
-  capacity?: number;
-  price?: number;
-  playlist?: string;
-  information?: string;
-};
 
 // --- API 함수 ---
 
-/** 행사 초안 생성: POST /api/v1/users/events *  : Kaya*/
+/** 1. 행사 초안 생성: POST /api/v1/users/events *  : Kaya*/
 export const createEventDraft = async (): Promise<
-  BaseResponse<CreateEventData>
+  BaseResponse<CreateEventResponse>
 > => {
-  const res = await axiosInstance.post<BaseResponse<CreateEventData>>(
+  const res = await axiosInstance.post<BaseResponse<CreateEventResponse>>(
     '/api/v1/users/events'
   );
   return res.data;
 };
 
-/** 행사 제목 생성: PATCH  /api/v1/users/events: Kaya*/
+/** 2. 행사 제목 생성: PATCH  /api/v1/users/events: Kaya*/
 export const saveEventTitle = async (
   body: SaveEventTitleRequest
-): Promise<BaseResponse<CreateEventData>> => {
-  const res = await axiosInstance.patch<BaseResponse<CreateEventData>>(
+): Promise<BaseResponse<CreateEventResponse>> => {
+  const res = await axiosInstance.patch<BaseResponse<CreateEventResponse>>(
     `/api/v1/users/events`,
     body
   );
   return res.data;
 };
 
-/** 행사 일자 생성: PATCH  /api/v1/users/events: Kaya*/
+/** 2. 행사 일자 생성: PATCH  /api/v1/users/events: Kaya*/
 export const saveEventSchedule = async (
   body: SaveEventScheduleRequest
-): Promise<BaseResponse<CreateEventData>> => {
-  const res = await axiosInstance.patch<BaseResponse<CreateEventData>>(
+): Promise<BaseResponse<CreateEventResponse>> => {
+  const res = await axiosInstance.patch<BaseResponse<CreateEventResponse>>(
     `/api/v1/users/events`,
     body
   );
   return res.data;
 };
 
-/** 행사 위치 생성: PATCH  /api/v1/users/events: Kaya*/
+/** 2. 행사 위치 생성: PATCH  /api/v1/users/events: Kaya*/
 export const saveEventLocation = async (
   body: SaveEventLocationRequest
-): Promise<BaseResponse<CreateEventData>> => {
-  const res = await axiosInstance.patch<BaseResponse<CreateEventData>>(
+): Promise<BaseResponse<CreateEventResponse>> => {
+  const res = await axiosInstance.patch<BaseResponse<CreateEventResponse>>(
     `/api/v1/users/events`,
     body
   );
   return res.data;
 };
 
-/** 행사 참여자 생성: PATCH  /api/v1/users/events: Kaya*/
+/** 2. 행사 참여자 생성: PATCH  /api/v1/users/events: Kaya*/
 export const saveEventCapacity = async (
   body: SaveEventCapacityRequest
-): Promise<BaseResponse<CreateEventData>> => {
-  const res = await axiosInstance.patch<BaseResponse<CreateEventData>>(
+): Promise<BaseResponse<CreateEventResponse>> => {
+  const res = await axiosInstance.patch<BaseResponse<CreateEventResponse>>(
     `/api/v1/users/events`,
     body
   );
   return res.data;
 };
 
-/** 행사 참여 가격 생성: PATCH  /api/v1/users/events: Kaya*/
+/** 2. 행사 참여 가격 생성: PATCH  /api/v1/users/events: Kaya*/
 export const saveEventPrice = async (
   body: SaveEventPriceRequest
-): Promise<BaseResponse<CreateEventData>> => {
-  const res = await axiosInstance.patch<BaseResponse<CreateEventData>>(
+): Promise<BaseResponse<CreateEventResponse>> => {
+  const res = await axiosInstance.patch<BaseResponse<CreateEventResponse>>(
     `/api/v1/users/events`,
     body
   );
   return res.data;
 };
 
-/** 행사 플레이리스트 생성: PATCH  /api/v1/users/events: Kaya*/
+/** 2. 행사 플레이리스트 생성: PATCH  /api/v1/users/events: Kaya*/
 export const saveEventPlaylist = async (
-  body: SaveEventTitleRequest
-): Promise<BaseResponse<CreateEventData>> => {
-  const res = await axiosInstance.patch<BaseResponse<CreateEventData>>(
+  body: SaveEventPlaylistRequest
+): Promise<BaseResponse<CreateEventResponse>> => {
+  const res = await axiosInstance.patch<BaseResponse<CreateEventResponse>>(
     `/api/v1/users/events`,
     body
   );
   return res.data;
 };
 
-/** 행사 소개글 생성: PATCH  /api/v1/users/events: Kaya*/
+/** 2. 행사 소개글 생성: PATCH  /api/v1/users/events: Kaya*/
 export const saveEventInformation = async (
   body: SaveEventInformationRequest
-): Promise<BaseResponse<CreateEventData>> => {
-  const res = await axiosInstance.patch<BaseResponse<CreateEventData>>(
+): Promise<BaseResponse<CreateEventResponse>> => {
+  const res = await axiosInstance.patch<BaseResponse<CreateEventResponse>>(
     `/api/v1/users/events`,
     body
   );
   return res.data;
 };
 
-// 내 파트 아님(지울 것)
-/** 행사 정보 수정: PATCH /api/v1/users/events : Kaya */ 
-/*export const saveEventFields = async (
-  body: SaveEventFieldsBody
-): Promise<BaseResponse<CreateEventData>> => {
-  const res = await axiosInstance.patch<BaseResponse<CreateEventData>>(
-    `/api/v1/users/events`,
-    body
-  );
-  return res.data;
-};*/
-
-/** 행사 최종 생성(발행): PATCH /api/v1/users/events/{eventId}/publish  : Kaya*/ 
+/** 3. 행사 최종 생성(발행): PATCH /api/v1/users/events/{eventId}/publish  : Kaya*/ 
 export const publishEvent = async (
   eventId: number
-): Promise<BaseResponse<CreateEventData>> => {
-  const res = await axiosInstance.patch<BaseResponse<CreateEventData>>(
+): Promise<BaseResponse<CreateEventResponse>> => {
+  const res = await axiosInstance.patch<BaseResponse<CreateEventResponse>>(
     `/api/v1/users/events/${eventId}/publish`
   );
   return res.data;

@@ -2,8 +2,9 @@ import { useState, useEffect, useMemo } from 'react';
 import EmailSendPage from './EmailSendPage';
 import CodeExpiredPage from './CodeExpiredPage';
 import { type Step } from './types/types';
-import { verifyEmailCode, signUp, login } from '../../api/auth_updated';
 import { useNavigate } from 'react-router-dom';
+// authFlow 사용
+import { completeAuth } from './services/authFlow';
 // 에셋
 import onmoim_logo from '../../assets/icons/onmoim_logo.png';
 import Email from '../../assets/icons/Email.svg';
@@ -12,16 +13,10 @@ import Fail from '../../assets/icons/Fail.svg';
 
 
 export default function Login() {
-  // 백엔드 없이 임시
-  const USE_MOCK = import.meta.env.VITE_USE_AUTH_MOCK === "true";
-
-
   const [email, setEmail] = useState("");
   const [authCode, setAuthCode] = useState("");
-  const [step, setStep] = useState<Step>("sending");
+  const [step, setStep] = useState<Step>("expired");
 
-  // 인증 메일 전송 후 -> 로그인 / 회원가입
-  const [isRegistered, setIsRegistered] = useState<boolean | null>(null);
 
   const isValidEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -35,7 +30,6 @@ export default function Login() {
   const canGoNext = emailStatus === "valid";
 
   const title = useMemo(() => {
-    if (step === "email") return "로그인 혹은 회원가입";
     if (step === "signup") return "회원가입";
     return "로그인";
   }, [step]);
@@ -57,17 +51,18 @@ export default function Login() {
   const handleResend = () => {
     if (resendCooldown > 0) return;
 
-    // 재전송 ui 확인 위해서 밑 막음
+    // 재전송 ui 확인 위해서 밑 막음 (나중에 지울 것)
     setResendCooldown(30);
     if (true) return;
 
     // ✅ 여기서 실제 재발송 로직(= sending step 이동) 실행
     setAuthCode("");
     setErrorMsg(null);
-    setStep("sending");
 
     // ✅ 30초 쿨다운 시작
     setResendCooldown(30);
+
+    setStep("sending");
   };
 
 
@@ -80,8 +75,9 @@ export default function Login() {
   
   // 만료 판별 함수
   const isExpiredError = (e: any) => {
-    const code = e?.response?.data?.code;
-    const msg = e?.response?.data?.message ?? "";
+    const code = e?.response?.data?.code ?? e?.code; // mock 대비
+    const msg = e?.response?.data?.message ?? e.message ?? "";
+    
     // ✅ 나중에 백엔드 code 확정되면 code 하나만 남기기
     return (
       code === "EMAIL_AUTH_CODE_EXPIRED" ||
@@ -91,65 +87,24 @@ export default function Login() {
     );
   };
 
-  // 완료 버튼 핸들러 함수
+
+  // 완료 버튼 핸들러 함수 (authFlow)
   const handleComplete = async () => {
     const code = authCode.trim();
     if (!code) return;
-
-    // ✅ MOCK 모드: 백엔드 없이도 로직 끝까지 테스트
-    if (USE_MOCK) {
-      setSubmitting(true);
-      setErrorMsg(null);
-
-      // 가짜 지연(UX/로딩 테스트용)
-      await new Promise((r) => setTimeout(r, 400));
-
-      // 만료 테스트
-      if (code === "000000") {
-        setSubmitting(false);
-        setStep("expired");
-        return;
-      }
-
-      // 실패 테스트
-      if (code === "111111") {
-        setSubmitting(false);
-        setErrorMsg("인증 코드가 올바르지 않습니다. (MOCK)");
-        return;
-      }
-
-      // 성공 테스트
-      localStorage.setItem("accessToken", "mock_access_token_123");
-      setSubmitting(false);
-      navigate("/", { replace: true });
-      return;
-    }
-
 
     setSubmitting(true);
     setErrorMsg(null);
 
     try {
-      // 1) 코드 검증
-      const v = await verifyEmailCode({ email, authcode: code });
-      if (!v.success) throw new Error(v.message ?? "인증 코드 검증 실패");
+      const mode: "login" | "signup" = step === "signup" ? "signup" : "login";
+      
+      const accessToken = await completeAuth(email, code, mode);
 
-      // 2) 회원가입이면 회원가입 먼저
-      if (step === "signup") {
-        const s = await signUp({ email, authcode: code });
-        if (!s.success) throw new Error(s.message ?? "회원가입 실패");
-      }
+      // 토큰 저장
+      localStorage.setItem("accessToken", accessToken);
 
-      // 3) 로그인(토큰 받기)
-      const l = await login({ email, authcode: code });
-      if (!l.success || !l.data?.accessToken) {
-        throw new Error(l.message ?? "로그인 실패(토큰 없음)");
-      }
-
-      // 4) 토큰 저장
-      localStorage.setItem("accessToken", l.data.accessToken);
-
-      // 5) 메인 화면 이동
+      // 메인 화면 이동
       navigate("/", { replace: true });
     } catch (e: any) {
       if (isExpiredError(e)) {
@@ -244,9 +199,8 @@ export default function Login() {
             <EmailSendPage
               email={email}
               onClose={() => setStep("email")}
-              onResult={(registered) => {
-                setIsRegistered(registered);
-                setStep(registered ? "login" : "signup");
+              onResult={(mode) => {
+                setStep(mode);
               }}
             />
           )}
@@ -257,7 +211,8 @@ export default function Login() {
                 onConfirm={() => {
                   setEmail("");
                   setAuthCode("");
-                  setIsRegistered(null);
+                  setErrorMsg(null);
+                  setResendCooldown(0);
                   setStep("email");
                 }}
             />
@@ -334,26 +289,6 @@ export default function Login() {
 
               {errorMsg && <p className="text-sm text-red-600">{errorMsg}</p>}
 
-              {/* 회원가입 시, '동의합니다' 버튼 없음 */}
-              {/*
-              <button
-                type="button"
-                className={[
-                  "w-full h-[52px] rounded-[10px] border border-gray-300 bg-white text-[14px] font-semibold",
-                  submitting
-                    ? "text-gray-400 cursor-not-allowed"
-                    : "text-gray-900 hover:bg-gray-50 active:bg-gray-100",
-                ].join(" ")}
-                onClick={handleComplete}
-                disabled={submitting}
-              >
-                {submitting
-                  ? "처리 중..."
-                  : step === "signup"
-                  ? "동의합니다"
-                  : "로그인하기"}
-              </button>
-              */}
 
               {/* 회원가입 ui */}
               {step === "signup" && (
@@ -369,6 +304,23 @@ export default function Login() {
                     도움이 필요하실 경우 lixx17@naver.com으로 연락주시면 빠르게 도움
                     드리겠습니다.
                   </p>
+
+                  {/* 회원가입 버튼 */}
+                  <div className="mt-[22px]">
+                    <button
+                      type="button"
+                      className={
+                        "w-full h-[64px] px-[74px] rounded-[10px] bg-[#F24148] text-[#FFFFFF] text-[16px] font-medium"
+                      }
+                      onClick={handleComplete}
+                      disabled={submitting}
+                    >
+                      {submitting
+                        ? "처리 중..."
+                        :  "동의합니다"
+                      }
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -381,7 +333,7 @@ export default function Login() {
                       "w-full h-[64px] px-[74px] rounded-[10px] bg-[#F24148] text-[#FFFFFF] text-[16px] font-medium"
                     }
                     disabled={!canGoNext}
-                    onClick={() => setStep("sending")}
+                    onClick={handleComplete}
                   >
                     로그인하기
                   </button>
