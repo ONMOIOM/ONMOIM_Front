@@ -1,32 +1,25 @@
 @import "tailwindcss";
 
-/* Pretendard JP Variable 폰트 설정 */
-@font-face {
-  font-family: "Pretendard JP";
-  src: url("/fonts/PretendardJPVariable.ttf") format("truetype");
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* Tailwind CSS 폰트 패밀리, Radius, Color 설정 */
+/* 디자인 토큰 전부 @theme로 통일 (Tailwind 유틸 + var() 참조 모두 사용 가능) */
 @theme {
-  --font-family-sans: "Pretendard JP", -apple-system, BlinkMacSystemFont,
-    system-ui, sans-serif;
+  /* Spacing */
+  --spacing-nav-bar-to-buttons: 67.5px;
 
-  /* NavBar ↔ 문의하기/분석하기 버튼 간격 (Figma 66.5) */
-  --spacing-nav-bar-to-buttons: 66.5px;
+  /* Font family */
+  --font-family-sans:
+    "Pretendard JP", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-family-esamanru: "esamanru", "Pretendard JP", sans-serif;
 
-  /* Figma Foundation - Radius */
+  /* Radius */
   --radius-0: 0px;
   --radius-4: 4px;
   --radius-6: 6px;
-  --radius-8: 8px; /* 기본값 */
+  --radius-8: 8px;
   --radius-12: 12px;
   --radius-16: 16px;
-  --radius-circle: 9999px; /* circle */
+  --radius-circle: 9999px;
 
-  /* Figma Foundation - Gray Scale (피드백 이후) */
+  /* Gray Scale */
   --color-gray-900: #1a1a1a;
   --color-gray-800: #242424;
   --color-gray-600: #595959;
@@ -34,19 +27,19 @@
   --color-gray-300: #bfbfbf;
   --color-gray-0: #ffffff;
 
-  /* Figma Foundation - Primary Colors (피드백 이후) */
+  /* Primary */
   --color-primary-100: #f24148;
   --color-primary-80: #f5676d;
   --color-primary-60: #f78091;
   --color-primary-30: #fcc6c9;
   --color-primary-10: #feeced;
 
-  /* Figma Foundation - Secondary Colors (피드백 이후) */
+  /* Secondary */
   --color-secondary-dark: #7a4a4a;
   --color-secondary: #bd7979;
   --color-secondary-light: #ddb5b5;
 
-  /* Figma Foundation - Red Scale (피드백 이후 50-950) */
+  /* Red Scale */
   --color-red-50: #fef2f2;
   --color-red-100: #fee2e3;
   --color-red-200: #ffc9cb;
@@ -59,11 +52,11 @@
   --color-red-900: #811b1f;
   --color-red-950: #46090b;
 
-  /* Figma Foundation - Link Colors (피드백 이후) */
+  /* Link */
   --color-link-correct: #47b781;
   --color-link-guide: #6f9ffe;
 
-  /* Figma Foundation - Accent Colors - Teal */
+  /* Teal */
   --color-teal-100: #e1f5f5;
   --color-teal-200: #b1e7e4;
   --color-teal-300: #63cfca;
@@ -73,7 +66,7 @@
   --color-teal-700: #00484e;
   --color-teal-800: #002629;
 
-  /* Figma Foundation - Accent Colors - Purple */
+  /* Purple */
   --color-purple-100: #efebff;
   --color-purple-200: #c7b8ff;
   --color-purple-300: #ae99ff;
@@ -83,7 +76,7 @@
   --color-purple-700: #3900ad;
   --color-purple-800: #1e005c;
 
-  /* Figma Foundation - Accent Colors - Blue */
+  /* Blue */
   --color-blue-100: #dbf4ff;
   --color-blue-200: #5ccbff;
   --color-blue-300: #1fb7ff;
@@ -93,7 +86,7 @@
   --color-blue-700: #004c70;
   --color-blue-800: #002042;
 
-  /* Figma Foundation - Accent Colors - Orange */
+  /* Orange */
   --color-orange-100: #fff2e5;
   --color-orange-200: #ffd4a8;
   --color-orange-300: #ffb770;
@@ -103,7 +96,7 @@
   --color-orange-700: #ba430f;
   --color-orange-800: #482407;
 
-  /* Figma Foundation - Accent Colors - Pink */
+  /* Pink */
   --color-pink-100: #feecfb;
   --color-pink-200: #fed3f7;
   --color-pink-300: #ffbbf3;
@@ -113,7 +106,7 @@
   --color-pink-700: #730560;
   --color-pink-800: #3d0133;
 
-  /* Figma Foundation - Accent Colors - Deep Cove */
+  /* Deep Cove */
   --color-deep-cove-100: #e9f4ff;
   --color-deep-cove-200: #b6d8ff;
   --color-deep-cove-300: #8abcff;
@@ -123,7 +116,7 @@
   --color-deep-cove-700: #0c29c7;
   --color-deep-cove-800: #0a144a;
 
-  /* Figma Foundation - Accent Colors - Stone */
+  /* Stone */
   --color-stone-100: #d9d9da;
   --color-stone-200: #f5f5f4;
   --color-stone-300: #d6d3d1;
@@ -133,29 +126,48 @@
   --color-stone-700: #444038;
   --color-stone-800: #292524;
 
-  /* Figma Foundation - Typography H1-H7 (피드백 이후) */
-  --font-size-h1: 12px; /* 10pt */
-  --font-size-h2: 14px; /* 12pt */
-  --font-size-h3: 17px; /* 14pt */
-  --font-size-h4: 19px; /* 16pt */
-  --font-size-h5: 24px; /* 20pt - Bold */
-  --font-size-h6: 29px; /* 24pt - Bold */
-  --font-size-h7: 38px; /* 32pt - Bold */
-
-  /* Figma Foundation - Caption 10pt Light (추가 제안) */
-  --font-size-caption-10pt: 13px; /* 10pt - Light */
+  /* Typography */
+  --font-size-h1: 13px;
+  --font-size-h2: 16px;
+  --font-size-h3: 19px;
+  --font-size-h4: 21px;
+  --font-size-h5: 27px;
+  --font-size-h6: 32px;
+  --font-size-h7: 43px;
+  --font-size-caption-10pt: 13px;
 }
 
-/* 전역 폰트 설정 - 모든 텍스트에 적용 */
-* {
-  font-family: "Pretendard JP", -apple-system, BlinkMacSystemFont, system-ui,
-    sans-serif;
+/* Pretendard JP Variable 폰트 설정 */
+@font-face {
+  font-family: "Pretendard JP";
+  src: url("/fonts/PretendardJPVariable.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
 }
 
+/* 이사만루(esamanru) - Figma 메인 환영 문구용 */
+@font-face {
+  font-family: "esamanru";
+  src: url("/fonts/Esamanru-Light.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "esamanru";
+  src: url("/fonts/Esamanru-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 전역 폰트 설정 (theme 토큰 사용) */
+*,
 html,
 body {
-  font-family: "Pretendard JP", -apple-system, BlinkMacSystemFont, system-ui,
-    sans-serif;
+  font-family: var(--font-family-sans);
 }
 
 /* Figma Foundation - Typography H1-H7 Utility Classes (피드백 이후) */
@@ -197,4 +209,52 @@ body {
 .text-caption-10pt {
   font-size: var(--font-size-caption-10pt);
   font-weight: 300; /* Light */
+}
+
+.font-esamanru {
+  font-family: var(--font-family-esamanru);
+}
+
+/* 알람 모달 커스텀 스크롤바 (scrollbar-width/scrollbar-color 없이 ::-webkit만 사용) */
+.custom-scrollbar {
+  padding-right: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+/* 스크롤 영역(트랙)이 보이도록 연한 회색 */
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #e8e8e8;
+  border-radius: 0 0 20px 20px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #bfbfbf;
+  border-radius: 20px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #999999;
+}
+
+/* 분석 차트 범례 아이콘: border-radius 8.511px, 디자인 토큰 색상 */
+.analysis-chart .recharts-legend-item rect {
+  rx: 8.511;
+  ry: 8.511;
+}
+.analysis-chart .recharts-legend-item:nth-child(1) rect {
+  fill: var(--color-gray-300);
+}
+.analysis-chart .recharts-legend-item:nth-child(2) rect {
+  fill: var(--color-link-guide);
+}
+.analysis-chart .recharts-legend-item:nth-child(3) rect {
+  fill: var(--color-link-correct);
+}
+.analysis-chart .recharts-legend-item:nth-child(4) rect {
+  fill: var(--color-red-500);
 }

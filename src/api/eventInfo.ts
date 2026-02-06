@@ -1,12 +1,11 @@
-import axiosInstance from './axiosInstance';
-import { BaseResponse } from '../constants/types';
+import axiosInstance from "./axiosInstance";
+import { BaseResponse } from "../constants/types";
 
 // 메인페이지에서의 API 관련 함수 구현 : Chillpan
 //행사 수정, 조회, 삭제, 행사 참여 여부 투표, 행사 참여 여부 조회
 
 /* 행사 초안 생성 응답 data */
 //사용되는 곳- 행사 수정, 행사 조회
-
 
 /* 수정용: Request Data */
 export type EditEventRequest = {
@@ -19,7 +18,6 @@ export type EditEventRequest = {
   information?: string | null;
 };
 
-
 /* 조회용: Response Data */
 export type EventInfoData = {
   eventId: number;
@@ -31,6 +29,10 @@ export type EventInfoData = {
   price?: number | null;
   playlist?: string | null;
   information?: string | null;
+  /** 호스트(개최자) 이름 - 행사 목록/상세 조회 시 서버에서 내려줌 */
+  hostName?: string | null;
+  /** 행사 대표 이미지 URL (목록/상세) */
+  imageUrl?: string | null;
   createdAt: string;
   updatedAt?: string | null;
 };
@@ -41,15 +43,14 @@ export type VoteParticipantData = {
   eventId: number;
   userId: string;
   status: string;
-}
+};
 
 /*행사 참여 여부 조회 Response Data */
 export type GetParticipantData = {
   userId: string;
   name: string;
   status: string;
-}
-
+};
 
 // --- API 함수 구현  ---
 
@@ -61,6 +62,16 @@ export const editEvent = async (
   const res = await axiosInstance.patch<BaseResponse<EventInfoData>>(
     `/api/v1/users/events/${eventId}`,
     updateData
+  );
+  return res.data;
+};
+
+/** 행사 목록 조회: GET /api/v1/users/events (메인/탭용) */
+export const getEventList = async (): Promise<
+  BaseResponse<EventInfoData[]>
+> => {
+  const res = await axiosInstance.get<BaseResponse<EventInfoData[]>>(
+    "/api/v1/users/events"
   );
   return res.data;
 };
@@ -96,7 +107,7 @@ export const voteEventParticipation = async (
     { status }
   );
   return res.data;
-}
+};
 
 /** 5. 행사 참여 여부 조회: GET api/v1/users/events/{eventId}/participants */
 export const getEventParticipation = async (
@@ -106,4 +117,4 @@ export const getEventParticipation = async (
     `/api/v1/users/events/${eventId}/participants`
   );
   return res.data;
-}
+};
