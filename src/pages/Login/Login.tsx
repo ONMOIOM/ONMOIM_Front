@@ -334,31 +334,10 @@ export default function Login() {
 
               {errorMsg && <p className="text-sm text-red-600">{errorMsg}</p>}
 
-              {/* 회원가입 시, '동의합니다' 버튼 없음 */}
-              {/*
-              <button
-                type="button"
-                className={[
-                  "w-full h-[52px] rounded-[10px] border border-gray-300 bg-white text-[14px] font-semibold",
-                  submitting
-                    ? "text-gray-400 cursor-not-allowed"
-                    : "text-gray-900 hover:bg-gray-50 active:bg-gray-100",
-                ].join(" ")}
-                onClick={handleComplete}
-                disabled={submitting}
-              >
-                {submitting
-                  ? "처리 중..."
-                  : step === "signup"
-                  ? "동의합니다"
-                  : "로그인하기"}
-              </button>
-              */}
-
               {/* 회원가입 ui */}
               {step === "signup" && (
-                <div className="mt-[110px] mb-[88px]">
-                  <p className="text-[10px] text-[#6F747C] font-medium break-keep text-center">
+                <div className="mt-[22px] pb-[93px]">
+                  <p className="text-[10px] text-[#6F747C] font-medium break-keep text-center mb-[22px]">
                     '동의합니다'를 클릭하면 약관 및 개인정보 보호정책에 동의하고
                     <br />
                     <span className="font-medium text-[#5C92FF]">ONMOIM</span>
@@ -369,6 +348,14 @@ export default function Login() {
                     도움이 필요하실 경우 lixx17@naver.com으로 연락주시면 빠르게 도움
                     드리겠습니다.
                   </p>
+                  <button
+                    type="button"
+                    className="w-full h-[64px] px-[74px] rounded-[10px] bg-[#F24148] text-[#FFFFFF] text-[16px] font-medium disabled:opacity-60 disabled:cursor-not-allowed"
+                    disabled={!authCode.trim() || submitting}
+                    onClick={handleComplete}
+                  >
+                    {submitting ? "처리 중..." : "동의합니다"}
+                  </button>
                 </div>
               )}
 
@@ -380,10 +367,10 @@ export default function Login() {
                     className={
                       "w-full h-[64px] px-[74px] rounded-[10px] bg-[#F24148] text-[#FFFFFF] text-[16px] font-medium"
                     }
-                    disabled={!canGoNext}
-                    onClick={() => setStep("sending")}
+                    disabled={!authCode.trim() || submitting}
+                    onClick={handleComplete}
                   >
-                    로그인하기
+                    {submitting ? "처리 중..." : "로그인하기"}
                   </button>
                 </div>
               }

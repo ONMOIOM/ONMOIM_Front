@@ -22,7 +22,7 @@ const axiosInstance: AxiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     // 토큰이 있으면 실제 토큰 사용, 없으면 더미 토큰 사용 (임시 조치)
-    const token = localStorage.getItem("token") || "dummy-token-for-dev"; // 임시 토큰 사용 (임시 조치)
+    const token = localStorage.getItem("accessToken") || "dummy-token-for-dev"; // 임시 토큰 사용 (임시 조치)
     if (config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -41,7 +41,7 @@ axiosInstance.interceptors.response.use(
   (error: AxiosError) => {
     // 401 에러 시 토큰만 제거 (자동 리다이렉트 제거)
     if (error.response?.status === 401) {
-      localStorage.removeItem("token");
+      localStorage.removeItem("accessToken");
     }
     return Promise.reject(error);
   }
