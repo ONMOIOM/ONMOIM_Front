@@ -16,7 +16,7 @@ const SKIP_EMAIL_VERIFICATION =
 
 if (SKIP_EMAIL_VERIFICATION) {
   console.log(
-    "[Login] VITE_SKIP_EMAIL_VERIFICATION=true → 이메일 인증 스킵, 회원가입/로그인 단계로 바로 진입"
+    "[Login] VITE_SKIP_EMAIL_VERIFICATION=true → 이메일 인증 스킵, 로그인 화면으로 바로 진입"
   );
 }
 
@@ -28,7 +28,7 @@ export default function Login() {
   );
   const [authCode, setAuthCode] = useState("");
   const [step, setStep] = useState<Step>(
-    SKIP_EMAIL_VERIFICATION ? "signup" : "email"
+    SKIP_EMAIL_VERIFICATION ? "login" : "email"
   );
 
   // 인증 메일 전송 후 -> 로그인 / 회원가입
