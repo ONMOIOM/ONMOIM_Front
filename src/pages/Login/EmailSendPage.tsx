@@ -40,22 +40,31 @@ export default function EmailSendPage({ email, onResult, onClose }: Props) {
     setLoading(true);
     try {
       const turnstileToken = sitekey ? token : "mock_token";
-      console.log("[EmailSendPage] sendMail called", { email, turnstileToken });
+      console.log("[EmailSendPage] 인증 이메일 받기 요청", {
+        email,
+        turnstileToken: turnstileToken ? "(있음)" : "(없음)",
+      });
 
       const res = await sendVerificationEmail({ email, turnstileToken });
-      console.log("[EmailSendPage] sendVerificationEmail res", res);
+      console.log("[EmailSendPage] sendVerificationEmail 응답", {
+        success: res.success,
+        code: (res as any).code,
+        message: res.message,
+        data: res.data,
+      });
 
       if (!res.success || !res.data) {
         throw new Error(res.message ?? "인증 메일 발송 실패");
       }
 
-      // ✅ isRegistered가 없으면 분기가 깨지니까 안전장치
       const registered = Boolean(res.data.isRegistered);
-      console.log("[EmailSendPage] calling onResult", registered);
-
       onResult(registered);
-    } catch (err) {
-      console.log("[EmailSendPage] sendMail error", err);
+    } catch (err: any) {
+      console.log("[EmailSendPage] 인증 이메일 발송 에러", {
+        message: err?.message,
+        response: err?.response?.data,
+        code: err?.response?.data?.code,
+      });
       alert("인증 메일 발송에 실패했습니다.");
     } finally {
       setLoading(false);
