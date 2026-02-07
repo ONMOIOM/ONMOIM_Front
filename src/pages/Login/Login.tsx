@@ -143,18 +143,8 @@ export default function Login() {
     try {
       console.log("[Login] handleComplete 요청", { step, email, authcode: code });
 
-      // 1) 코드 검증
-      const v = await verifyEmailCode({ email, authcode: code });
-      console.log("[Login] verifyEmailCode 응답", {
-        success: v.success,
-        code: (v as any).code,
-        message: v.message,
-        data: v.data,
-      });
-      if (!v.success) throw new Error(v.message ?? "인증 코드 검증 실패");
-
-      // 2) 회원가입이면 회원가입 먼저
       if (step === "signup") {
+        // 회원가입: verify 스킵, signUp API 직접 호출
         const s = await signUp({ email, authcode: code });
         console.log("[Login] signUp 응답", {
           success: s.success,
@@ -163,9 +153,19 @@ export default function Login() {
           data: s.data,
         });
         if (!s.success) throw new Error(s.message ?? "회원가입 실패");
+      } else {
+        // 로그인: 코드 검증 후 로그인
+        const v = await verifyEmailCode({ email, authcode: code });
+        console.log("[Login] verifyEmailCode 응답", {
+          success: v.success,
+          code: (v as any).code,
+          message: v.message,
+          data: v.data,
+        });
+        if (!v.success) throw new Error(v.message ?? "인증 코드 검증 실패");
       }
 
-      // 3) 로그인(토큰 받기)
+      // 로그인(토큰 받기)
       const l = await login({ email, authcode: code });
       console.log("[Login] login 응답", {
         success: l.success,
