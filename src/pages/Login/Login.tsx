@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import EmailSendPage from './EmailSendPage';
 import CodeExpiredPage from './CodeExpiredPage';
 import { type Step } from './types/types';
-import { verifyEmailCode, signUp, login } from '../../api/auth_updated';
+import { signUp, login } from '../../api/auth_updated';
 import { useNavigate } from 'react-router-dom';
 // 에셋
 import onmoim_logo from '../../assets/icons/onmoim_logo.png';
@@ -153,17 +153,8 @@ export default function Login() {
           data: s.data,
         });
         if (!s.success) throw new Error(s.message ?? "회원가입 실패");
-      } else {
-        // 로그인: 코드 검증 후 로그인
-        const v = await verifyEmailCode({ email, authCode: code });
-        console.log("[Login] verifyEmailCode 응답", {
-          success: v.success,
-          code: (v as any).code,
-          message: v.message,
-          data: v.data,
-        });
-        if (!v.success) throw new Error(v.message ?? "인증 코드 검증 실패");
       }
+      // 로그인 step: 이메일 검증 스킵, 로그인 API만 호출
 
       // 로그인(토큰 받기)
       const l = await login({ email, authCode: code });
@@ -269,10 +260,8 @@ export default function Login() {
                 }
                 disabled={!canGoNext}
                 onClick={() => {
-                  console.log("[Login] 로그인 클릭 → 이메일 전송 단계", {
-                    email,
-                  });
-                  setStep("sending");
+                  console.log("[Login] 로그인 클릭 → 로그인 화면으로 이동", { email });
+                  setStep("login");
                 }}
               >
                 로그인
