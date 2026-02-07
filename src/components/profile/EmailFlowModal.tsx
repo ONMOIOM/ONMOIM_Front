@@ -86,7 +86,7 @@ const EmailFlowModal = ({
     try {
       const res = await verifyEmail({
         email,
-        authcode: verificationCode,
+        authCode: verificationCode,
       });
       if (res.success) {
         onConfirmVerification();

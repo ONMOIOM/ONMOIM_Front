@@ -128,7 +128,7 @@ const TestPage = () => {
     const dummyCode = getDummyAuthCode();
     if (!email) setEmail(dummyEmail);
     if (!authCode) setAuthCode(dummyCode);
-    return run("이메일 인증 코드 검증", () => verifyEmail({ email: dummyEmail, authcode: dummyCode }));
+    return run("이메일 인증 코드 검증", () => verifyEmail({ email: dummyEmail, authCode: dummyCode }));
   };
 
   const testLogin = () => {
@@ -139,7 +139,7 @@ const TestPage = () => {
     return run("로그인", () =>
       login({
         email: dummyEmail,
-        authcode: dummyCode,
+        authCode: dummyCode,
       })
     );
   };

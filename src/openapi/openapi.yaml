@@ -102,20 +102,20 @@ paths:
               type: object
               required:
                 - email
-                - authcode
+                - authCode
               properties:
                 email:
                   type: string
                   format: email
                   description: 이메일 주소
                   example: "user@example.com"
-                authcode:
+                authCode:
                   type: string
                   description: 이메일로 발송된 인증 코드
                   example: "123456"
             example:
               email: "user@example.com"
-              authcode: "123456"
+              authCode: "123456"
       responses:
         "200":
           description: 이메일 인증 성공
@@ -185,18 +185,18 @@ paths:
               type: object
               required:
                 - email
-                - authcode
+                - authCode
               properties:
                 email:
                   type: string
                   format: email
                   example: "example@naver.com"
-                authcode:
+                authCode:
                   type: string
                   example: "123456"
             example:
               email: "example@naver.com"
-              authcode: "123456"
+              authCode: "123456"
       responses:
         "200":
           description: 성공 응답

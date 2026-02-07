@@ -7,7 +7,7 @@
 
 import { login } from '../api/auth';
 
-const res = await login({ email: 'user@example.com', authcode: '123456' });
+const res = await login({ email: 'user@example.com', authCode: '123456' });
 if (res.success) {
   console.log('성공:', res.data);
 } else {
@@ -21,7 +21,7 @@ if (res.success) {
 import { login } from '../../api/auth';
 
 const handleSubmit = async () => {
-  const res = await login({ email, authcode });
+  const res = await login({ email, authCode });
   if (res.success && res.data?.accessToken) {
     localStorage.setItem('token', res.data.accessToken);
     navigate('/');

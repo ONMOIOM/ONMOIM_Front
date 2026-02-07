@@ -13,7 +13,7 @@ export type EmailVerificationRequest = {
 /** 로그인 요청: POST /api/v1/users/login */
 export type LoginRequest = {
   email: string;
-  authcode: string;
+  authCode: string;
 };
 
 /** 로그인 응답 data (명세서 예시는 []이나, 실제 토큰 반환 시 사용) */

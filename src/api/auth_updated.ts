@@ -24,7 +24,7 @@ export type VerificationEmailResponse = {
 /** 2. 인증 코드 검증 요청, 3. 로그인 요청, 4. 회원가입 */
 export type EmailAuthCodeRequest = {
   email: string;
-  authcode: string;
+  authCode: string;
 };
 
 /** 2. 인증 코드 검증 응답 */

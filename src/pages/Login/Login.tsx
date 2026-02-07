@@ -141,11 +141,11 @@ export default function Login() {
     setErrorMsg(null);
 
     try {
-      console.log("[Login] handleComplete 요청", { step, email, authcode: code });
+      console.log("[Login] handleComplete 요청", { step, email, authCode: code });
 
       if (step === "signup") {
         // 회원가입: verify 스킵, signUp API 직접 호출
-        const s = await signUp({ email, authcode: code });
+        const s = await signUp({ email, authCode: code });
         console.log("[Login] signUp 응답", {
           success: s.success,
           code: (s as any).code,
@@ -155,7 +155,7 @@ export default function Login() {
         if (!s.success) throw new Error(s.message ?? "회원가입 실패");
       } else {
         // 로그인: 코드 검증 후 로그인
-        const v = await verifyEmailCode({ email, authcode: code });
+        const v = await verifyEmailCode({ email, authCode: code });
         console.log("[Login] verifyEmailCode 응답", {
           success: v.success,
           code: (v as any).code,
@@ -166,7 +166,7 @@ export default function Login() {
       }
 
       // 로그인(토큰 받기)
-      const l = await login({ email, authcode: code });
+      const l = await login({ email, authCode: code });
       console.log("[Login] login 응답", {
         success: l.success,
         code: (l as any).code,
