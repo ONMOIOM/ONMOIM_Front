@@ -26,6 +26,7 @@ function App() {
         <Route path="event-create" element={<EventCreate />} />
         <Route path="event-create/preview" element={<EventPreview />} />
         <Route path="event-post" element={<EventPost />} />
+        <Route path="eventposttest" element={<EventPost />} />
         <Route path="analysis" element={<Analysis />} />
         <Route path="test" element={<TestPage />} />
         <Route path="test-other" element={<TestPageOther />} />

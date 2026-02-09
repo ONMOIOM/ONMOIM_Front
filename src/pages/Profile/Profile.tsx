@@ -12,12 +12,12 @@ import { compressImage } from "../../utils/imageCompression";
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { profile } = useProfile();
+  const { profile, loading } = useProfile();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [localImageUrl, setLocalImageUrl] = useState<string | null>(null);
   const profileImageUrl = localImageUrl || profile?.profileImageUrl || profileSrc;
-  const displayName = profile?.nickname || "윤수호";
-  const introduction = profile?.introduction || "사용자의 자기소개 부분";
+  const displayName = profile?.nickname ?? "";
+  const introduction = profile?.introduction ?? "";
   const joinedAtText = "이용중입니다";
   const profileSns = {
     instagramId: profile?.instagramId ?? null,
@@ -85,6 +85,17 @@ const Profile = () => {
           : `https://www.linkedin.com/in/${id}`;
     window.open(url, "_blank", "noopener,noreferrer");
   };
+
+  if (loading) {
+    return (
+      <div className="relative min-h-screen flex items-center justify-center">
+        <div
+          className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-[#F24148]"
+          aria-label="로딩 중"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen">

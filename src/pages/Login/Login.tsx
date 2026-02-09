@@ -258,8 +258,8 @@ export default function Login() {
                 }
                 disabled={!canGoNext}
                 onClick={() => {
-                  console.log("[Login] 로그인 클릭 → 로그인 화면으로 이동", { email });
-                  setStep("login");
+                  console.log("[Login] 로그인 클릭 → 인증 메일 발송", { email });
+                  setStep("sending");
                 }}
               >
                 로그인
