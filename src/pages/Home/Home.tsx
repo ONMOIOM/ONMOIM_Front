@@ -1,7 +1,7 @@
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { useEffect, useState } from "react";
 import { HiOutlineSearch } from "react-icons/hi";
-import { getEventList } from "../../api/eventInfo";
+import { deleteEvent, getEventList } from "../../api/eventInfo";
 import type { EventInfoData } from "../../api/eventInfo";
 import { profileAPI } from "../../api/profile";
 import { formatEventDateTime } from "../../utils/formatDate";
@@ -40,20 +40,32 @@ const Home = () => {
     fetchProfile();
   }, []);
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const res = await getEventList();
-        if (res.success && Array.isArray(res.data)) {
-          setEvents(res.data);
-        }
-      } catch (err) {
-        console.warn("[Home] 행사 목록 조회 실패:", err);
-        setEvents([]);
+  const fetchEvents = async () => {
+    try {
+      const res = await getEventList();
+      if (res.success && Array.isArray(res.data)) {
+        setEvents(res.data);
       }
-    };
+    } catch (err) {
+      console.warn("[Home] 행사 목록 조회 실패:", err);
+      setEvents([]);
+    }
+  };
+
+  useEffect(() => {
     fetchEvents();
   }, []);
+
+  const handleDeleteEvent = async (eventId: number) => {
+    try {
+      const res = await deleteEvent(eventId);
+      if (res.success) {
+        setEvents((prev) => prev.filter((e) => e.eventId !== eventId));
+      }
+    } catch (err) {
+      console.warn("[Home] 행사 삭제 실패:", err);
+    }
+  };
 
   if (loading) {
     return (
@@ -113,6 +125,7 @@ const Home = () => {
                         ? events.map((event) => (
                             <EventCard
                               key={event.eventId}
+                              eventId={event.eventId}
                               title={event.title ?? "제목 없음"}
                               dateTime={
                                 event.schedule?.startDate
@@ -123,6 +136,7 @@ const Home = () => {
                               }
                               hostName={event.hostName ?? "호스트"}
                               imageUrl={event.imageUrl ?? undefined}
+                              onDelete={handleDeleteEvent}
                             />
                           ))
                         : null}
@@ -145,6 +159,7 @@ const Home = () => {
                         ? events.map((event) => (
                             <EventCard
                               key={event.eventId}
+                              eventId={event.eventId}
                               title={event.title ?? "제목 없음"}
                               dateTime={
                                 event.schedule?.startDate
@@ -155,6 +170,7 @@ const Home = () => {
                               }
                               hostName={event.hostName ?? "호스트"}
                               imageUrl={event.imageUrl ?? undefined}
+                              onDelete={handleDeleteEvent}
                             />
                           ))
                         : null}

@@ -19,16 +19,14 @@ export const BottomActionBar = ({ left, right }: Props) => {
     const initStatus = useEventDraftStore((s) => s.initStatus);
     const eventId = useEventDraftStore((s) => s.eventId);
 
-    // ✅ 초안 준비 안 됐으면 저장(발행) 못하게 (eventId 0도 유효 - 목서버 예시값)
     const isReady = initStatus === "ready" && eventId != null;
 
-    // ✅ right를 안 넘기면 "기본 저장(=publish)" 버튼으로 동작
     const rightAction: Action = right ?? {
       label: publishStatus === "saving" ? "저장 중..." : "저장",
       onClick: async () => {
         await publish();
       },
-      disabled: publishStatus === "saving" || !isReady,
+      disabled: !isReady || publishStatus === "saving",
     };
 
     return (

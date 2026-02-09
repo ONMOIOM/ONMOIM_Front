@@ -46,12 +46,14 @@ export const LeftFormPanel = () => {
   const setPrice = useEventDraftStore((s) => s.setPrice);
   const setPlaylist = useEventDraftStore((s) => s.setPlaylist);
 
-  // ----- store: save actions -----
+  // ----- store: save actions (PATCH 호출) -----
+  const saveTitle = useEventDraftStore((s) => s.saveTitle);
   const saveSchedule = useEventDraftStore((s) => s.saveSchedule);
   const saveLocation = useEventDraftStore((s) => s.saveLocation);
   const saveCapacity = useEventDraftStore((s) => s.saveCapacity);
   const savePrice = useEventDraftStore((s) => s.savePrice);
   const savePlaylist = useEventDraftStore((s) => s.savePlaylist);
+  const saveInformation = useEventDraftStore((s) => s.saveInformation);
 
   // ----- status (optional) -----
   const scheduleSaving = useEventDraftStore(
@@ -83,6 +85,7 @@ export const LeftFormPanel = () => {
       <input
         value={title}
         onChange={(e) => setTitle(e.target.value)}
+        onBlur={() => { if (title?.trim()) saveTitle().catch(() => {}); }}
         placeholder="행사 제목을 입력하세요!"
         className={[
           "w-full h-[67px] text-[24px] text-[#595959] rounded-[10px] border border-[#BFBFBF] focus:border-[#595959] bg-[#FFFFFF] px-[24px] py-[18px] outline-none",
@@ -319,6 +322,7 @@ export const LeftFormPanel = () => {
         <textarea
           value={information}
           onChange={(e) => setInformation(e.target.value)}
+          onBlur={() => { if (information?.trim()) saveInformation().catch(() => {}); }}
           className="w-full h-[321px] text-[24px] text-[#595959] font-semibold rounded-[10px] border border-[#BFBFBF] bg-[#FFFFFF] placeholder:text-[#BFBFBF] px-[24px] pt-[24px] pb-[18px] outline-none resize-none"
           placeholder="행사 소개글을 적어주세요."
         />

@@ -11,6 +11,8 @@ import EventCardMenu from "./EventCardMenu";
 import StopNotificationModal from "./StopNotificationModal";
 
 export interface EventCardProps {
+  /** 행사 ID (삭제 시 사용) */
+  eventId: number;
   /** 행사 제목 */
   title: string;
   /** 일시 (표시용 문자열, 예: 수요일 10:45 AM) */
@@ -21,15 +23,19 @@ export interface EventCardProps {
   imageUrl?: string;
   /** 우측 상단 ... 버튼 클릭 시 (선택, 메뉴 토글과 별개) */
   onMenuClick?: () => void;
+  /** 행사 삭제 클릭 시 (eventId 전달) */
+  onDelete?: (eventId: number) => void;
 }
 
 /** 피그마 box1_1: 456×379, 상단 이미지 약 60~65% 높이 */
 const EventCard = ({
+  eventId,
   title,
   dateTime,
   hostName,
   imageUrl,
   onMenuClick: _onMenuClick,
+  onDelete,
 }: EventCardProps) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -82,6 +88,12 @@ const EventCard = ({
               onStopNotification={() => {
                 setMenuOpen(false);
                 setModalOpen(true);
+              }}
+              onDelete={() => {
+                setMenuOpen(false);
+                if (window.confirm("이 행사를 삭제하시겠습니까?")) {
+                  onDelete?.(eventId);
+                }
               }}
             />
           </div>

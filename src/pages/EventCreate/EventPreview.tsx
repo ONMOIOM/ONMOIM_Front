@@ -41,8 +41,12 @@ export default function EventPreview() {
   const navigate = useNavigate();
 
   const data = useEventDraftStore((s) => s.data);
+  const publish = useEventDraftStore((s) => s.publish);
+  const publishStatus = useEventDraftStore((s) => s.publishStatus);
   const initStatus = useEventDraftStore((s) => s.initStatus);
   const eventId = useEventDraftStore((s) => s.eventId);
+
+  const isReady = initStatus === "ready" && eventId != null;
 
   if (initStatus !== "ready" || !eventId) {
     return (
@@ -218,6 +222,18 @@ export default function EventPreview() {
           left={{
             label: "수정",
             onClick: () => navigate("/event-create"),
+          }}
+          right={{
+            label: publishStatus === "saving" ? "저장 중..." : "저장",
+            onClick: async () => {
+              try {
+                await publish();
+                navigate("/");
+              } catch {
+                // publish에서 에러 상태 설정됨
+              }
+            },
+            disabled: !isReady || publishStatus === "saving",
           }}
         />
       }

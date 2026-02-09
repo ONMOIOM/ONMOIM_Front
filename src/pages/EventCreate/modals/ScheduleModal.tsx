@@ -241,8 +241,13 @@ export function ScheduleModal({
   };
 
   /** ✅ 시간 리스트에서 “현재 선택된 시간” 빨간 표시(= active 박스 기준) */
-  const activeDateForList =
-    active === "start" ? draft.startAt : active === "end" ? draft.endAt : null;
+  const isSelectedTime = (h: number, m: number) => {
+    if (draft.startAt && draft.startAt.getHours() === h && draft.startAt.getMinutes() === m)
+      return true;
+    if (draft.endAt && draft.endAt.getHours() === h && draft.endAt.getMinutes() === m)
+      return true;
+    return false;
+  };
 
   /** ✅ 저장 버튼 없으니 overlay 클릭 시 저장+닫기 */
   const closeAndSave = async () => {
@@ -384,39 +389,46 @@ export function ScheduleModal({
                   })}
                 </div>
 
-                {/* 오늘로 설정: 오늘 날짜 + 기본 3시간, 그리고 저장+닫기 */}
-                <button
-                  type="button"
-                  disabled={saving}
-                  onClick={() => {
-                    if (saving) return;
+                {/* 오늘로 설정 / 확인 버튼 */}
+                <div className="mt-[24px] flex items-center gap-[17px]">
+                  <button
+                    type="button"
+                    disabled={saving}
+                    onClick={() => {
+                      if (saving) return;
 
-                    const now = clampTo15(new Date());
-                    const day = new Date(now);
-                    day.setHours(0, 0, 0, 0);
+                      const now = clampTo15(new Date());
+                      const day = new Date(now);
+                      day.setHours(0, 0, 0, 0);
 
-                    const start = new Date(day);
-                    start.setHours(now.getHours(), now.getMinutes(), 0, 0);
+                      const start = new Date(day);
+                      start.setHours(now.getHours(), now.getMinutes(), 0, 0);
 
-                    const end = new Date(start);
-                    end.setHours(end.getHours() + 3);
+                      const end = new Date(start);
+                      end.setHours(end.getHours() + 3);
 
-                    setSelectedDate(day);
-                    setViewMonth(new Date(day));
-                    setDraft({ startAt: start, endAt: end });
+                      setSelectedDate(day);
+                      setViewMonth(new Date(day));
+                      setDraft({ startAt: start, endAt: end });
 
-                    // setState 직후라서, 저장은 다음 tick에 draft가 반영된 뒤 하는게 안전하지만
-                    // 여기서는 즉시 저장 대신 overlay로 닫게 해도 됨.
-                    // 요구가 "오늘로 설정"은 바로 저장이었으니, draft를 직접 전달해서 저장.
-                    void (async () => {
-                      await onSave({ startAt: start, endAt: end });
-                      onClose();
-                    })();
-                  }}
-                  className="mt-[24px] h-[63px] w-[468px] rounded-[10px] text-[20px] font-semibold bg-[#F24148] text-[#FFFFFF] px-[188px]"
-                >
-                  {saving ? "설정 중..." : "오늘로 설정"}
-                </button>
+                      void (async () => {
+                        await onSave({ startAt: start, endAt: end });
+                        onClose();
+                      })();
+                    }}
+                    className="h-[63px] w-[210px] shrink-0 rounded-[10px] text-[20px] font-semibold bg-[#F24148] text-[#FFFFFF] whitespace-nowrap"
+                  >
+                    {saving ? "설정 중..." : "오늘로 설정"}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={saving}
+                    onClick={closeAndSave}
+                    className="h-[63px] w-[210px] shrink-0 rounded-[10px] text-[20px] font-semibold bg-[#F7F7F8] text-[#525252] border border-[#BFBFBF] whitespace-nowrap hover:bg-[#EEEEEE]"
+                  >
+                    확인
+                  </button>
+                </div>
               </div>
 
               {/* Time list */}
@@ -425,11 +437,7 @@ export function ScheduleModal({
                   <div className="space-y-[7px]">
                     {times.map((t) => {
                       const disabled = isDisabledTime(t.h, t.m);
-
-                      const isActiveTime =
-                        !!activeDateForList &&
-                        activeDateForList.getHours() === t.h &&
-                        activeDateForList.getMinutes() === t.m;
+                      const selected = isSelectedTime(t.h, t.m);
 
                       return (
                         <button
@@ -441,9 +449,9 @@ export function ScheduleModal({
                             "w-full h-[62px] rounded-[10px] border text-[20px] font-semibold",
                             disabled
                               ? "border-[#E5E5E5] text-[#C0C0C0] bg-[#FAFAFA] cursor-not-allowed"
-                              : isActiveTime
+                              : selected
                               ? "border-[#F24148] text-[#F24148] bg-[#FEF2F2]"
-                              : "border-[#BFBFBF] text-[#595959] bg-[#FFFFFF]",
+                              : "border-[#BFBFBF] text-[#595959] bg-[#FFFFFF] hover:bg-[#F7F7F8]",
                           ].join(" ")}
                         >
                           {t.label}
