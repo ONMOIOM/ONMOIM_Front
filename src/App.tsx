@@ -11,6 +11,7 @@ import EventPreview from "./pages/EventCreate/EventPreview";
 import Analysis from "./pages/Analysis/Analysis";
 import TestPage from "./pages/TestPage_kaya";
 import TestPageOther from "./pages/TestPage";
+import EventPost from "./pages/EventPost/EventPost";
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
         <Route path="event-participants" element={<EventParticipants />} />
         <Route path="event-create" element={<EventCreate />} />
         <Route path="event-create/preview" element={<EventPreview />} />
+        <Route path="event-post" element={<EventPost />} />
         <Route path="analysis" element={<Analysis />} />
         <Route path="test" element={<TestPage />} />
         <Route path="test-other" element={<TestPageOther />} />
