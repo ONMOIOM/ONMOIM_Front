@@ -40,7 +40,7 @@ export default function EmailSendPage({ email, onResult, onClose, isResend = fal
 
     setLoading(true);
     try {
-      const turnstileToken = sitekey ? token : "mock_token";
+      const turnstileToken = sitekey ? token : "onmoim";
       console.log("[EmailSendPage] 인증 이메일 받기 요청", {
         email,
         turnstileToken: turnstileToken ? "(있음)" : "(없음)",
