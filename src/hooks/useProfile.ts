@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { profileAPI, type ProfileData } from "../api/profile";
+import { MOCK_PROFILE } from "../openapi/mockProfile";
 
 const useProfile = () => {
   const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -19,12 +20,12 @@ const useProfile = () => {
         if (res.success && res.data) {
           setProfile(res.data);
         } else {
-          setProfile(null);
+          setProfile(MOCK_PROFILE);
         }
       } catch {
         if (!isMounted) return;
         setError(true);
-        setProfile(null);
+        setProfile(MOCK_PROFILE);
       } finally {
         if (!isMounted) return;
         setLoading(false);

@@ -8,9 +8,10 @@ type Props = {
   email: string;
   onResult: (isRegistered: boolean) => void;
   onClose: () => void;
+  isResend?: boolean; // 재전송 여부
 };
 
-export default function EmailSendPage({ email, onResult, onClose }: Props) {
+export default function EmailSendPage({ email, onResult, onClose, isResend = false }: Props) {
   const sitekey = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
 
   // ✅ 백엔드 없이 로직 테스트하려면 .env에 VITE_USE_AUTH_MOCK=true
@@ -31,7 +32,7 @@ export default function EmailSendPage({ email, onResult, onClose }: Props) {
       return;
     }
 
-    // 1) sitekey가 있을 때는 Turnstile 인증이 먼저 필요
+    // 1) sitekey가 있을 때는 Turnstile 인증이 먼저 필요 (재전송도 포함)
     if (sitekey && !token) {
       alert("보안 확인을 먼저 완료해주세요.");
       return;

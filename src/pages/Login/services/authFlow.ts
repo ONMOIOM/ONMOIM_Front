@@ -45,8 +45,8 @@ export async function completeAuth(email: string, authCode: string, mode: AuthMo
     return "mock_access_token_123";
   }
 
-  // 1) verify
-  const v = await verifyEmailCode({ email, authCode });
+  // 1) verify (API는 code 필드 사용)
+  const v = await verifyEmailCode({ email, code: authCode });
   if (!v.success) throw new Error(v.message ?? "코드 검증 실패");
 
   // 2) signup이면 회원가입

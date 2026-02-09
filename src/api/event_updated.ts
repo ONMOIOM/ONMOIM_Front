@@ -2,25 +2,19 @@
 import axiosInstance from './axiosInstance';
 import { BaseResponse } from '../constants/types';
 
-/** 행사 초안 생성 응답 data */
-/*
-사용되는 곳
-- 행사 생성 : Kaya
-*/
-
-/* 1. 행사 초안 생성, 2. 행사 필드 생성, 3. 행사 최종 생성 응답 */
+/** 행사 초안 생성 / 최종 생성 응답 data (Swagger flat 구조) */
 export type CreateEventResponse = {
   eventId: number;
-  status: string;
   title?: string | null;
-  schedule?: { startDate: string; endDate: string } | null;
-  location?: { streetAddress: string; lotNumber?: string | null } | null;
-  capacity?: number | null;
+  startTime?: string | null;
+  endTime?: string | null;
+  streetAddress?: string | null;
+  lotNumberAddress?: string | null;
   price?: number | null;
-  playlist?: string | null;
-  information?: string | null;
-  createdAt: string;
-  updatedAt?: string | null;
+  playlistUrl?: string | null;
+  capacity?: number | null;
+  introduction?: string | null;
+  status: string;
 };
 
 /** 2. 행사 제목 생성 요청 */
@@ -154,12 +148,12 @@ export const saveEventInformation = async (
   return res.data;
 };
 
-/** 3. 행사 최종 생성(발행): PATCH /api/v1/users/events/{eventId}/publish  : Kaya*/ 
+/** 3. 행사 최종 생성(발행): POST /api/v1/users/events/{eventId}/published */
 export const publishEvent = async (
   eventId: number
 ): Promise<BaseResponse<CreateEventResponse>> => {
-  const res = await axiosInstance.patch<BaseResponse<CreateEventResponse>>(
-    `/api/v1/users/events/${eventId}/publish`
+  const res = await axiosInstance.post<BaseResponse<CreateEventResponse>>(
+    `/api/v1/users/events/${eventId}/published`
   );
   return res.data;
 };

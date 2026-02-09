@@ -21,7 +21,13 @@ export type VerificationEmailResponse = {
   isRegistered: boolean;
 }
 
-/** 2. 인증 코드 검증 요청, 3. 로그인 요청, 4. 회원가입 */
+/** 2. 인증 코드 검증 요청 (POST /api/v1/auth/email/verify) - code 사용 */
+export type VerifyEmailCodeRequest = {
+  email: string;
+  code: string;
+};
+
+/** 3. 로그인 요청, 4. 회원가입 (POST /api/v1/users/login, signup) - authCode 사용 */
 export type EmailAuthCodeRequest = {
   email: string;
   authCode: string;
@@ -34,16 +40,17 @@ export type VerifyEmailCodeResponse = {
   status: string;
 }
 
-/** 3. 로그인 응답 */
+/** 3. 로그인 응답 (Swagger: email, authCode / 실제 인증 시 accessToken 등 추가 반환 가능) */
 export type LoginResponse = {
-  userId: number;
+  email: string;
+  authCode: string;
   accessToken?: string;
 };
 
 /** 4. 회원가입 응답 */
 export type SignUpResponse = {
-    userId: number;
-}
+  userId: number;
+};
 
 
 /* 회원 조회 응답 data (배열) .. 이것도 누가 쓸건지 역할 분배 필요*/
@@ -78,7 +85,7 @@ export const sendVerificationEmail = async (
 
 /** 2. 인증 코드 검증: POST /api/v1/auth/email/verify (request body에 code) */
 export const verifyEmailCode = async (
-  body: EmailAuthCodeRequest
+  body: VerifyEmailCodeRequest
 ): Promise<BaseResponse<VerifyEmailCodeResponse>> => {
   const res = await axiosInstance.post<BaseResponse<VerifyEmailCodeResponse>>(
     '/api/v1/auth/email/verify',

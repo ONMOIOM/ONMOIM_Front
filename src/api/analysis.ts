@@ -29,41 +29,38 @@ export type SessionResponseData = {
 
 /* API 함수 */
 
-/* 1. 통계값 획득 : GET /api/v1/analytics/total */
+/* 1. 일주일치 통계값 획득: GET /api/v1/analytics/total */
 export const getEventAnalysis = async (
   eventId: number
-): Promise<BaseResponse<EventAnalysisData[]>> => {
-  const res = await axiosInstance.get<BaseResponse<EventAnalysisData[]>>(
+): Promise<BaseResponse<EventAnalysisData>> => {
+  const res = await axiosInstance.get<BaseResponse<EventAnalysisData>>(
     `/api/v1/analytics/total`,
     {
       params: {
-        Event_id: eventId
-      }
+        eventId,
+      },
     }
   );
   return res.data;
 };
 
-/* 2. 세션 시작: POST /api/v1/analytics/session */
+/* 2. 입장시간 기록 및 카운트: POST /api/v1/analytics/{eventId}/session */
 export const startSession = async (
   eventId: number
 ): Promise<BaseResponse<SessionResponseData>> => {
   const res = await axiosInstance.post<BaseResponse<SessionResponseData>>(
-    `/api/v1/analytics/${eventId}/sessions`,
-    {
-      eventId
-    }
+    `/api/v1/analytics/${eventId}/session`
   );
   return res.data;
 };
 
-/* 3. 세션 종료: PATCH /api/v1/analytics/session/{sessionId} */
+/* 3. 퇴장 시간 기록 및 머문 시간 계산: POST /api/v1/analytics/{eventId}/session/{sessionId} */
 export const endSession = async (
   eventId: number,
   sessionId: string
 ): Promise<BaseResponse<SessionResponseData>> => {
-  const res = await axiosInstance.patch<BaseResponse<SessionResponseData>>(
-    `/api/v1/analytics/${eventId}/sessions/${sessionId}`
+  const res = await axiosInstance.post<BaseResponse<SessionResponseData>>(
+    `/api/v1/analytics/${eventId}/session/${sessionId}`
   );
   return res.data;
-}
+};

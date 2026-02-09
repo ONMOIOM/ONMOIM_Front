@@ -15,7 +15,7 @@ const NavBar = () => {
   const [alarmModalTop, setAlarmModalTop] = useState(0);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const { profile } = useProfile();
-  const profileImageUrl = profile?.imageUrl || profileSrc;
+  const profileImageUrl = profile?.profileImageUrl || profileSrc;
   const profileName = profile?.nickname || "윤수호";
 
   const openAlarmModal = () => {

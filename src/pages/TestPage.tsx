@@ -18,7 +18,7 @@ const TestPage = () => {
 
   // 테스트용 더미 데이터
   const testEventId = 123;
-  const testUserId = 'user_123';
+  const testUserId = 1; // Swagger: integer int64
 
   const testEditEvent = async () => {
     console.log('=== 행사 수정 테스트 ===');
@@ -59,7 +59,7 @@ const TestPage = () => {
       const result = await voteEventParticipation(
         testEventId,
         testUserId,
-        '참여!'
+        { status: "ATTEND" }
       );
       console.log('✅ 행사 참여 여부 투표 성공:', result);
     } catch (error) {
@@ -127,11 +127,11 @@ const TestPage = () => {
   };
 
   const testUpdateProfile = async () => {
-    console.log('=== 회원정보 수정 테스트 ===');
+    console.log('=== 내 프로필 수정 테스트 ===');
     try {
       const payload = {
-        memberId: 1,
         nickname: '테스트닉',
+        introduction: '테스트 소개',
       };
       const result = await profileAPI.updateProfile(payload);
       alert('회원정보 수정 성공');

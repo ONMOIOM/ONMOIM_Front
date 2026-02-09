@@ -211,7 +211,7 @@ export const useEventDraftStore = create<EventDraftStore>()(
       // ---- save: title ----
       saveTitle: async () => {
         const { eventId, data } = get();
-        if (!eventId) throw new Error("eventId 없음: initDraft 먼저");
+        if (eventId == null) throw new Error("eventId 없음: initDraft 먼저");
 
         set({ titleStatus: "saving", titleError: null });
         try {
@@ -232,7 +232,7 @@ export const useEventDraftStore = create<EventDraftStore>()(
       // ---- save: schedule ----
       saveSchedule: async () => {
         const { eventId, data } = get();
-        if (!eventId) throw new Error("eventId 없음: initDraft 먼저");
+        if (eventId == null) throw new Error("eventId 없음: initDraft 먼저");
 
         set({ scheduleStatus: "saving", scheduleError: null });
         try {
@@ -258,7 +258,7 @@ export const useEventDraftStore = create<EventDraftStore>()(
       // ---- save: location ----
       saveLocation: async () => {
         const { eventId, data } = get();
-        if (!eventId) throw new Error("eventId 없음: initDraft 먼저");
+        if (eventId == null) throw new Error("eventId 없음: initDraft 먼저");
 
         set({ locationStatus: "saving", locationError: null });
         try {
@@ -285,7 +285,7 @@ export const useEventDraftStore = create<EventDraftStore>()(
       // ---- save: capacity ----
       saveCapacity: async () => {
         const { eventId, data } = get();
-        if (!eventId) throw new Error("eventId 없음: initDraft 먼저");
+        if (eventId == null) throw new Error("eventId 없음: initDraft 먼저");
 
         set({ capacityStatus: "saving", capacityError: null });
         try {
@@ -303,7 +303,7 @@ export const useEventDraftStore = create<EventDraftStore>()(
       // ---- save: price ----
       savePrice: async () => {
         const { eventId, data } = get();
-        if (!eventId) throw new Error("eventId 없음: initDraft 먼저");
+        if (eventId == null) throw new Error("eventId 없음: initDraft 먼저");
 
         set({ priceStatus: "saving", priceError: null });
         try {
@@ -321,7 +321,7 @@ export const useEventDraftStore = create<EventDraftStore>()(
       // ---- save: playlist ----
       savePlaylist: async () => {
         const { eventId, data } = get();
-        if (!eventId) throw new Error("eventId 없음: initDraft 먼저");
+        if (eventId == null) throw new Error("eventId 없음: initDraft 먼저");
 
         set({ playlistStatus: "saving", playlistError: null });
         try {
@@ -339,7 +339,7 @@ export const useEventDraftStore = create<EventDraftStore>()(
       // ---- save: information ----
       saveInformation: async () => {
         const { eventId, data } = get();
-        if (!eventId) throw new Error("eventId 없음: initDraft 먼저");
+        if (eventId == null) throw new Error("eventId 없음: initDraft 먼저");
 
         set({ informationStatus: "saving", informationError: null });
         try {
@@ -357,7 +357,7 @@ export const useEventDraftStore = create<EventDraftStore>()(
       // ---- publish ----
       publish: async () => {
         const { eventId } = get();
-        if (!eventId) throw new Error("eventId 없음: initDraft 먼저");
+        if (eventId == null) throw new Error("eventId 없음: initDraft 먼저");
 
         set({ publishStatus: "saving", publishError: null });
         try {

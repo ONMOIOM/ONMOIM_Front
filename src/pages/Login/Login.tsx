@@ -69,9 +69,7 @@ export default function Login() {
     if (resendCooldown > 0) return;
 
     console.log("[Login] 재발송 클릭");
-    setResendCooldown(30);
-    if (true) return; // TODO: 백엔드 연동 후 제거 - 실제 재발송 로직 실행
-
+    
     // 실제 재발송 로직(= sending step 이동)
     setAuthCode("");
     setErrorMsg(null);
@@ -278,6 +276,7 @@ export default function Login() {
                 setIsRegistered(registered);
                 setStep(registered ? "login" : "signup");
               }}
+              isResend={isRegistered !== null} // 재전송 여부 (이미 한 번 시도한 경우)
             />
           )}
 
