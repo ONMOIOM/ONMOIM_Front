@@ -8,7 +8,6 @@ import linkedinSrc from "../../assets/icons/icons_linkedin.svg";
 import editProfileIconSrc from "../../assets/icons/editprofile.png";
 import { profileAPI } from "../../api/profile";
 import useProfile from "../../hooks/useProfile";
-import { formatDate } from "../../utils/formatDate";
 import { compressImage } from "../../utils/imageCompression";
 
 const Profile = () => {
@@ -16,12 +15,10 @@ const Profile = () => {
   const { profile } = useProfile();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [localImageUrl, setLocalImageUrl] = useState<string | null>(null);
-  const profileImageUrl = localImageUrl || profile?.imageUrl || profileSrc;
+  const profileImageUrl = localImageUrl || profile?.profileImageUrl || profileSrc;
   const displayName = profile?.nickname || "윤수호";
   const introduction = profile?.introduction || "사용자의 자기소개 부분";
-  const joinedAtText = profile?.createdAt
-    ? `${formatDate(profile.createdAt, "YYYY년 MM월 DD일")}부터 이용중입니다`
-    : "2026년 10월 1일부터 이용중입니다";
+  const joinedAtText = "이용중입니다";
   const profileSns = {
     instagramId: profile?.instagramId ?? null,
     twitterId: profile?.twitterId ?? null,
@@ -45,24 +42,15 @@ const Profile = () => {
 
     try {
       const compressed = await compressImage(file, 512, 0.85);
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          if (typeof reader.result === "string") {
-            resolve(reader.result);
-          } else {
-            reject(new Error("Failed to read image"));
-          }
-        };
-        reader.onerror = () => reject(reader.error);
-        reader.readAsDataURL(compressed);
+      const blob = compressed as Blob;
+      const imageFile = new File([blob], file.name || "image.jpg", {
+        type: blob.type || "image/jpeg",
       });
 
-      setLocalImageUrl(dataUrl);
-      await profileAPI.updateProfile({
-        memberId: profile?.memberId,
-        imageUrl: dataUrl,
-      });
+      const res = await profileAPI.uploadProfileImage(imageFile);
+      if (res.success && res.data) {
+        setLocalImageUrl(res.data);
+      }
     } catch (error) {
       console.warn("[Profile] 프로필 이미지 변경 실패:", error);
     } finally {

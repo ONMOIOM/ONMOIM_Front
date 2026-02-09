@@ -82,8 +82,8 @@ const Analysis = () => {
     const mockByEvent = MOCK_EVENT_ANALYSIS.find((e) => e.eventId === selectedEventId);
     getEventAnalysis(selectedEventId)
       .then((res) => {
-        if (res.success && res.data && res.data.length > 0) {
-          setStats(mockByEvent?.stats ?? res.data[0].stats);
+        if (res.success && res.data?.stats && res.data.stats.length > 0) {
+          setStats(mockByEvent?.stats ?? res.data.stats);
         } else {
           setStats(mockByEvent?.stats ?? []);
         }

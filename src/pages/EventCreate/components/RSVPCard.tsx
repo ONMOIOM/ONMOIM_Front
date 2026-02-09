@@ -1,26 +1,30 @@
+import { useState } from "react";
 // 에셋
 import yes_icon from '../../../assets/icons/yes_icon.svg';
 import no_icon from '../../../assets/icons/no_icon.svg';
 import maybe_icon from '../../../assets/icons/maybe_icon.svg';
 
+export type ReplyOptionType = "yes" | "maybe" | "no";
+
 export default function RSVPCard() {
+  const [selected, setSelected] = useState<ReplyOptionType | null>(null);
+
   return (
     <section className="w-[540px] h-[200px] rounded-[10px] border border-[#BFBFBF] bg-white px-[48px] py-[37px]">
       <div className="flex h-full items-center justify-between">
-        <Circle label="못가요" type="no" />
+        <Circle label="못가요" type="no" selected={selected === "no"} onClick={() => setSelected("no")} />
         <Divider />
-        <Circle label="고민중" type="maybe" />
+        <Circle label="고민중" type="maybe" selected={selected === "maybe"} onClick={() => setSelected("maybe")} />
         <Divider />
-        <Circle label="참여!" type="yes" />
+        <Circle label="참여!" type="yes" selected={selected === "yes"} onClick={() => setSelected("yes")} />
       </div>
     </section>
-
   );
 }
 
 type CircleType = "yes" | "maybe" | "no";
 
-function Circle({ label, type }: { label: string; type: CircleType }) {
+function Circle({ label, type, selected, onClick }: { label: string; type: CircleType; selected?: boolean; onClick?: () => void }) {
   const style =
     type === "yes"
       ? {
@@ -41,9 +45,14 @@ function Circle({ label, type }: { label: string; type: CircleType }) {
         };
 
   return (
-    <button 
-      type="button" 
-      className="flex h-full w-[98px] flex-col items-center justify-center gap-[9px]"
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        "flex h-full w-[98px] flex-col items-center justify-center gap-[9px]",
+        "cursor-pointer transition-all hover:opacity-90",
+        selected && "ring-2 ring-[#595959] ring-offset-2 rounded-[10px]",
+      ].join(" ")}
     >
       <div
         className={[
