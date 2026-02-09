@@ -53,9 +53,14 @@ const axiosInstance: AxiosInstance = axios.create({
 // 요청 인터셉터
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // FormData 전송 시 Content-Type 제거 → axios가 multipart/form-data; boundary=... 자동 설정
+    // FormData 전송 시 Content-Type 제거 → 브라우저가 multipart/form-data; boundary=... 자동 설정
+    // (기본 application/json이 있으면 multipart 대신 x-www-form-urlencoded로 전송되는 문제 방지)
     if (config.data instanceof FormData && config.headers) {
       delete config.headers["Content-Type"];
+      delete config.headers["content-type"];
+      if ("delete" in config.headers && typeof (config.headers as { delete: (k: string) => void }).delete === "function") {
+        (config.headers as { delete: (k: string) => void }).delete("Content-Type");
+      }
     }
     // 로그인 전(이메일 발송 등)에는 토큰 없음 → Authorization 헤더 추가 안 함
     const token = localStorage.getItem("accessToken");
