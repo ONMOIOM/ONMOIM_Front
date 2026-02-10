@@ -4,6 +4,7 @@ import emptyParticipantsIcon from "../../assets/images/supervised_user_circle_of
 import JoinUserCard from "../Home/components/JoinUserCard";
 import {
   getMyParticipatedEvents,
+  getMyHostedEvents,
   getEventParticipation,
 } from "../../api/eventInfo";
 import { profileAPI } from "../../api/profile";
@@ -22,25 +23,32 @@ const EventParticipants = () => {
     const load = async () => {
       setLoading(true);
       try {
-        const [profileRes, eventsRes] = await Promise.all([
+        const [profileRes, participatedRes, hostedRes] = await Promise.all([
           profileAPI.getProfile(),
           getMyParticipatedEvents(),
+          getMyHostedEvents(),
         ]);
-        if (!profileRes.success || !eventsRes.success) {
+        if (!profileRes.success) {
           setParticipants([]);
           return;
         }
         const myId = String(profileRes.data?.id ?? "");
-        const events = eventsRes.data ?? [];
-        if (events.length === 0) {
+        const participated = participatedRes.success ? participatedRes.data ?? [] : [];
+        const hosted = hostedRes.success ? hostedRes.data ?? [] : [];
+        const allEventIds = new Set<number>();
+        participated.forEach((e) => {
+          if (e.eventId != null) allEventIds.add(e.eventId);
+        });
+        hosted.forEach((e) => {
+          if (e.eventId != null) allEventIds.add(e.eventId);
+        });
+        if (allEventIds.size === 0) {
           setParticipants([]);
           return;
         }
 
-        const allParticipants: Map<string, Participant> = new Map();
-        for (const ev of events) {
-          const eventId = ev.eventId;
-          if (eventId == null) continue;
+        const map = new Map<string, Participant>();
+        for (const eventId of allEventIds) {
           const partRes = await getEventParticipation(eventId);
           if (!partRes.success || !partRes.data) continue;
           for (const p of partRes.data) {
@@ -48,8 +56,8 @@ const EventParticipants = () => {
             if (uid === myId) continue;
             const name = (p as { nickname?: string }).nickname ?? p.name ?? "";
             const profileImageUrl = (p as { profileImageUrl?: string }).profileImageUrl;
-            if (!allParticipants.has(uid)) {
-              allParticipants.set(uid, {
+            if (!map.has(uid)) {
+              map.set(uid, {
                 userId: uid,
                 name,
                 profileImageUrl,
@@ -57,7 +65,7 @@ const EventParticipants = () => {
             }
           }
         }
-        setParticipants(Array.from(allParticipants.values()));
+        setParticipants(Array.from(map.values()));
       } catch {
         setParticipants([]);
       } finally {
@@ -81,7 +89,7 @@ const EventParticipants = () => {
       </div>
 
       <div
-        className={`flex justify-center ${isEmpty && !loading ? "mt-[174px]" : "mt-[60px]"}`}
+        className={`flex justify-center w-full ${isEmpty && !loading ? "mt-[174px]" : "mt-[60px]"}`}
       >
         {loading ? (
           <p className="text-h2 text-gray-500">불러오는 중...</p>
@@ -100,7 +108,7 @@ const EventParticipants = () => {
             </p>
           </div>
         ) : (
-          <div className="grid w-full max-w-[1210px] grid-cols-4 gap-x-[54px] gap-y-[36px]">
+          <div className="w-full max-w-[1210px] grid grid-cols-4 gap-x-[54px] gap-y-[36px]">
             {participants.map((participant) => (
               <JoinUserCard
                 key={participant.userId}

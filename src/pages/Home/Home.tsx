@@ -30,6 +30,9 @@ const Home = () => {
   const [hostedEvents, setHostedEvents] = useState<EventInfoDetailData[]>([]);
   const [participatedEvents, setParticipatedEvents] = useState<EventInfoDetailData[]>([]);
   const [myHostedEventIds, setMyHostedEventIds] = useState<Set<number> | null>(null);
+  const [coParticipants, setCoParticipants] = useState<
+    { userId: string; name: string; profileImageUrl?: string }[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -102,6 +105,55 @@ const Home = () => {
       }
     };
     fetchMyParticipatedEvents();
+  }, []);
+
+  // 같은 행사 참여자 조회 (내가 참여한 행사 + 내가 만든 행사의 참여자)
+  useEffect(() => {
+    const fetchCoParticipants = async () => {
+      try {
+        const [profileRes, participatedRes, hostedRes] = await Promise.all([
+          profileAPI.getProfile(),
+          getMyParticipatedEvents(),
+          getMyHostedEvents(),
+        ]);
+        if (!profileRes.success) {
+          setCoParticipants([]);
+          return;
+        }
+        const myId = String(profileRes.data?.id ?? "");
+        const participated = participatedRes.success ? participatedRes.data ?? [] : [];
+        const hosted = hostedRes.success ? hostedRes.data ?? [] : [];
+        const allEventIds = new Set<number>();
+        participated.forEach((e) => {
+          if (e.eventId != null) allEventIds.add(e.eventId);
+        });
+        hosted.forEach((e) => {
+          if (e.eventId != null) allEventIds.add(e.eventId);
+        });
+        if (allEventIds.size === 0) {
+          setCoParticipants([]);
+          return;
+        }
+        const map = new Map<string, { userId: string; name: string; profileImageUrl?: string }>();
+        for (const eventId of allEventIds) {
+          const partRes = await getEventParticipation(eventId);
+          if (!partRes.success || !partRes.data) continue;
+          for (const p of partRes.data) {
+            const uid = String(p.userId);
+            if (uid === myId) continue;
+            const name = (p as { nickname?: string }).nickname ?? p.name ?? "";
+            const profileImageUrl = (p as { profileImageUrl?: string }).profileImageUrl;
+            if (!map.has(uid)) {
+              map.set(uid, { userId: uid, name, profileImageUrl });
+            }
+          }
+        }
+        setCoParticipants(Array.from(map.values()));
+      } catch {
+        setCoParticipants([]);
+      }
+    };
+    fetchCoParticipants();
   }, []);
 
   const handleDeleteEvent = async (eventId: number) => {
@@ -226,8 +278,16 @@ const Home = () => {
                       </h2>
                       <ParticipantSectionArrows />
                     </div>
-                    <div className="mt-[42px] mb-[100px]">
-                      <JoinUserCard name={displayName} />
+                    <div className="mt-[42px] mb-[100px] flex flex-wrap gap-x-[54px] gap-y-[36px]">
+                      {coParticipants.length > 0
+                        ? coParticipants.map((p) => (
+                            <JoinUserCard
+                              key={p.userId}
+                              name={p.name}
+                              imageUrl={p.profileImageUrl}
+                            />
+                          ))
+                        : null}
                     </div>
                   </>
                 ) : item.key === "week" ? (
@@ -276,8 +336,16 @@ const Home = () => {
                       </h2>
                       <ParticipantSectionArrows />
                     </div>
-                    <div className="mt-[42px]">
-                      <JoinUserCard name={displayName} />
+                    <div className="mt-[42px] flex flex-wrap gap-x-[54px] gap-y-[36px]">
+                      {coParticipants.length > 0
+                        ? coParticipants.map((p) => (
+                            <JoinUserCard
+                              key={p.userId}
+                              name={p.name}
+                              imageUrl={p.profileImageUrl}
+                            />
+                          ))
+                        : null}
                     </div>
                   </>
                 ) : item.key === "hosting" ? (
@@ -327,7 +395,9 @@ const Home = () => {
                     <AddEventCard />
                   </EventCardRoller>
                 ) : (
-                  <p className="mt-6 text-gray-600">{item.label} 콘텐츠 영역</p>
+                  <p className="mt-6 text-gray-600">
+                    {(item as (typeof TAB_ITEMS)[number]).label} 콘텐츠 영역
+                  </p>
                 )}
               </TabPanel>
             ))}
