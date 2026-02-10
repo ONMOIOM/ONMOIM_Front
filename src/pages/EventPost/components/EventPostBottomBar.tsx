@@ -1,6 +1,6 @@
 export const EventPostBottomBar = () => {
   return (
-    <div className="mt-[870px] w-[540px]">
+    <div className="w-[540px]">
       <div className="flex justify-end gap-[17px]">
         <button
           type="button"
