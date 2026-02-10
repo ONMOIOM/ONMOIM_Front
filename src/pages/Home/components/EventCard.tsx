@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { HiOutlineDotsHorizontal } from "react-icons/hi";
 import EventCardMenu from "./EventCardMenu";
 import StopNotificationModal from "./StopNotificationModal";
@@ -37,6 +38,7 @@ const EventCard = ({
   onMenuClick: _onMenuClick,
   onDelete,
 }: EventCardProps) => {
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const cardRef = useRef<HTMLElement>(null);
@@ -52,10 +54,15 @@ const EventCard = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
 
+  const handleCardClick = () => {
+    navigate(`/event-post/${eventId}`);
+  };
+
   return (
     <article
       ref={cardRef}
-      className="relative flex h-[379px] w-[456px] shrink-0 flex-col overflow-visible rounded-8 bg-gray-0 shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
+      onClick={handleCardClick}
+      className="relative flex h-[379px] w-[456px] shrink-0 flex-col overflow-visible rounded-8 bg-gray-0 shadow-[0_2px_8px_rgba(0,0,0,0.08)] cursor-pointer hover:shadow-[0_4px_12px_rgba(0,0,0,0.12)] transition-shadow"
     >
       {/* 상단 이미지 영역 (Rectangle 4364) - 메뉴가 나오므로 overflow-visible */}
       <div className="relative h-[256px] w-[456px] shrink-0 overflow-visible rounded-t-8 bg-[#E0E0E0]">
