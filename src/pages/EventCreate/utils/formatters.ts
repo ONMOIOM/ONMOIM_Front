@@ -41,10 +41,12 @@ export function formatScheduleView(schedule: {
 
 
 export function formatLocation(location: any): string {
-  if (!location) return "";
+  if (!location || typeof location !== "object") return "";
   const street = location.streetAddress ?? location.roadAddress ?? "";
   const lot = location.lotNumber ?? "";
-  return street || lot ? String(street || lot) : String(location);
+  const streetStr = String(street || "").trim();
+  const lotStr = String(lot ?? "").trim();
+  return streetStr || lotStr || "";
 }
 
 export function formatCapacity(capacity: any): string {

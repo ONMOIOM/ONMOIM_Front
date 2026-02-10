@@ -1,7 +1,13 @@
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { useEffect, useState } from "react";
 import { HiOutlineSearch } from "react-icons/hi";
-import { deleteEvent, getEventList, getMyHostedEvents, getMyParticipatedEvents } from "../../api/eventInfo";
+import {
+  deleteEvent,
+  getEventList,
+  getEventParticipation,
+  getMyHostedEvents,
+  getMyParticipatedEvents,
+} from "../../api/eventInfo";
 import type { EventInfoData, EventInfoDetailData } from "../../api/eventInfo";
 import { profileAPI } from "../../api/profile";
 import { formatEventDateTime } from "../../utils/formatDate";
@@ -228,31 +234,39 @@ const Home = () => {
                   <>
                     <EventCardRoller>
                       {events.length > 0
-                        ? events.map((event) => {
-                            // 내가 만든 행사인지 확인
-                            // myHostedEventIds가 null이면 API 호출 실패 → 모든 행사 삭제 가능 (기본값 true)
-                            // myHostedEventIds가 Set이면 해당 eventId가 있으면 내가 만든 행사
-                            const isMyEvent =
-                              myHostedEventIds === null || myHostedEventIds.has(event.eventId);
-                            return (
-                              <EventCard
-                                key={event.eventId}
-                                eventId={event.eventId}
-                                title={event.title ?? "제목 없음"}
-                                dateTime={
-                                  event.schedule?.startDate
-                                    ? formatEventDateTime(
-                                        event.schedule.startDate,
-                                      )
-                                    : "일시 미정"
-                                }
-                                hostName={event.hostName ?? "호스트"}
-                                imageUrl={event.imageUrl ?? undefined}
-                                onDelete={handleDeleteEvent}
-                                isMyEvent={isMyEvent}
-                              />
-                            );
-                          })
+                        ? events
+                            .filter((event) => {
+                              const start = event.schedule?.startDate;
+                              if (!start) return false;
+                              const startDate = new Date(start);
+                              const now = new Date();
+                              const weekLater = new Date(now);
+                              weekLater.setDate(weekLater.getDate() + 7);
+                              return startDate >= now && startDate <= weekLater;
+                            })
+                            .map((event) => {
+                              // 내가 만든 행사인지 확인
+                              const isMyEvent =
+                                myHostedEventIds === null || myHostedEventIds.has(event.eventId);
+                              return (
+                                <EventCard
+                                  key={event.eventId}
+                                  eventId={event.eventId}
+                                  title={event.title ?? "제목 없음"}
+                                  dateTime={
+                                    event.schedule?.startDate
+                                      ? formatEventDateTime(
+                                          event.schedule.startDate,
+                                        )
+                                      : "일시 미정"
+                                  }
+                                  hostName={event.hostName ?? "호스트"}
+                                  imageUrl={event.imageUrl ?? undefined}
+                                  onDelete={handleDeleteEvent}
+                                  isMyEvent={isMyEvent}
+                                />
+                              );
+                            })
                         : null}
                       <AddEventCard />
                     </EventCardRoller>

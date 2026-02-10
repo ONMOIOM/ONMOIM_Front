@@ -130,7 +130,7 @@ export const LeftFormPanel = () => {
 
       {/* 날짜/시간 */}
       <div className="mt-[75px]">
-        <div className="mb-[16px] h-[38px] font-bold text-[32px] text-[#1A1A1A]">
+        <div className="h-[38px] mb-[20px] font-bold text-[32px] text-[#1A1A1A]">
           날짜 시간
         </div>
 
@@ -225,7 +225,7 @@ export const LeftFormPanel = () => {
 
       {/* 행사 위치 */}
       <div className="mt-[70px]">
-        <div className="h-[38px] mb-[16px] font-bold text-[32px] text-[#1A1A1A]">
+        <div className="h-[38px] mb-[20px] font-bold text-[32px] text-[#1A1A1A]">
           행사 위치
         </div>
         <button
@@ -241,14 +241,14 @@ export const LeftFormPanel = () => {
           >
             {locationView && locationView.trim() !== ""
               ? locationView
-              : "주소를 입력하세요"}
+              : "행사 위치를 적어주세요"}
           </span>
         </button>
       </div>
 
       {/* 남은 자리 */}
       <div className="mt-[28px]">
-        <div className="h-[38px] mb-[16px] font-bold text-[32px] text-[#1A1A1A]">
+        <div className="h-[38px] mb-[20px] font-bold text-[32px] text-[#1A1A1A]">
           남은 자리
         </div>
         <button
@@ -271,7 +271,7 @@ export const LeftFormPanel = () => {
 
       {/* 참여 가격 */}
       <div className="mt-[28px]">
-        <div className="h-[38px] mb-2 font-bold text-[32px] text-[#1A1A1A]">
+        <div className="h-[38px] mb-[20px] font-bold text-[32px] text-[#1A1A1A]">
           참여 가격
         </div>
         <button
@@ -305,15 +305,15 @@ export const LeftFormPanel = () => {
       <div className="mt-[70px]">
         <button
           type="button"
-          className="w-[252px] h-[62px] px-[34px] rounded-[10px] bg-[#6F9FFE1A] text-[#6F9FFE] inline-flex items-center justify-center gap-[12px]"
+          className="h-[62px] px-[28px] rounded-[10px] bg-[#6F9FFE1A] text-[#6F9FFE] inline-flex items-center justify-center gap-[12px]"
           onClick={() => setOpenModal("playlist")}
         >
           <img
             src={play_circle}
             alt="play_circle_icon"
-            className="w-[20px] h-[20px]"
+            className="w-[20px] h-[20px] shrink-0"
           />
-          <span className="text-[20px] font-semibold">플레이리스트 추가</span>
+          <span className="text-[16px] font-semibold whitespace-nowrap">플레이리스트 추가</span>
         </button>
       </div>
 
