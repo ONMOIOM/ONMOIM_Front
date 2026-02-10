@@ -26,6 +26,8 @@ export interface EventCardProps {
   onMenuClick?: () => void;
   /** 행사 삭제 클릭 시 (eventId 전달) */
   onDelete?: (eventId: number) => void;
+  /** 본인이 만든 행사인지 여부 */
+  isMyEvent?: boolean;
 }
 
 /** 피그마 box1_1: 456×379, 상단 이미지 약 60~65% 높이 */
@@ -37,6 +39,7 @@ const EventCard = ({
   imageUrl,
   onMenuClick: _onMenuClick,
   onDelete,
+  isMyEvent = true, // 기본값 true: API 호출 실패 시에도 삭제 가능하도록
 }: EventCardProps) => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -102,6 +105,7 @@ const EventCard = ({
                   onDelete?.(eventId);
                 }
               }}
+              isMyEvent={isMyEvent}
             />
           </div>
         )}

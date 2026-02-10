@@ -7,20 +7,18 @@ import { BaseResponse } from "../constants/types";
 /* 행사 초안 생성 응답 data */
 //사용되는 곳- 행사 수정, 행사 조회
 
-/* 수정용: Request Data (Swagger flat 구조 - PATCH /events/{eventId}) */
+/* 수정용: Request Data */
 export type EditEventRequest = {
   title?: string | null;
-  startTime?: string | null;
-  endTime?: string | null;
-  streetAddress?: string | null;
-  lotNumberAddress?: string | null;
-  playlistUrl?: string | null;
+  schedule?: { startDate: string; endDate: string } | null;
+  location?: { streetAddress: string; lotNumber?: string | null } | null;
   capacity?: number | null;
   price?: number | null;
-  introduction?: string | null;
+  playlist?: string | null;
+  information?: string | null;
 };
 
-/* 조회용: Response Data (목록/수정 응답 - schedule, location 등) */
+/* 조회용: Response Data */
 export type EventInfoData = {
   eventId: number;
   status: string;
@@ -35,11 +33,26 @@ export type EventInfoData = {
   hostName?: string | null;
   /** 행사 대표 이미지 URL (목록/상세) */
   imageUrl?: string | null;
-  createdAt?: string | null;
+  createdAt: string;
   updatedAt?: string | null;
 };
 
-/* 행사 상세 조회용: Response Data (Swagger flat 구조 - GET /events/{eventId}) */
+/* 행사 참여 여부 투표 Response Data */
+export type VoteParticipantData = {
+  eventUserID: string;
+  eventId: number;
+  userId: string;
+  status: string;
+};
+
+/*행사 참여 여부 조회 Response Data */
+export type GetParticipantData = {
+  userId: string;
+  name: string;
+  status: string;
+};
+
+/* 내가 만든 행사 조회용 Response Data (flat 구조) */
 export type EventInfoDetailData = {
   eventId: number;
   title?: string | null;
@@ -54,33 +67,17 @@ export type EventInfoDetailData = {
   status: string;
 };
 
-/* 행사 참여 여부 조회 Response Data (GET /participants) */
-export type GetParticipantData = {
-  userId: number;
-  nickname: string;
-  status: string;
-};
-
 // --- API 함수 구현  ---
 
 /** 1. 행사 수정: PATCH /api/v1/users/events/{eventId} */
 export const editEvent = async (
   eventId: number,
-  updateData: EditEventRequest
-): Promise<BaseResponse<EventInfoDetailData>> => {
-  const res = await axiosInstance.patch<
-    BaseResponse<EventInfoDetailData>
-  >(`/api/v1/users/events/${eventId}`, updateData);
-  return res.data;
-};
-
-/** 내가 참여한 행사 조회: GET /api/v1/users/{userId}/events */
-export const getMyParticipatedEvents = async (
-  userId: number
-): Promise<BaseResponse<EventInfoDetailData[]>> => {
-  const res = await axiosInstance.get<
-    BaseResponse<EventInfoDetailData[]>
-  >(`/api/v1/users/${userId}/events`);
+  updateData: EditEventRequest,
+): Promise<BaseResponse<EventInfoData>> => {
+  const res = await axiosInstance.patch<BaseResponse<EventInfoData>>(
+    `/api/v1/users/events/${eventId}`,
+    updateData,
+  );
   return res.data;
 };
 
@@ -89,50 +86,60 @@ export const getEventList = async (): Promise<
   BaseResponse<EventInfoData[]>
 > => {
   const res = await axiosInstance.get<BaseResponse<EventInfoData[]>>(
-    "/api/v1/users/events"
+    "/api/v1/users/events",
   );
   return res.data;
 };
 
 /** 2. 행사 상세 조회: GET /api/v1/users/events/{eventId} */
 export const getEvent = async (
-  eventId: number
-): Promise<BaseResponse<EventInfoDetailData>> => {
-  const res = await axiosInstance.get<BaseResponse<EventInfoDetailData>>(
-    `/api/v1/users/events/${eventId}`
+  eventId: number,
+): Promise<BaseResponse<EventInfoData>> => {
+  const res = await axiosInstance.get<BaseResponse<EventInfoData>>(
+    `/api/v1/users/events/${eventId}`,
   );
   return res.data;
 };
 
 /** 3. 행사 삭제: DELETE /api/v1/users/events/{eventId} */
 export const deleteEvent = async (
-  eventId: number
-): Promise<BaseResponse<Record<string, never>>> => {
-  const res = await axiosInstance.delete<
-    BaseResponse<Record<string, never>>
-  >(`/api/v1/users/events/${eventId}`);
+  eventId: number,
+): Promise<BaseResponse<EventInfoData>> => {
+  const res = await axiosInstance.delete<BaseResponse<EventInfoData>>(
+    `/api/v1/users/events/${eventId}`,
+  );
   return res.data;
 };
 
-/** 4. 행사 참여 여부 투표: POST /api/v1/users/events/{eventId}/participants/{userId} */
+/** 4. 행사 참여 여부 투표: PUT /api/v1/users/events/{eventId}/participants/{userId} */
 export const voteEventParticipation = async (
   eventId: number,
-  userId: number,
-  body: { status: string }
-): Promise<BaseResponse<string>> => {
-  const res = await axiosInstance.post<BaseResponse<string>>(
+  userId: string,
+  status: string,
+): Promise<BaseResponse<VoteParticipantData>> => {
+  const res = await axiosInstance.put<BaseResponse<VoteParticipantData>>(
     `/api/v1/users/events/${eventId}/participants/${userId}`,
-    body
+    { status },
   );
   return res.data;
 };
 
 /** 5. 행사 참여 여부 조회: GET api/v1/users/events/{eventId}/participants */
 export const getEventParticipation = async (
-  eventId: number
+  eventId: number,
 ): Promise<BaseResponse<GetParticipantData[]>> => {
   const res = await axiosInstance.get<BaseResponse<GetParticipantData[]>>(
-    `/api/v1/users/events/${eventId}/participants`
+    `/api/v1/users/events/${eventId}/participants`,
   );
+  return res.data;
+};
+
+/** 내가 만든 행사 조회: GET /api/v1/users/events/hosted */
+export const getMyHostedEvents = async (): Promise<
+  BaseResponse<EventInfoDetailData[]>
+> => {
+  const res = await axiosInstance.get<
+    BaseResponse<EventInfoDetailData[]>
+  >("/api/v1/users/events/hosted");
   return res.data;
 };

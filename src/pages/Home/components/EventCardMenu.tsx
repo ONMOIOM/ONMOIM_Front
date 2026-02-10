@@ -12,13 +12,23 @@ export interface EventCardMenuProps {
   onStopNotification?: () => void;
   /** 행사 삭제하기 클릭 시 */
   onDelete?: () => void;
+  /** 본인이 만든 행사인지 여부 (false면 삭제 버튼 비활성화) */
+  isMyEvent?: boolean;
 }
 
 const menuButtonClass =
   "box-border flex h-[58px] w-[177px] items-center justify-center gap-2 rounded-[20px] border border-gray-600 bg-gray-0 transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-gray-600/30 focus:ring-offset-2";
 
 /** 디자인: 177×58, border-radius 20px, border-gray-600, bg-gray-0. 아이콘 25×25 */
-const EventCardMenu = ({ onStopNotification, onDelete }: EventCardMenuProps) => {
+const EventCardMenu = ({
+  onStopNotification,
+  onDelete,
+  isMyEvent = true,
+}: EventCardMenuProps) => {
+  const deleteButtonClass = isMyEvent
+    ? menuButtonClass
+    : `${menuButtonClass} opacity-50 cursor-not-allowed`;
+
   return (
     <div className="flex flex-col gap-2">
       <button
@@ -38,19 +48,29 @@ const EventCardMenu = ({ onStopNotification, onDelete }: EventCardMenuProps) => 
           height={25}
           aria-hidden
         />
-        <span className="text-base font-normal text-gray-900">알람 그만받기</span>
+        <span className="text-base font-normal text-gray-900">
+          알람 그만받기
+        </span>
       </button>
       <button
         type="button"
         onClick={(e) => {
           e.stopPropagation();
-          onDelete?.();
+          if (isMyEvent) {
+            onDelete?.();
+          }
         }}
-        className={menuButtonClass}
+        disabled={!isMyEvent}
+        className={deleteButtonClass}
         aria-label="행사 삭제하기"
       >
-        <HiOutlineTrash className="h-[25px] w-[25px] shrink-0 text-gray-900" aria-hidden />
-        <span className="text-base font-normal text-gray-900">행사 삭제하기</span>
+        <HiOutlineTrash
+          className={`h-[25px] w-[25px] shrink-0 ${isMyEvent ? "text-gray-900" : "text-gray-400"}`}
+          aria-hidden
+        />
+        <span className={`text-base font-normal ${isMyEvent ? "text-gray-900" : "text-gray-400"}`}>
+          행사 삭제하기
+        </span>
       </button>
     </div>
   );

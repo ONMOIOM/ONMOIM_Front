@@ -104,6 +104,10 @@ const ProfileMenu = ({
         <button
           type="button"
           className="flex w-full items-center justify-start gap-3 text-left"
+          onClick={() => {
+            localStorage.removeItem("accessToken");
+            navigate("/login", { replace: true });
+          }}
         >
           <img
             src={logOutSrc}

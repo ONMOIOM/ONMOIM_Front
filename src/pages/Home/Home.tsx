@@ -1,7 +1,7 @@
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { useEffect, useState } from "react";
 import { HiOutlineSearch } from "react-icons/hi";
-import { deleteEvent, getEventList } from "../../api/eventInfo";
+import { deleteEvent, getEventList, getMyHostedEvents } from "../../api/eventInfo";
 import type { EventInfoData } from "../../api/eventInfo";
 import { profileAPI } from "../../api/profile";
 import { formatEventDateTime } from "../../utils/formatDate";
@@ -21,6 +21,7 @@ const TAB_ITEMS = [
 const Home = () => {
   const [nickname, setNickname] = useState<string | null>(null);
   const [events, setEvents] = useState<EventInfoData[]>([]);
+  const [myHostedEventIds, setMyHostedEventIds] = useState<Set<number> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -56,14 +57,57 @@ const Home = () => {
     fetchEvents();
   }, []);
 
+  // 내가 만든 행사 목록 조회 (삭제 버튼 활성화 여부 판단용)
+  useEffect(() => {
+    const fetchMyHostedEvents = async () => {
+      try {
+        const res = await getMyHostedEvents();
+        if (res.success && Array.isArray(res.data)) {
+          const eventIds = new Set(res.data.map((event) => event.eventId));
+          setMyHostedEventIds(eventIds);
+        } else {
+          // API 호출은 성공했지만 데이터가 없는 경우
+          setMyHostedEventIds(new Set());
+        }
+      } catch (err: any) {
+        // API 호출 실패 시 null 유지 (기본값으로 모든 행사 삭제 가능)
+        console.warn("[Home] 내가 만든 행사 조회 실패:", err);
+        setMyHostedEventIds(null);
+      }
+    };
+    fetchMyHostedEvents();
+  }, []);
+
   const handleDeleteEvent = async (eventId: number) => {
     try {
       const res = await deleteEvent(eventId);
       if (res.success) {
         setEvents((prev) => prev.filter((e) => e.eventId !== eventId));
+        // 내가 만든 행사 목록에서도 제거
+        if (myHostedEventIds !== null) {
+          setMyHostedEventIds((prev) => {
+            if (prev === null) return null;
+            const next = new Set(prev);
+            next.delete(eventId);
+            return next;
+          });
+        }
+      } else {
+        // 백엔드에서 success: false 반환 시
+        const errorMsg = (res as any).data || res.message || "행사 삭제에 실패했습니다.";
+        alert(`행사 삭제 실패: ${errorMsg}`);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.warn("[Home] 행사 삭제 실패:", err);
+      // 에러 응답에서 메시지 추출
+      const errorMessage = err?.response?.data?.data || err?.response?.data?.message || err?.message || "행사 삭제 중 오류가 발생했습니다.";
+      
+      // 외래 키 제약 조건 위반 에러인 경우 명확한 메시지 표시
+      if (errorMessage.includes("constraint") || errorMessage.includes("foreign key")) {
+        alert("이 행사는 참여자나 댓글이 있어서 삭제할 수 없습니다.\n백엔드에서 관련 데이터를 먼저 삭제해야 합니다.");
+      } else {
+        alert(`행사 삭제 실패: ${errorMessage}`);
+      }
     }
   };
 
@@ -122,23 +166,31 @@ const Home = () => {
                   <>
                     <EventCardRoller>
                       {events.length > 0
-                        ? events.map((event) => (
-                            <EventCard
-                              key={event.eventId}
-                              eventId={event.eventId}
-                              title={event.title ?? "제목 없음"}
-                              dateTime={
-                                event.schedule?.startDate
-                                  ? formatEventDateTime(
-                                      event.schedule.startDate,
-                                    )
-                                  : "일시 미정"
-                              }
-                              hostName={event.hostName ?? "호스트"}
-                              imageUrl={event.imageUrl ?? undefined}
-                              onDelete={handleDeleteEvent}
-                            />
-                          ))
+                        ? events.map((event) => {
+                            // 내가 만든 행사인지 확인
+                            // myHostedEventIds가 null이면 API 호출 실패 → 모든 행사 삭제 가능 (기본값 true)
+                            // myHostedEventIds가 Set이면 해당 eventId가 있으면 내가 만든 행사
+                            const isMyEvent =
+                              myHostedEventIds === null || myHostedEventIds.has(event.eventId);
+                            return (
+                              <EventCard
+                                key={event.eventId}
+                                eventId={event.eventId}
+                                title={event.title ?? "제목 없음"}
+                                dateTime={
+                                  event.schedule?.startDate
+                                    ? formatEventDateTime(
+                                        event.schedule.startDate,
+                                      )
+                                    : "일시 미정"
+                                }
+                                hostName={event.hostName ?? "호스트"}
+                                imageUrl={event.imageUrl ?? undefined}
+                                onDelete={handleDeleteEvent}
+                                isMyEvent={isMyEvent}
+                              />
+                            );
+                          })
                         : null}
                       <AddEventCard />
                     </EventCardRoller>
@@ -156,23 +208,31 @@ const Home = () => {
                   <>
                     <EventCardRoller>
                       {events.length > 0
-                        ? events.map((event) => (
-                            <EventCard
-                              key={event.eventId}
-                              eventId={event.eventId}
-                              title={event.title ?? "제목 없음"}
-                              dateTime={
-                                event.schedule?.startDate
-                                  ? formatEventDateTime(
-                                      event.schedule.startDate,
-                                    )
-                                  : "일시 미정"
-                              }
-                              hostName={event.hostName ?? "호스트"}
-                              imageUrl={event.imageUrl ?? undefined}
-                              onDelete={handleDeleteEvent}
-                            />
-                          ))
+                        ? events.map((event) => {
+                            // 내가 만든 행사인지 확인
+                            // myHostedEventIds가 null이면 API 호출 실패 → 모든 행사 삭제 가능 (기본값 true)
+                            // myHostedEventIds가 Set이면 해당 eventId가 있으면 내가 만든 행사
+                            const isMyEvent =
+                              myHostedEventIds === null || myHostedEventIds.has(event.eventId);
+                            return (
+                              <EventCard
+                                key={event.eventId}
+                                eventId={event.eventId}
+                                title={event.title ?? "제목 없음"}
+                                dateTime={
+                                  event.schedule?.startDate
+                                    ? formatEventDateTime(
+                                        event.schedule.startDate,
+                                      )
+                                    : "일시 미정"
+                                }
+                                hostName={event.hostName ?? "호스트"}
+                                imageUrl={event.imageUrl ?? undefined}
+                                onDelete={handleDeleteEvent}
+                                isMyEvent={isMyEvent}
+                              />
+                            );
+                          })
                         : null}
                       <AddEventCard />
                     </EventCardRoller>
