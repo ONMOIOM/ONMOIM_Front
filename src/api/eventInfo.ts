@@ -124,6 +124,20 @@ export const voteEventParticipation = async (
   return res.data;
 };
 
+/** 행사 참여 투표: POST /api/v1/users/events/{eventId}/participants (ATTEND/PENDING/ABSENT) */
+export type ParticipationStatus = "ATTEND" | "PENDING" | "ABSENT";
+
+export const voteParticipation = async (
+  eventId: number,
+  status: ParticipationStatus
+): Promise<BaseResponse<unknown>> => {
+  const res = await axiosInstance.post<BaseResponse<unknown>>(
+    `/api/v1/users/events/${eventId}/participants`,
+    { status },
+  );
+  return res.data;
+};
+
 /** 5. 행사 참여 여부 조회: GET api/v1/users/events/{eventId}/participants */
 export const getEventParticipation = async (
   eventId: number,
@@ -141,5 +155,15 @@ export const getMyHostedEvents = async (): Promise<
   const res = await axiosInstance.get<
     BaseResponse<EventInfoDetailData[]>
   >("/api/v1/users/events/hosted");
+  return res.data;
+};
+
+/** 내가 참여한 행사 조회: GET /api/v1/users/events/participating */
+export const getMyParticipatedEvents = async (): Promise<
+  BaseResponse<EventInfoDetailData[]>
+> => {
+  const res = await axiosInstance.get<
+    BaseResponse<EventInfoDetailData[]>
+  >("/api/v1/users/events/participating");
   return res.data;
 };

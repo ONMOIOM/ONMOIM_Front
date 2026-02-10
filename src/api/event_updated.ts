@@ -1,7 +1,7 @@
 // 이벤트 관련 API, Kaya
-import axiosInstance from './axiosInstance';
-import { BaseResponse } from '../constants/types';
-import type { EditEventRequest } from './eventInfo';
+import axiosInstance from "./axiosInstance";
+import { BaseResponse } from "../constants/types";
+import type { EditEventRequest } from "./eventInfo";
 
 /** 행사 초안 생성 / 최종 생성 응답 data (Swagger flat 구조) */
 export type CreateEventResponse = {
@@ -25,7 +25,7 @@ export const createEventDraft = async (): Promise<
   BaseResponse<CreateEventResponse>
 > => {
   const res = await axiosInstance.post<BaseResponse<CreateEventResponse>>(
-    '/api/v1/users/events'
+    "/api/v1/users/events",
   );
   return res.data;
 };
@@ -33,21 +33,21 @@ export const createEventDraft = async (): Promise<
 /** 2. 행사 내용 수정: PATCH /api/v1/users/events/{eventId} (Swagger 스펙) */
 export const patchEvent = async (
   eventId: number,
-  body: Partial<EditEventRequest>
+  body: Partial<EditEventRequest>,
 ): Promise<BaseResponse<CreateEventResponse>> => {
   const res = await axiosInstance.patch<BaseResponse<CreateEventResponse>>(
     `/api/v1/users/events/${eventId}`,
-    body
+    body,
   );
   return res.data;
 };
 
 /** 3. 행사 최종 생성(발행): POST /api/v1/users/events/{eventId}/published */
 export const publishEvent = async (
-  eventId: number
+  eventId: number,
 ): Promise<BaseResponse<CreateEventResponse>> => {
   const res = await axiosInstance.post<BaseResponse<CreateEventResponse>>(
-    `/api/v1/users/events/${eventId}/published`
+    `/api/v1/users/events/${eventId}/published`,
   );
   return res.data;
 };

@@ -1,7 +1,12 @@
 import ReplyOptions from "./ReplyOptions";
 import add_photo_icon from "../../../assets/icons/add_photo_icon.svg";
 
-export const EventPostRightPanel = () => {
+type Props = {
+  eventId: number;
+  isMyEvent: boolean;
+};
+
+export const EventPostRightPanel = ({ eventId, isMyEvent }: Props) => {
   const coverImageUrl = "";
   const hasImage =
     typeof coverImageUrl === "string" &&
@@ -35,12 +40,14 @@ export const EventPostRightPanel = () => {
         )}
       </div>
 
-      <div className="mt-[39px]">
-        <div className="mb-[16px] text-[24px] font-semibold text-[#1A1A1A]">
-          회신 선택지
+      {!isMyEvent && (
+        <div className="mt-[39px]">
+          <div className="mb-[16px] text-[24px] font-semibold text-[#1A1A1A]">
+            회신 선택지
+          </div>
+          <ReplyOptions eventId={eventId} />
         </div>
-        <ReplyOptions />
-      </div>
+      )}
     </div>
   );
 };

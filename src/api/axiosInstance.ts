@@ -22,7 +22,8 @@ const getApiLabel = (method: string, url?: string): string => {
   if (u.includes("/profile-image") && m === "POST") return "프로필 이미지 변경";
   if (u === "/api/v1/users" && m === "DELETE") return "회원 탈퇴";
   if (u === "/api/v1/users/events" && m === "GET") return "행사 목록 조회";
-  if (u.match(/\/users\/\d+\/events/) && m === "GET") return "내가 참여한 행사 조회";
+  if (u.includes("/events/participating") && m === "GET") return "내가 참여한 행사 조회";
+  if (u.match(/\/users\/\d+\/events/) && m === "GET") return "내가 참여한 행사 조회 (userId)";
   if (u === "/api/v1/users/events" && m === "POST") return "행사 초안 생성";
   if (u.match(/\/users\/events\/\d+$/) && m === "GET") return "행사 상세 조회";
   if (u.match(/\/users\/events\/\d+$/) && m === "PATCH") return "행사 내용 수정";
@@ -30,6 +31,7 @@ const getApiLabel = (method: string, url?: string): string => {
   if (u.includes("/published") && m === "POST") return "행사 최종 발행";
   if (u.match(/\/users\/events\/\d+\/participants$/) && m === "GET") return "행사 참여자 목록 조회";
   if (u.match(/\/participants\/\d+/) && m === "POST") return "행사 참여 투표";
+  if (u.match(/\/events\/\d+\/participants$/) && m === "POST") return "행사 참여 투표 (POST)";
   if (u.includes("/analytics/total") && m === "GET") return "일주일치 통계 조회";
   if (u.match(/\/analytics\/\d+\/session$/) && m === "POST") return "입장 시간 기록";
   if (u.match(/\/analytics\/\d+\/session\/[\w-]+/) && m === "POST") return "퇴장 시간 기록";

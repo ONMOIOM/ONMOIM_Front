@@ -1,8 +1,8 @@
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { useEffect, useState } from "react";
 import { HiOutlineSearch } from "react-icons/hi";
-import { deleteEvent, getEventList, getMyHostedEvents } from "../../api/eventInfo";
-import type { EventInfoData } from "../../api/eventInfo";
+import { deleteEvent, getEventList, getMyHostedEvents, getMyParticipatedEvents } from "../../api/eventInfo";
+import type { EventInfoData, EventInfoDetailData } from "../../api/eventInfo";
 import { profileAPI } from "../../api/profile";
 import { formatEventDateTime } from "../../utils/formatDate";
 import AddEventCard from "./components/AddEventCard";
@@ -21,6 +21,8 @@ const TAB_ITEMS = [
 const Home = () => {
   const [nickname, setNickname] = useState<string | null>(null);
   const [events, setEvents] = useState<EventInfoData[]>([]);
+  const [hostedEvents, setHostedEvents] = useState<EventInfoDetailData[]>([]);
+  const [participatedEvents, setParticipatedEvents] = useState<EventInfoDetailData[]>([]);
   const [myHostedEventIds, setMyHostedEventIds] = useState<Set<number> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -57,25 +59,43 @@ const Home = () => {
     fetchEvents();
   }, []);
 
-  // 내가 만든 행사 목록 조회 (삭제 버튼 활성화 여부 판단용)
+  // 내가 만든 행사 목록 조회 (내가 여는 행사 탭 + 삭제 버튼 활성화 여부)
   useEffect(() => {
     const fetchMyHostedEvents = async () => {
       try {
         const res = await getMyHostedEvents();
         if (res.success && Array.isArray(res.data)) {
-          const eventIds = new Set(res.data.map((event) => event.eventId));
-          setMyHostedEventIds(eventIds);
+          setHostedEvents(res.data);
+          setMyHostedEventIds(new Set(res.data.map((e) => e.eventId)));
         } else {
-          // API 호출은 성공했지만 데이터가 없는 경우
+          setHostedEvents([]);
           setMyHostedEventIds(new Set());
         }
       } catch (err: any) {
-        // API 호출 실패 시 null 유지 (기본값으로 모든 행사 삭제 가능)
         console.warn("[Home] 내가 만든 행사 조회 실패:", err);
+        setHostedEvents([]);
         setMyHostedEventIds(null);
       }
     };
     fetchMyHostedEvents();
+  }, []);
+
+  // 내가 참여한 행사 목록 조회
+  useEffect(() => {
+    const fetchMyParticipatedEvents = async () => {
+      try {
+        const res = await getMyParticipatedEvents();
+        if (res.success && Array.isArray(res.data)) {
+          setParticipatedEvents(res.data);
+        } else {
+          setParticipatedEvents([]);
+        }
+      } catch (err) {
+        console.warn("[Home] 내가 참여한 행사 조회 실패:", err);
+        setParticipatedEvents([]);
+      }
+    };
+    fetchMyParticipatedEvents();
   }, []);
 
   const handleDeleteEvent = async (eventId: number) => {
@@ -83,7 +103,7 @@ const Home = () => {
       const res = await deleteEvent(eventId);
       if (res.success) {
         setEvents((prev) => prev.filter((e) => e.eventId !== eventId));
-        // 내가 만든 행사 목록에서도 제거
+        setHostedEvents((prev) => prev.filter((e) => e.eventId !== eventId));
         if (myHostedEventIds !== null) {
           setMyHostedEventIds((prev) => {
             if (prev === null) return null;
@@ -246,6 +266,52 @@ const Home = () => {
                       <JoinUserCard name={displayName} />
                     </div>
                   </>
+                ) : item.key === "hosting" ? (
+                  <>
+                    <EventCardRoller>
+                      {hostedEvents.length > 0
+                        ? hostedEvents.map((event) => (
+                            <EventCard
+                              key={event.eventId}
+                              eventId={event.eventId}
+                              title={event.title ?? "제목 없음"}
+                              dateTime={
+                                event.startTime
+                                  ? formatEventDateTime(event.startTime)
+                                  : "일시 미정"
+                              }
+                              hostName={displayName}
+                              imageUrl={undefined}
+                              onDelete={handleDeleteEvent}
+                              isMyEvent={true}
+                            />
+                          ))
+                        : null}
+                      <AddEventCard />
+                    </EventCardRoller>
+                  </>
+                ) : item.key === "joined" ? (
+                  <EventCardRoller>
+                    {participatedEvents.length > 0
+                      ? participatedEvents.map((event) => (
+                          <EventCard
+                            key={event.eventId}
+                            eventId={event.eventId}
+                            title={event.title ?? "제목 없음"}
+                            dateTime={
+                              event.startTime
+                                ? formatEventDateTime(event.startTime)
+                                : "일시 미정"
+                            }
+                            hostName="호스트"
+                            imageUrl={undefined}
+                            onDelete={handleDeleteEvent}
+                            isMyEvent={false}
+                          />
+                        ))
+                      : null}
+                    <AddEventCard />
+                  </EventCardRoller>
                 ) : (
                   <p className="mt-6 text-gray-600">{item.label} 콘텐츠 영역</p>
                 )}
