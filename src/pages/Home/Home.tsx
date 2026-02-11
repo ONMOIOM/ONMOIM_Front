@@ -353,7 +353,9 @@ const Home = () => {
                       {sortedEvents.length > 0
                         ? sortedEvents
                             .filter((event) => {
-                              const start = event.schedule?.startDate;
+                              const start =
+                                event.schedule?.startDate ??
+                                (event as { startTime?: string }).startTime;
                               if (!start) return false;
                               const startDate = new Date(start);
                               const now = new Date();
@@ -364,16 +366,17 @@ const Home = () => {
                             .map((event) => {
                               const isMyEvent =
                                 myHostedEventIds === null || myHostedEventIds.has(event.eventId);
+                              const startForDisplay =
+                                event.schedule?.startDate ??
+                                (event as { startTime?: string }).startTime;
                               return (
                                 <EventCard
                                   key={event.eventId}
                                   eventId={event.eventId}
                                   title={event.title ?? "제목 없음"}
                                   dateTime={
-                                    event.schedule?.startDate
-                                      ? formatEventDateTime(
-                                          event.schedule.startDate,
-                                        )
+                                    startForDisplay
+                                      ? formatEventDateTime(startForDisplay)
                                       : "일시 미정"
                                   }
                                   hostName={event.hostName ?? "호스트"}
