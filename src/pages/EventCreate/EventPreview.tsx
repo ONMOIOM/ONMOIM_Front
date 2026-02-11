@@ -13,6 +13,7 @@ import add from "../../assets/icons/add.svg";
 import participant_icon from "../../assets/icons/participant_icon.svg";
 import { ModalKey } from "./types/types";
 import { ParticipantsModal } from './modals/ParticipantsModal';
+import { FONTTYPE_CLASS } from "./types/types";
 
 function formatDateRange(data: DraftData) {
   const s1 = data.schedule?.startAt ?? null;
@@ -83,12 +84,19 @@ export default function EventPreview() {
 
   const dateRange = formatDateRange(data);
 
+  // 미리보기 제목 - 폰트 적용
+  const fontType = useEventDraftStore((s) => s.data.fontType);
+
+
   return (
     <EventEditorLayout
       left={
         // ✅ Layout이 left 폭을 w-[793px]로 잡아주니까, 여기서는 w-full로 쓰면 됨
         <section className="w-full mt-[192px] ml-[161px]">
-          <div className="text-[42px] text-[#1A1A1A]">
+          <div className={[
+            "text-[32px] font-bold text-[#1A1A1A] font-sans",
+            FONTTYPE_CLASS[fontType],
+          ].join(" ")}>
             {data.title || "행사 제목"}
           </div>
 
