@@ -19,10 +19,11 @@ const Profile = () => {
   const { userId: userIdParam } = useParams<{ userId?: string }>();
   const targetUserId = userIdParam ? Number(userIdParam) : null;
   const isViewingOtherProfile = targetUserId !== null;
-  
+
   const { profile: myProfile, loading: loadingMyProfile } = useProfile();
   const myUserId = myProfile?.id ?? getUserIdFromToken();
-  const isMyProfile = !isViewingOtherProfile || (myUserId !== null && targetUserId === myUserId);
+  const isMyProfile =
+    !isViewingOtherProfile || (myUserId !== null && targetUserId === myUserId);
 
   const { data: otherUserProfile, isLoading: loadingOtherProfile } = useQuery({
     queryKey: ["userProfile", targetUserId],
@@ -42,7 +43,9 @@ const Profile = () => {
   });
 
   const profile = isViewingOtherProfile ? otherUserProfile : myProfile;
-  const loading = isViewingOtherProfile ? loadingOtherProfile : loadingMyProfile;
+  const loading = isViewingOtherProfile
+    ? loadingOtherProfile
+    : loadingMyProfile;
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [localImageUrl, setLocalImageUrl] = useState<string | null>(null);
@@ -55,23 +58,32 @@ const Profile = () => {
     const url = convertImageUrl(localImageUrl || profile?.profileImageUrl);
     return url || profileSrc;
   }, [localImageUrl, profile?.profileImageUrl, isViewingOtherProfile]);
-  
-  const displayName = useMemo(() => profile?.nickname ?? "", [profile?.nickname]);
-  const introduction = useMemo(() => profile?.introduction ?? "", [profile?.introduction]);
-  const joinedAtText = "이용중입니다";
-  
-  const profileSns = useMemo(() => ({
-    instagramId: profile?.instagramId ?? null,
-    twitterId: profile?.twitterId ?? null,
-    linkedinId: profile?.linkedinId ?? null,
-  }), [profile?.instagramId, profile?.twitterId, profile?.linkedinId]);
+
+  const displayName = useMemo(
+    () => profile?.nickname ?? "",
+    [profile?.nickname],
+  );
+  const introduction = useMemo(
+    () => profile?.introduction ?? "",
+    [profile?.introduction],
+  );
+  const joinedAtText = "현재 활동중인 사용자입니다.";
+
+  const profileSns = useMemo(
+    () => ({
+      instagramId: profile?.instagramId ?? null,
+      twitterId: profile?.twitterId ?? null,
+      linkedinId: profile?.linkedinId ?? null,
+    }),
+    [profile?.instagramId, profile?.twitterId, profile?.linkedinId],
+  );
 
   const handleSelectProfileImage = () => {
     fileInputRef.current?.click();
   };
 
   const handleProfileImageChange = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -92,17 +104,20 @@ const Profile = () => {
       console.log("[Profile] 프로필 이미지 업로드 응답:", res);
       console.log("[Profile] res.success:", res.success);
       console.log("[Profile] res.data:", res.data);
-      
+
       if (res.success && res.data) {
         // 백엔드에서 반환된 URL을 변환하여 저장
         const convertedUrl = convertImageUrl(res.data);
         console.log("[Profile] 변환된 URL:", convertedUrl);
         setLocalImageUrl(convertedUrl);
-        
+
         // 프로필 쿼리 캐시 무효화하여 최신 데이터로 갱신
         queryClient.invalidateQueries({ queryKey: ["profile"] });
       } else {
-        console.error("[Profile] 프로필 이미지 업로드 실패 - 응답 형식 오류:", res);
+        console.error(
+          "[Profile] 프로필 이미지 업로드 실패 - 응답 형식 오류:",
+          res,
+        );
       }
     } catch (error) {
       console.error("[Profile] 프로필 이미지 변경 실패:", error);
@@ -113,16 +128,19 @@ const Profile = () => {
 
   // 메모이제이션으로 레이블 계산 최적화
   const instagramLabel = useMemo(
-    () => profileSns.instagramId ? `@${profileSns.instagramId}` : "인스타 추가하기",
-    [profileSns.instagramId]
+    () =>
+      profileSns.instagramId ? `@${profileSns.instagramId}` : "인스타 추가하기",
+    [profileSns.instagramId],
   );
   const twitterLabel = useMemo(
-    () => profileSns.twitterId ? `@${profileSns.twitterId}` : "트위터 추가하기",
-    [profileSns.twitterId]
+    () =>
+      profileSns.twitterId ? `@${profileSns.twitterId}` : "트위터 추가하기",
+    [profileSns.twitterId],
   );
   const linkedinLabel = useMemo(
-    () => profileSns.linkedinId ? `@${profileSns.linkedinId}` : "링크드인 추가하기",
-    [profileSns.linkedinId]
+    () =>
+      profileSns.linkedinId ? `@${profileSns.linkedinId}` : "링크드인 추가하기",
+    [profileSns.linkedinId],
   );
 
   const openSnsProfile = (platform: "instagram" | "twitter" | "linkedin") => {
@@ -199,9 +217,7 @@ const Profile = () => {
         </div>
         <div className="ml-[54px] flex flex-col">
           <p className="text-h7 text-gray-900">{displayName}</p>
-          <p className="mt-[10px] text-h5 text-[#A0A09E]">
-            {joinedAtText}
-          </p>
+          <p className="mt-[10px] text-h5 text-[#A0A09E]">{joinedAtText}</p>
           <p className="mt-[38px] text-h6 text-gray-900">{introduction}</p>
         </div>
       </div>
@@ -254,7 +270,9 @@ const Profile = () => {
             className="h-[26px] w-[26px] shrink-0"
             aria-hidden="true"
           />
-          <span className="text-h5 font-semibold text-[#525252]">프로필 수정</span>
+          <span className="text-h5 font-semibold text-[#525252]">
+            프로필 수정
+          </span>
         </button>
       )}
     </div>
