@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { getMyHostedEvents } from "../../api/eventInfo";
+import { getMyHostedEvents, getEvent } from "../../api/eventInfo";
 import { getEventAnalysis, type StatisticsData } from "../../api/analysis";
 import type { EventInfoDetailData } from "../../api/eventInfo";
 import AnalysisSidebar from "./components/AnalysisSidebar";
@@ -10,6 +10,16 @@ import finishIcon from "../../assets/icons/Padlock_perspective_matte.svg";
 import clockIcon from "../../assets/icons/Clock_perspective_matte.svg";
 import AnalysisChart from "./components/AnalysisChart";
 import type { ChartDataPoint } from "./components/AnalysisChart";
+
+/** 날짜(문자열 또는 Date) → YYYY-MM-DD (통계 매칭용) */
+function toDateKey(dateStrOrDate: string | Date): string {
+  const d =
+    typeof dateStrOrDate === "string" ? new Date(dateStrOrDate) : dateStrOrDate;
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
 function totalClicks(stats: StatisticsData[]): number {
   return stats.reduce((s, d) => s + d.clickCount, 0);
@@ -52,15 +62,38 @@ function formatDateForChart(dateString: string): string {
   }
 }
 
-/** stats[] → 차트 데이터. x축(name) = 날짜 형식(26/02/12). time = 평균 세션시간(초) */
-function statsToChartData(stats: StatisticsData[]): ChartDataPoint[] {
-  return stats.map((d) => {
-    const sessionSec = d.avgSession.minutes * 60 + d.avgSession.seconds;
+/** 행사 생성일(createdAt) 기준 7일차트 데이터. 각 날짜에 stats 매칭(없으면 0) */
+function buildSevenDayChartData(
+  createdAt: string | null,
+  stats: StatisticsData[],
+): ChartDataPoint[] {
+  const startDate = createdAt ? new Date(createdAt) : new Date();
+  const start = new Date(
+    startDate.getFullYear(),
+    startDate.getMonth(),
+    startDate.getDate(),
+    0,
+    0,
+    0,
+    0,
+  );
+  const statsByDate = new Map<string, StatisticsData>();
+  for (const s of stats) {
+    statsByDate.set(toDateKey(s.date), s);
+  }
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(start);
+    d.setDate(d.getDate() + i);
+    const key = toDateKey(d);
+    const stat = statsByDate.get(key);
+    const sessionSec = stat
+      ? stat.avgSession.minutes * 60 + stat.avgSession.seconds
+      : 0;
     return {
-      name: formatDateForChart(d.date),
-      click: d.clickCount,
-      participation: d.participantCount,
-      done: d.participationRate,
+      name: formatDateForChart(d.toISOString()),
+      click: stat?.clickCount ?? 0,
+      participation: stat?.participantCount ?? 0,
+      done: stat?.participationRate ?? 0,
       time: sessionSec,
     };
   });
@@ -69,6 +102,9 @@ function statsToChartData(stats: StatisticsData[]): ChartDataPoint[] {
 const Analysis = () => {
   const [events, setEvents] = useState<EventInfoDetailData[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
+  const [selectedEventCreatedAt, setSelectedEventCreatedAt] = useState<
+    string | null
+  >(null);
   const [stats, setStats] = useState<StatisticsData[]>([]);
 
   useEffect(() => {
@@ -91,26 +127,32 @@ const Analysis = () => {
   useEffect(() => {
     if (selectedEventId == null) {
       setStats([]);
+      setSelectedEventCreatedAt(null);
       return;
     }
-    // 실제 백엔드 API에서 데이터 가져오기
+    setSelectedEventCreatedAt(null);
+    getEvent(selectedEventId).then((res) => {
+      if (res.success && res.data?.createdAt) {
+        setSelectedEventCreatedAt(res.data.createdAt);
+      }
+    });
     getEventAnalysis(selectedEventId)
       .then((res) => {
-        if (res.success && res.data?.stats && res.data.stats.length > 0) {
-          // 디버깅: participationRate 값 확인
-          console.log("[Analysis] participationRate 값들:", res.data.stats.map(s => ({ date: s.date, participationRate: s.participationRate })));
+        if (res.success && res.data?.stats) {
           setStats(res.data.stats);
         } else {
           setStats([]);
         }
       })
-      .catch((error) => {
-        console.warn("[Analysis] 통계 데이터 조회 실패:", error);
+      .catch(() => {
         setStats([]);
       });
   }, [selectedEventId]);
 
-  const chartData = useMemo(() => statsToChartData(stats), [stats]);
+  const chartData = useMemo(
+    () => buildSevenDayChartData(selectedEventCreatedAt, stats),
+    [selectedEventCreatedAt, stats],
+  );
   const clickTotal = useMemo(() => totalClicks(stats), [stats]);
   const participantTotal = useMemo(() => totalParticipants(stats), [stats]);
   const completionPercent = useMemo(() => avgCompletion(stats), [stats]);
