@@ -39,12 +39,25 @@ function avgSessionFormatted(stats: StatisticsData[]): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-/** stats[] → 차트 데이터. x축(name) = 통계 순서(1번째~7번째 기간). time = 평균 세션시간(초) */
+/** 날짜 문자열을 "26/02/12" 형식으로 변환 */
+function formatDateForChart(dateString: string): string {
+  try {
+    const date = new Date(dateString);
+    const year = date.getFullYear().toString().slice(-2); // 마지막 2자리만
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}/${month}/${day}`;
+  } catch {
+    return dateString; // 파싱 실패 시 원본 반환
+  }
+}
+
+/** stats[] → 차트 데이터. x축(name) = 날짜 형식(26/02/12). time = 평균 세션시간(초) */
 function statsToChartData(stats: StatisticsData[]): ChartDataPoint[] {
-  return stats.map((d, i) => {
+  return stats.map((d) => {
     const sessionSec = d.avgSession.minutes * 60 + d.avgSession.seconds;
     return {
-      name: String(i + 1),
+      name: formatDateForChart(d.date),
       click: d.clickCount,
       participation: d.participantCount,
       done: d.participationRate,

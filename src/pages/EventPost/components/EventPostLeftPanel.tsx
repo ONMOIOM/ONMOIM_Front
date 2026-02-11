@@ -103,10 +103,12 @@ export const EventPostLeftPanel = forwardRef<EventPostLeftPanelRef, Props>(
           );
         }
         setEventData(eventRes.data);
+        let participantsData: any[] = [];
         try {
           const participantsRes = await getEventParticipation(eventId);
           if (participantsRes.success && participantsRes.data) {
-            setParticipants(participantsRes.data);
+            participantsData = participantsRes.data;
+            setParticipants(participantsData);
           }
         } catch (e) {
           console.warn("[EventPost] 참여자 목록 조회 실패:", e);
@@ -114,7 +116,26 @@ export const EventPostLeftPanel = forwardRef<EventPostLeftPanelRef, Props>(
         try {
           const commentsRes = await getCommentList(eventId);
           if (commentsRes.success && commentsRes.data) {
-            setComments(commentsRes.data.commentList || []);
+            const commentList = commentsRes.data.commentList || [];
+            // 참여자 목록과 매칭하여 프로필 이미지 보완
+            const commentsWithProfileImages = commentList.map((comment) => {
+              // 백엔드 응답의 profileImageUrl이 유효하면 그대로 사용
+              if (comment.profileImageUrl && comment.profileImageUrl.trim()) {
+                return comment;
+              }
+              // profileImageUrl이 없거나 빈 문자열인 경우, 참여자 목록에서 찾기
+              const participant = participantsData.find(
+                (p: any) => p.nickname === comment.nickname
+              );
+              if (participant && (participant as any).imageUrl) {
+                return {
+                  ...comment,
+                  profileImageUrl: (participant as any).imageUrl,
+                };
+              }
+              return comment;
+            });
+            setComments(commentsWithProfileImages);
           }
         } catch (e) {
           console.warn("[EventPost] 댓글 목록 조회 실패:", e);
@@ -166,7 +187,7 @@ export const EventPostLeftPanel = forwardRef<EventPostLeftPanelRef, Props>(
         setEventData({
           ...eventData,
           introduction: trimmed || null,
-          information: trimmed || eventData.information,
+          information: trimmed || null,
         });
     };
 
@@ -414,12 +435,17 @@ export const EventPostLeftPanel = forwardRef<EventPostLeftPanelRef, Props>(
               onChange={(e) => setEditValue(e.target.value)}
               onBlur={() => applyEdit("introduction")}
               onKeyDown={(e) => {
+                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                  e.preventDefault();
+                  applyEdit("introduction");
+                }
                 if (e.key === "Escape") {
                   setEditingField(null);
                   setEditValue("");
                 }
               }}
-              className="w-full min-h-[120px] border border-[#BFBFBF] rounded px-2 py-1 text-[16px] outline-none focus:ring-1 focus:ring-[#F24148]"
+              placeholder="이곳을 클릭해 행사 정보를 수정하세요."
+              className="w-full min-h-[120px] border border-[#BFBFBF] rounded px-2 py-1 text-[16px] outline-none focus:ring-1 focus:ring-[#F24148] placeholder:text-[#919191]"
             />
           ) : (
             <p
@@ -429,7 +455,7 @@ export const EventPostLeftPanel = forwardRef<EventPostLeftPanelRef, Props>(
                 isMyEvent &&
                 startEdit(
                   "introduction",
-                  eventData.introduction || eventData.information,
+                  eventData.introduction || eventData.information || "",
                 )
               }
               onKeyDown={(e) =>
@@ -437,14 +463,14 @@ export const EventPostLeftPanel = forwardRef<EventPostLeftPanelRef, Props>(
                 e.key === "Enter" &&
                 startEdit(
                   "introduction",
-                  eventData.introduction || eventData.information,
+                  eventData.introduction || eventData.information || "",
                 )
               }
-              className={`text-[16px] font-medium text-[#1A1A1A] leading-[19px] max-h-[228px] overflow-y-auto break-words custom-scrollbar whitespace-pre-line ${isMyEvent ? "cursor-pointer hover:bg-gray-100 rounded" : ""}`}
+              className={`text-[16px] font-medium text-[#1A1A1A] leading-[19px] max-h-[228px] overflow-y-auto break-words custom-scrollbar whitespace-pre-line ${isMyEvent ? "cursor-pointer hover:bg-gray-100 rounded" : ""} ${!eventData.introduction && !eventData.information && isMyEvent ? "text-[#919191]" : ""}`}
             >
               {eventData.introduction ||
                 eventData.information ||
-                (isMyEvent ? "클릭하여 입력" : "")}
+                (isMyEvent ? "이곳을 클릭해 행사 정보를 수정하세요." : "")}
             </p>
           )}
         </div>
@@ -490,18 +516,16 @@ export const EventPostLeftPanel = forwardRef<EventPostLeftPanelRef, Props>(
             </div>
           </div>
 
-          {participants.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setShowParticipantsModal(true)}
-              className="ml-[12px] h-[44px] w-[118px] rounded-[20px] border border-[#919191] bg-[#F7F7F8] flex items-center justify-center gap-1"
-            >
-              <img src={add_icon} alt="add" className="h-[24px] w-[24px]" />
-              <span className="text-[14px] font-medium text-[#1A1A1A]">
-                모두보기
-              </span>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => setShowParticipantsModal(true)}
+            className="ml-[12px] h-[44px] w-[118px] rounded-[20px] border border-[#919191] bg-[#F7F7F8] flex items-center justify-center gap-1"
+          >
+            <img src={add_icon} alt="add" className="h-[24px] w-[24px]" />
+            <span className="text-[14px] font-medium text-[#1A1A1A]">
+              모두보기
+            </span>
+          </button>
         </div>
 
         <div className="mt-[70px] text-h6 text-[#1A1A1A] font-semibold">

@@ -8,6 +8,7 @@ import {
   getEventParticipation,
 } from "../../api/eventInfo";
 import { profileAPI } from "../../api/profile";
+import { getUserIdFromToken } from "../../utils/jwtDecoder";
 
 type Participant = {
   userId: string;
@@ -23,8 +24,14 @@ const EventParticipants = () => {
     const load = async () => {
       setLoading(true);
       try {
+        const userId = getUserIdFromToken();
+        if (!userId) {
+          setParticipants([]);
+          return;
+        }
+        
         const [profileRes, participatedRes, hostedRes] = await Promise.all([
-          profileAPI.getProfile(),
+          profileAPI.getUserProfile(userId),
           getMyParticipatedEvents(),
           getMyHostedEvents(),
         ]);
@@ -54,7 +61,7 @@ const EventParticipants = () => {
           for (const p of partRes.data) {
             const uid = String(p.userId);
             if (uid === myId) continue;
-            const name = (p as { nickname?: string }).nickname ?? p.name ?? "";
+            const name = p.nickname ?? "";
             const profileImageUrl = (p as { profileImageUrl?: string }).profileImageUrl;
             if (!map.has(uid)) {
               map.set(uid, {
@@ -114,6 +121,7 @@ const EventParticipants = () => {
                 key={participant.userId}
                 name={participant.name}
                 imageUrl={participant.profileImageUrl}
+                userId={participant.userId}
               />
             ))}
           </div>

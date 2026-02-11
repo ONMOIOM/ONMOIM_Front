@@ -8,6 +8,7 @@ import {
   type ParticipationStatus,
 } from "../../../api/eventInfo";
 import { profileAPI } from "../../../api/profile";
+import { getUserIdFromToken } from "../../../utils/jwtDecoder";
 
 export type ReplyOptionType = "yes" | "maybe" | "no";
 
@@ -38,8 +39,11 @@ export default function ReplyOptions({ eventId, initialStatus = null, onStatusCh
     if (initialStatus != null || fetched) return;
     const load = async () => {
       try {
+        const userId = getUserIdFromToken();
+        if (!userId) return;
+        
         const [profileRes, participantsRes] = await Promise.all([
-          profileAPI.getProfile(),
+          profileAPI.getUserProfile(userId),
           getEventParticipation(eventId),
         ]);
         if (!profileRes.success || !participantsRes.success) return;

@@ -29,6 +29,7 @@ const JoinUserCard = ({ name, imageUrl, userId }: JoinUserCardProps) => {
   const convertedImageUrl = imageUrl && imageUrl.trim() ? convertImageUrl(imageUrl) : null;
 
   const handleCardClick = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     navigate(`/profile/${userId}`);
   };
 
