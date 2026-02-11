@@ -1,31 +1,60 @@
 import { useRef, useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate, useParams } from "react-router-dom";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import profileSrc from "../../assets/icons/profile.svg";
 import editProfileSrc from "../../assets/icons/edit.png";
 import instagramSrc from "../../assets/icons/icons_instagram.svg";
 import twitterSrc from "../../assets/icons/TwitterGroup.svg";
 import linkedinSrc from "../../assets/icons/icons_linkedin.svg";
 import editProfileIconSrc from "../../assets/icons/editprofile.png";
-import { profileAPI } from "../../api/profile";
+import { profileAPI, type ProfileData } from "../../api/profile";
 import useProfile from "../../hooks/useProfile";
 import { compressImage } from "../../utils/imageCompression";
 import { convertImageUrl } from "../../utils/imageUrlConverter";
+import { getUserIdFromToken } from "../../utils/jwtDecoder";
 
 const Profile = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { userId: userIdParam } = useParams<{ userId?: string }>();
+  const targetUserId = userIdParam ? Number(userIdParam) : null;
+  const isViewingOtherProfile = targetUserId !== null;
   
-  // useProfile 훅 사용 (TanStack Query로 캐싱되어 깜빡임 방지)
-  const { profile, loading } = useProfile();
+  const { profile: myProfile, loading: loadingMyProfile } = useProfile();
+  const myUserId = myProfile?.id ?? getUserIdFromToken();
+  const isMyProfile = !isViewingOtherProfile || (myUserId !== null && targetUserId === myUserId);
+
+  const { data: otherUserProfile, isLoading: loadingOtherProfile } = useQuery({
+    queryKey: ["userProfile", targetUserId],
+    queryFn: async (): Promise<ProfileData | null> => {
+      if (!targetUserId) return null;
+      const res = await profileAPI.getUserProfile(targetUserId);
+      if (res.success && res.data) {
+        return res.data;
+      }
+      return null;
+    },
+    enabled: isViewingOtherProfile && targetUserId !== null,
+    staleTime: 1000 * 60 * 30,
+    gcTime: 1000 * 60 * 60,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const profile = isViewingOtherProfile ? otherUserProfile : myProfile;
+  const loading = isViewingOtherProfile ? loadingOtherProfile : loadingMyProfile;
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [localImageUrl, setLocalImageUrl] = useState<string | null>(null);
 
   const profileImageUrl = useMemo(() => {
+    if (isViewingOtherProfile) {
+      const url = convertImageUrl(profile?.profileImageUrl);
+      return url || profileSrc;
+    }
     const url = convertImageUrl(localImageUrl || profile?.profileImageUrl);
-    return url || profileSrc; // 기본 이미지로 fallback
-  }, [localImageUrl, profile?.profileImageUrl]);
+    return url || profileSrc;
+  }, [localImageUrl, profile?.profileImageUrl, isViewingOtherProfile]);
   
   const displayName = useMemo(() => profile?.nickname ?? "", [profile?.nickname]);
   const introduction = useMemo(() => profile?.introduction ?? "", [profile?.introduction]);
@@ -125,6 +154,14 @@ const Profile = () => {
     );
   }
 
+  if (!profile) {
+    return (
+      <div className="relative min-h-screen flex items-center justify-center">
+        <p className="text-gray-600">프로필을 찾을 수 없습니다.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="relative min-h-screen">
       <div className="ml-[179px] mt-nav-bar-to-buttons flex items-center">
@@ -134,27 +171,31 @@ const Profile = () => {
             alt="프로필"
             className="h-full w-full rounded-full object-cover"
           />
-          <button
-            type="button"
-            className="absolute bottom-[16px] right-[16px] z-10 h-[65px] w-[65px]"
-            aria-label="프로필 이미지 변경"
-            onClick={handleSelectProfileImage}
-          >
-            <img
-              src={editProfileSrc}
-              alt=""
-              className="h-full w-full object-contain"
-            />
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleProfileImageChange}
-            aria-hidden="true"
-            tabIndex={-1}
-          />
+          {isMyProfile && (
+            <>
+              <button
+                type="button"
+                className="absolute bottom-[16px] right-[16px] z-10 h-[65px] w-[65px]"
+                aria-label="프로필 이미지 변경"
+                onClick={handleSelectProfileImage}
+              >
+                <img
+                  src={editProfileSrc}
+                  alt=""
+                  className="h-full w-full object-contain"
+                />
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleProfileImageChange}
+                aria-hidden="true"
+                tabIndex={-1}
+              />
+            </>
+          )}
         </div>
         <div className="ml-[54px] flex flex-col">
           <p className="text-h7 text-gray-900">{displayName}</p>
@@ -201,19 +242,21 @@ const Profile = () => {
           </button>
         </div>
       </div>
-      <button
-        type="button"
-        className="ml-[204.5px] mt-[40px] flex h-[53px] w-[280px] items-center justify-center gap-[10px] rounded-[10px] border border-[#BFBFBF] bg-white"
-        onClick={() => navigate("/profile/edit")}
-      >
-        <img
-          src={editProfileIconSrc}
-          alt=""
-          className="h-[26px] w-[26px] shrink-0"
-          aria-hidden="true"
-        />
-        <span className="text-h5 font-semibold text-[#525252]">프로필 수정</span>
-      </button>
+      {isMyProfile && (
+        <button
+          type="button"
+          className="ml-[204.5px] mt-[40px] flex h-[53px] w-[280px] items-center justify-center gap-[10px] rounded-[10px] border border-[#BFBFBF] bg-white"
+          onClick={() => navigate("/profile/edit")}
+        >
+          <img
+            src={editProfileIconSrc}
+            alt=""
+            className="h-[26px] w-[26px] shrink-0"
+            aria-hidden="true"
+          />
+          <span className="text-h5 font-semibold text-[#525252]">프로필 수정</span>
+        </button>
+      )}
     </div>
   );
 };

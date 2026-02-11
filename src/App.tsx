@@ -21,6 +21,7 @@ function App() {
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="profile/:userId" element={<Profile />} />
         <Route path="profile/edit" element={<ProfileEdit />} />
         <Route path="event-participants" element={<EventParticipants />} />
         <Route path="event-create" element={<EventCreate />} />

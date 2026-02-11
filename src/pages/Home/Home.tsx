@@ -285,6 +285,7 @@ const Home = () => {
                               key={p.userId}
                               name={p.name}
                               imageUrl={p.profileImageUrl}
+                              userId={p.userId}
                             />
                           ))
                         : null}
@@ -342,6 +343,7 @@ const Home = () => {
                               key={p.userId}
                               name={p.name}
                               imageUrl={p.profileImageUrl}
+                              userId={p.userId}
                             />
                           ))
                         : null}
@@ -383,6 +385,7 @@ const Home = () => {
                               key={p.userId}
                               name={p.name}
                               imageUrl={p.profileImageUrl}
+                              userId={p.userId}
                             />
                           ))
                         : null}
@@ -424,6 +427,7 @@ const Home = () => {
                               key={p.userId}
                               name={p.name}
                               imageUrl={p.profileImageUrl}
+                              userId={p.userId}
                             />
                           ))
                         : null}
