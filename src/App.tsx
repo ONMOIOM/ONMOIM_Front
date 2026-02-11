@@ -1,4 +1,5 @@
-import { Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import Layout from "./components/Layout";
 import Login from "./pages/Login/Login";
 import Home from "./pages/Home/Home";
@@ -13,13 +14,25 @@ import TestPage from "./pages/TestPage_kaya";
 import TestPageOther from "./pages/TestPage";
 import EventPost from "./pages/EventPost/EventPost";
 
+/** 루트(/) 진입 시 토큰 없으면 /login으로 보냄 */
+function HomeOrRedirectToLogin() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) navigate("/login", { replace: true });
+  }, [navigate]);
+  const token = localStorage.getItem("accessToken");
+  if (!token) return null;
+  return <Home />;
+}
+
 function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/profile/withdraw" element={<ProfileWithdraw />} />
       <Route path="/" element={<Layout />}>
-        <Route index element={<Home />} />
+        <Route index element={<HomeOrRedirectToLogin />} />
         <Route path="profile" element={<Profile />} />
         <Route path="profile/:userId" element={<Profile />} />
         <Route path="profile/edit" element={<ProfileEdit />} />
