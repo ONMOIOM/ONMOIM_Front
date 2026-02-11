@@ -24,6 +24,8 @@ import price_icon from "../../../assets/icons/price_icon.svg";
 import participant_icon from "../../../assets/icons/participant_icon.svg";
 import playlist_icon from "../../../assets/icons/Music.svg";
 import add_icon from "../../../assets/icons/add.svg";
+import { convertImageUrl } from "../../../utils/imageUrlConverter";
+import useProfile from "../../../hooks/useProfile";
 
 type ModalKey = "schedule" | "location" | "seats" | "price" | "playlist" | null;
 
@@ -75,6 +77,7 @@ const getLotNumber = (d: any) =>
 
 export const EventPostLeftPanel = forwardRef<EventPostLeftPanelRef, Props>(
   function EventPostLeftPanel({ eventId, isMyEvent }, ref) {
+    const { profile } = useProfile();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [eventData, setEventData] = useState<any>(null);
@@ -237,7 +240,12 @@ export const EventPostLeftPanel = forwardRef<EventPostLeftPanelRef, Props>(
           content: commentContent.trim(),
         });
         if (res.success && res.data) {
-          setComments((prev) => [res.data!, ...prev]);
+          // 백엔드 응답에 profileImageUrl이 없거나 빈 문자열이면 현재 사용자의 프로필 이미지 사용
+          const commentData: CommentItem = {
+            ...res.data,
+            profileImageUrl: res.data.profileImageUrl || profile?.profileImageUrl || "",
+          };
+          setComments((prev) => [commentData, ...prev]);
           setCommentContent("");
         }
       } catch (e) {
@@ -462,7 +470,7 @@ export const EventPostLeftPanel = forwardRef<EventPostLeftPanelRef, Props>(
                     <div className="h-[44px] w-[44px] rounded-full bg-[#D9D9D9] flex items-center justify-center overflow-hidden">
                       {(participant as any).profileImageUrl ? (
                         <img
-                          src={(participant as any).profileImageUrl}
+                          src={convertImageUrl((participant as any).profileImageUrl)}
                           alt={participant.nickname}
                           className="h-full w-full object-cover"
                         />
@@ -515,11 +523,15 @@ export const EventPostLeftPanel = forwardRef<EventPostLeftPanelRef, Props>(
                     <div className="flex items-center">
                       <div className="h-[52px] w-[52px] flex items-center justify-center">
                         <div className="h-[44px] w-[44px] rounded-full bg-[#D9D9D9] flex items-center justify-center overflow-hidden">
-                          {comment.profileImageUrl ? (
+                          {comment.profileImageUrl && comment.profileImageUrl.trim() ? (
                             <img
-                              src={comment.profileImageUrl}
+                              src={convertImageUrl(comment.profileImageUrl)}
                               alt={comment.nickname}
                               className="h-full w-full object-cover"
+                              onError={(e) => {
+                                // 이미지 로드 실패 시 디폴트 아이콘 표시
+                                (e.target as HTMLImageElement).src = participant_icon;
+                              }}
                             />
                           ) : (
                             <img
@@ -559,8 +571,26 @@ export const EventPostLeftPanel = forwardRef<EventPostLeftPanelRef, Props>(
 
         <div className="mt-[32px] w-[644px]">
           <div className="flex items-start gap-[12px]">
-            <div className="h-[52px] w-[52px] flex items-center justify-center">
-              <div className="h-[44px] w-[44px] rounded-full bg-[#D9D9D9]" />
+            <div className="h-[52px] w-[52px] flex items-center justify-center shrink-0">
+              <div className="h-[44px] w-[44px] rounded-full bg-[#D9D9D9] flex items-center justify-center overflow-hidden">
+                {profile?.profileImageUrl ? (
+                  <img
+                    src={convertImageUrl(profile.profileImageUrl)}
+                    alt={profile.nickname || "프로필"}
+                    className="h-full w-full object-cover"
+                    onError={(e) => {
+                      // 이미지 로드 실패 시 기본 아이콘으로 fallback
+                      (e.target as HTMLImageElement).src = participant_icon;
+                    }}
+                  />
+                ) : (
+                  <img
+                    src={participant_icon}
+                    alt="participant_icon"
+                    className="w-[44px] h-[44px]"
+                  />
+                )}
+              </div>
             </div>
             <div className="flex-1">
               <textarea
@@ -659,7 +689,7 @@ export const EventPostLeftPanel = forwardRef<EventPostLeftPanelRef, Props>(
               id: String(p.userId), // userId를 문자열로 변환
               name: participantName,
               status,
-              profileImageUrl: (p as any).profileImageUrl,
+              profileImageUrl: convertImageUrl((p as any).profileImageUrl),
             };
           })}
         />

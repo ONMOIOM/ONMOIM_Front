@@ -1,5 +1,6 @@
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { HiOutlineSearch } from "react-icons/hi";
 import {
   deleteEvent,
@@ -8,7 +9,6 @@ import {
   getMyHostedEvents,
   getMyParticipatedEvents,
 } from "../../api/eventInfo";
-import type { EventInfoData, EventInfoDetailData } from "../../api/eventInfo";
 import { profileAPI } from "../../api/profile";
 import { formatEventDateTime } from "../../utils/formatDate";
 import AddEventCard from "./components/AddEventCard";
@@ -25,151 +25,127 @@ const TAB_ITEMS = [
 ] as const;
 
 const Home = () => {
-  const [nickname, setNickname] = useState<string | null>(null);
-  const [events, setEvents] = useState<EventInfoData[]>([]);
-  const [hostedEvents, setHostedEvents] = useState<EventInfoDetailData[]>([]);
-  const [participatedEvents, setParticipatedEvents] = useState<EventInfoDetailData[]>([]);
-  const [myHostedEventIds, setMyHostedEventIds] = useState<Set<number> | null>(null);
-  const [coParticipants, setCoParticipants] = useState<
-    { userId: string; name: string; profileImageUrl?: string }[]
-  >([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await profileAPI.getProfile();
-        if (res.success && res.data?.nickname) {
-          setNickname(res.data.nickname);
-        }
-      } catch {
-        setError(true);
-      } finally {
-        setLoading(false);
+  // 프로필 조회 (캐싱)
+  const { data: profile } = useQuery({
+    queryKey: ["profile"],
+    queryFn: async () => {
+      const res = await profileAPI.getProfile();
+      if (res.success && res.data) {
+        return res.data;
       }
-    };
-    fetchProfile();
-  }, []);
+      throw new Error("프로필 조회 실패");
+    },
+    staleTime: 1000 * 60 * 30, // 30분간 캐시 유지
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
 
-  const fetchEvents = async () => {
-    try {
+  // 행사 목록 조회 (캐싱)
+  const { data: events = [] } = useQuery({
+    queryKey: ["eventList"],
+    queryFn: async () => {
       const res = await getEventList();
       if (res.success && Array.isArray(res.data)) {
-        setEvents(res.data);
+        return res.data;
       }
-    } catch (err) {
-      console.warn("[Home] 행사 목록 조회 실패:", err);
-      setEvents([]);
-    }
-  };
+      return [];
+    },
+    staleTime: 1000 * 60 * 10, // 10분간 캐시 유지
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
-  // 내가 만든 행사 목록 조회 (내가 여는 행사 탭 + 삭제 버튼 활성화 여부)
-  useEffect(() => {
-    const fetchMyHostedEvents = async () => {
-      try {
-        const res = await getMyHostedEvents();
-        if (res.success && Array.isArray(res.data)) {
-          setHostedEvents(res.data);
-          setMyHostedEventIds(new Set(res.data.map((e) => e.eventId)));
-        } else {
-          setHostedEvents([]);
-          setMyHostedEventIds(new Set());
-        }
-      } catch (err: any) {
-        console.warn("[Home] 내가 만든 행사 조회 실패:", err);
-        setHostedEvents([]);
-        setMyHostedEventIds(null);
+  // 내가 만든 행사 목록 조회 (캐싱)
+  const { data: hostedEvents = [] } = useQuery({
+    queryKey: ["myHostedEvents"],
+    queryFn: async () => {
+      const res = await getMyHostedEvents();
+      if (res.success && Array.isArray(res.data)) {
+        return res.data;
       }
-    };
-    fetchMyHostedEvents();
-  }, []);
+      return [];
+    },
+    staleTime: 1000 * 60 * 10, // 10분간 캐시 유지
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
 
-  // 내가 참여한 행사 목록 조회
-  useEffect(() => {
-    const fetchMyParticipatedEvents = async () => {
-      try {
-        const res = await getMyParticipatedEvents();
-        if (res.success && Array.isArray(res.data)) {
-          setParticipatedEvents(res.data);
-        } else {
-          setParticipatedEvents([]);
-        }
-      } catch (err) {
-        console.warn("[Home] 내가 참여한 행사 조회 실패:", err);
-        setParticipatedEvents([]);
+  // 내가 참여한 행사 목록 조회 (캐싱)
+  const { data: participatedEvents = [] } = useQuery({
+    queryKey: ["myParticipatedEvents"],
+    queryFn: async () => {
+      const res = await getMyParticipatedEvents();
+      if (res.success && Array.isArray(res.data)) {
+        return res.data;
       }
-    };
-    fetchMyParticipatedEvents();
-  }, []);
+      return [];
+    },
+    staleTime: 1000 * 60 * 10, // 10분간 캐시 유지
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
 
-  // 같은 행사 참여자 조회 (내가 참여한 행사 + 내가 만든 행사의 참여자)
-  useEffect(() => {
-    const fetchCoParticipants = async () => {
-      try {
-        const [profileRes, participatedRes, hostedRes] = await Promise.all([
-          profileAPI.getProfile(),
-          getMyParticipatedEvents(),
-          getMyHostedEvents(),
-        ]);
-        if (!profileRes.success) {
-          setCoParticipants([]);
-          return;
-        }
-        const myId = String(profileRes.data?.id ?? "");
-        const participated = participatedRes.success ? participatedRes.data ?? [] : [];
-        const hosted = hostedRes.success ? hostedRes.data ?? [] : [];
-        const allEventIds = new Set<number>();
-        participated.forEach((e) => {
-          if (e.eventId != null) allEventIds.add(e.eventId);
-        });
-        hosted.forEach((e) => {
-          if (e.eventId != null) allEventIds.add(e.eventId);
-        });
-        if (allEventIds.size === 0) {
-          setCoParticipants([]);
-          return;
-        }
-        const map = new Map<string, { userId: string; name: string; profileImageUrl?: string }>();
-        for (const eventId of allEventIds) {
+  // 내가 만든 행사 ID Set (메모이제이션)
+  const myHostedEventIds = useMemo(() => {
+    return new Set(hostedEvents.map((e) => e.eventId));
+  }, [hostedEvents]);
+
+  // 같은 행사 참여자 조회 (캐싱)
+  const { data: coParticipants = [] } = useQuery({
+    queryKey: ["coParticipants", profile?.id, participatedEvents.length, hostedEvents.length],
+    queryFn: async () => {
+      if (!profile?.id) return [];
+      
+      const allEventIds = new Set<number>();
+      participatedEvents.forEach((e) => {
+        if (e.eventId != null) allEventIds.add(e.eventId);
+      });
+      hostedEvents.forEach((e) => {
+        if (e.eventId != null) allEventIds.add(e.eventId);
+      });
+      
+      if (allEventIds.size === 0) return [];
+
+      const myId = String(profile.id);
+      const map = new Map<string, { userId: string; name: string; profileImageUrl?: string }>();
+      
+      for (const eventId of allEventIds) {
+        try {
           const partRes = await getEventParticipation(eventId);
           if (!partRes.success || !partRes.data) continue;
           for (const p of partRes.data) {
             const uid = String(p.userId);
             if (uid === myId) continue;
-            const name = (p as { nickname?: string }).nickname ?? p.name ?? "";
-            const profileImageUrl = (p as { profileImageUrl?: string }).profileImageUrl;
+            const name = p.nickname ?? "";
+            const profileImageUrl = p.profileImageUrl;
             if (!map.has(uid)) {
               map.set(uid, { userId: uid, name, profileImageUrl });
             }
           }
+        } catch (err) {
+          console.warn(`[Home] 행사 ${eventId} 참여자 조회 실패:`, err);
         }
-        setCoParticipants(Array.from(map.values()));
-      } catch {
-        setCoParticipants([]);
       }
-    };
-    fetchCoParticipants();
-  }, []);
+      
+      return Array.from(map.values());
+    },
+    enabled: !!profile?.id && (participatedEvents.length > 0 || hostedEvents.length > 0),
+    staleTime: 1000 * 60 * 10, // 10분간 캐시 유지
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
 
   const handleDeleteEvent = async (eventId: number) => {
     try {
       const res = await deleteEvent(eventId);
       if (res.success) {
-        setEvents((prev) => prev.filter((e) => e.eventId !== eventId));
-        setHostedEvents((prev) => prev.filter((e) => e.eventId !== eventId));
-        if (myHostedEventIds !== null) {
-          setMyHostedEventIds((prev) => {
-            if (prev === null) return null;
-            const next = new Set(prev);
-            next.delete(eventId);
-            return next;
-          });
-        }
+        // 캐시 무효화하여 최신 데이터로 갱신
+        queryClient.invalidateQueries({ queryKey: ["eventList"] });
+        queryClient.invalidateQueries({ queryKey: ["myHostedEvents"] });
+        queryClient.invalidateQueries({ queryKey: ["myParticipatedEvents"] });
+        queryClient.invalidateQueries({ queryKey: ["coParticipants"] });
       } else {
         // 백엔드에서 success: false 반환 시
         const errorMsg = (res as any).data || res.message || "행사 삭제에 실패했습니다.";
@@ -189,15 +165,7 @@ const Home = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="mt-[107.5px] pl-[107px]">
-        <p className="text-h4 text-gray-600">로딩 중...</p>
-      </div>
-    );
-  }
-
-  const displayName = error || !nickname ? "회원" : nickname;
+  const displayName = profile?.nickname || "회원";
 
   return (
     <div className="min-h-screen pl-[107px]">

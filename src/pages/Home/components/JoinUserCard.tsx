@@ -7,6 +7,7 @@
 import instagramIcon from "../../../assets/icons/icons_instagram.svg";
 import linkedinIcon from "../../../assets/icons/icons_linkedin.svg";
 import twitterIcon from "../../../assets/icons/TwitterGroup.svg";
+import { convertImageUrl } from "../../../utils/imageUrlConverter";
 
 export interface JoinUserCardProps {
   /** 참여자 이름 (예: 윤수호) */
@@ -23,7 +24,7 @@ const JoinUserCard = ({ name, imageUrl }: JoinUserCardProps) => {
       {/* 상단: 프로필 영역 (Rectangle 4367) - 284×231, #D9D9D9, 20px 20px 0 0 */}
       <div className="flex h-[231px] w-[285px] shrink-0 items-center justify-center overflow-hidden rounded-t-[20px] bg-[#D9D9D9]">
         {imageUrl ? (
-          <img src={imageUrl} alt="" className="h-full w-full object-cover" />
+          <img src={convertImageUrl(imageUrl)} alt="" className="h-full w-full object-cover" />
         ) : null}
       </div>
 

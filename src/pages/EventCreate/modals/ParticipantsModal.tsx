@@ -2,6 +2,7 @@ import { useState, useMemo, useRef } from "react";
 // 에셋
 import close from "../../../assets/icons/close.svg";
 import participant_icon from "../../../assets/icons/participant_icon.svg";
+import { convertImageUrl } from "../../../utils/imageUrlConverter";
 
 export type Participant = {
   id: string;
@@ -146,7 +147,7 @@ export const ParticipantsModal = ({
                         <div className="h-[44px] w-[44px] rounded-full bg-[#D9D9D9] flex items-center justify-center overflow-hidden">
                           {p.profileImageUrl ? (
                             <img
-                              src={p.profileImageUrl}
+                              src={convertImageUrl(p.profileImageUrl)}
                               alt={p.name}
                               className="h-full w-full object-cover"
                             />

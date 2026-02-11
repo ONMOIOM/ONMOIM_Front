@@ -25,23 +25,28 @@ const AnalysisSidebar = ({
         className="mt-[32px] list-none pl-[11px] pr-[12px]"
         aria-label="행사 목록"
       >
-        {events.map((event) => (
-          <li key={event.eventId}>
-            <button
-              type="button"
-              onClick={() => onSelectEvent(event.eventId)}
-              className={`flex h-[54px] w-full pl-5 pt-3 text-h4 ${
-                selectedEventId === event.eventId
-                  ? "bg-red-50 text-red-500"
-                  : "bg-transparent text-gray-900 hover:bg-gray-100"
-              }`}
-              aria-pressed={selectedEventId === event.eventId}
-              aria-label={`${event.title ?? "행사"} 선택`}
-            >
-              {event.title ?? "제목 없음"}
-            </button>
-          </li>
-        ))}
+        {events.map((event) => {
+          const title = event.title ?? "제목 없음";
+          
+          return (
+            <li key={event.eventId}>
+              <button
+                type="button"
+                onClick={() => onSelectEvent(event.eventId)}
+                className={`flex h-[54px] w-full items-center pl-5 pr-3 text-h4 text-left overflow-hidden ${
+                  selectedEventId === event.eventId
+                    ? "bg-red-50 text-red-500"
+                    : "bg-transparent text-gray-900 hover:bg-gray-100"
+                }`}
+                aria-pressed={selectedEventId === event.eventId}
+                aria-label={`${title} 선택`}
+                title={title} // 전체 제목을 툴팁으로 표시
+              >
+                <span className="truncate block w-full">{title}</span>
+              </button>
+            </li>
+          );
+        })}
       </ul>
     </aside>
   );

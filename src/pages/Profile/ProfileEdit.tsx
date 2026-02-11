@@ -14,13 +14,14 @@ import TwitterAddModal from "../../components/profile/TwitterAddModal";
 import LinkedinAddModal from "../../components/profile/LinkedinAddModal";
 import useProfile from "../../hooks/useProfile";
 import { compressImage } from "../../utils/imageCompression";
+import { convertImageUrl } from "../../utils/imageUrlConverter";
 
 const ProfileEdit = () => {
   const navigate = useNavigate();
   const { profile } = useProfile();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [localImageUrl, setLocalImageUrl] = useState<string | null>(null);
-  const profileImageUrl = localImageUrl || profile?.profileImageUrl || profileSrc;
+  const profileImageUrl = convertImageUrl(localImageUrl || profile?.profileImageUrl);
   const hasInitializedProfile = useRef(false);
   const [profileSns, setProfileSns] = useState<{
     instagramId: string | null;
@@ -43,12 +44,10 @@ const ProfileEdit = () => {
     : "링크드인 추가하기";
 
   const [profileName, setProfileName] = useState({
-    firstName: "수호",
-    lastName: "윤",
+    firstName: "",
+    lastName: "",
   });
-  const [introductionText, setIntroductionText] = useState(
-    "일일일일일일일일일일일일일",
-  );
+  const [introductionText, setIntroductionText] = useState("");
   const [profileEmail, setProfileEmail] = useState(profile?.email ?? "");
   const joinedAtText = "이용중입니다";
   const [searchParams, setSearchParams] = useSearchParams();
@@ -118,11 +117,20 @@ const ProfileEdit = () => {
       });
 
       const res = await profileAPI.uploadProfileImage(imageFile);
+      console.log("[ProfileEdit] 프로필 이미지 업로드 응답:", res);
+      console.log("[ProfileEdit] res.success:", res.success);
+      console.log("[ProfileEdit] res.data:", res.data);
+      
       if (res.success && res.data) {
-        setLocalImageUrl(res.data);
+        // 백엔드에서 반환된 URL을 변환하여 저장
+        const convertedUrl = convertImageUrl(res.data);
+        console.log("[ProfileEdit] 변환된 URL:", convertedUrl);
+        setLocalImageUrl(convertedUrl);
+      } else {
+        console.error("[ProfileEdit] 프로필 이미지 업로드 실패 - 응답 형식 오류:", res);
       }
     } catch (error) {
-      console.warn("[ProfileEdit] 프로필 이미지 변경 실패:", error);
+      console.error("[ProfileEdit] 프로필 이미지 변경 실패:", error);
     } finally {
       event.target.value = "";
     }
@@ -231,7 +239,8 @@ const ProfileEdit = () => {
               <textarea
                 value={introductionText}
                 onChange={(event) => setIntroductionText(event.target.value)}
-                className="min-h-[24px] w-full resize-none bg-transparent text-h4 text-gray-900 outline-none"
+                placeholder="자기소개를 입력하세요."
+                className="min-h-[24px] w-full resize-none bg-transparent text-h4 text-gray-900 outline-none placeholder:text-gray-400"
                 aria-label="자기소개"
               />
             </div>
@@ -291,11 +300,15 @@ const ProfileEdit = () => {
           </button>
         </div>
         <div className="relative h-[331px] w-[331px]">
-          <img
-            src={profileImageUrl}
-            alt="프로필"
-            className="h-full w-full rounded-full object-cover"
-          />
+          {profileImageUrl ? (
+            <img
+              src={profileImageUrl}
+              alt="프로필"
+              className="h-full w-full rounded-full object-cover"
+            />
+          ) : (
+            <div className="h-full w-full rounded-full bg-[#D9D9D9]" />
+          )}
           <button
             type="button"
             className="absolute bottom-[16px] right-[16px] z-10 h-[65px] w-[65px]"

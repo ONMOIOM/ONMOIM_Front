@@ -51,3 +51,17 @@ export const publishEvent = async (
   );
   return res.data;
 };
+
+/** 4. 행사 이미지 업로드: POST /api/v1/users/events/{eventId}/image */
+export const uploadEventImage = async (
+  eventId: number,
+  imageFile: File
+): Promise<BaseResponse<string>> => {
+  const formData = new FormData();
+  formData.append('image', imageFile);
+  const res = await axiosInstance.post<BaseResponse<string>>(
+    `/api/v1/users/events/${eventId}/image`,
+    formData
+  );
+  return res.data;
+};

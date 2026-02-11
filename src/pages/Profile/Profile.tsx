@@ -1,5 +1,6 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import profileSrc from "../../assets/icons/profile.svg";
 import editProfileSrc from "../../assets/icons/edit.png";
 import instagramSrc from "../../assets/icons/icons_instagram.svg";
@@ -9,21 +10,33 @@ import editProfileIconSrc from "../../assets/icons/editprofile.png";
 import { profileAPI } from "../../api/profile";
 import useProfile from "../../hooks/useProfile";
 import { compressImage } from "../../utils/imageCompression";
+import { convertImageUrl } from "../../utils/imageUrlConverter";
 
 const Profile = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  
+  // useProfile 훅 사용 (TanStack Query로 캐싱되어 깜빡임 방지)
   const { profile, loading } = useProfile();
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [localImageUrl, setLocalImageUrl] = useState<string | null>(null);
-  const profileImageUrl = localImageUrl || profile?.profileImageUrl || profileSrc;
-  const displayName = profile?.nickname ?? "";
-  const introduction = profile?.introduction ?? "";
+  
+  // 메모이제이션으로 불필요한 재계산 방지
+  const profileImageUrl = useMemo(() => {
+    const url = convertImageUrl(localImageUrl || profile?.profileImageUrl);
+    return url || profileSrc; // 기본 이미지로 fallback
+  }, [localImageUrl, profile?.profileImageUrl]);
+  
+  const displayName = useMemo(() => profile?.nickname ?? "", [profile?.nickname]);
+  const introduction = useMemo(() => profile?.introduction ?? "", [profile?.introduction]);
   const joinedAtText = "이용중입니다";
-  const profileSns = {
+  
+  const profileSns = useMemo(() => ({
     instagramId: profile?.instagramId ?? null,
     twitterId: profile?.twitterId ?? null,
     linkedinId: profile?.linkedinId ?? null,
-  };
+  }), [profile?.instagramId, profile?.twitterId, profile?.linkedinId]);
 
   const handleSelectProfileImage = () => {
     fileInputRef.current?.click();
@@ -48,25 +61,41 @@ const Profile = () => {
       });
 
       const res = await profileAPI.uploadProfileImage(imageFile);
+      console.log("[Profile] 프로필 이미지 업로드 응답:", res);
+      console.log("[Profile] res.success:", res.success);
+      console.log("[Profile] res.data:", res.data);
+      
       if (res.success && res.data) {
-        setLocalImageUrl(res.data);
+        // 백엔드에서 반환된 URL을 변환하여 저장
+        const convertedUrl = convertImageUrl(res.data);
+        console.log("[Profile] 변환된 URL:", convertedUrl);
+        setLocalImageUrl(convertedUrl);
+        
+        // 프로필 쿼리 캐시 무효화하여 최신 데이터로 갱신
+        queryClient.invalidateQueries({ queryKey: ["profile"] });
+      } else {
+        console.error("[Profile] 프로필 이미지 업로드 실패 - 응답 형식 오류:", res);
       }
     } catch (error) {
-      console.warn("[Profile] 프로필 이미지 변경 실패:", error);
+      console.error("[Profile] 프로필 이미지 변경 실패:", error);
     } finally {
       event.target.value = "";
     }
   };
 
-  const instagramLabel = profileSns.instagramId
-    ? `@${profileSns.instagramId}`
-    : "인스타 추가하기";
-  const twitterLabel = profileSns.twitterId
-    ? `@${profileSns.twitterId}`
-    : "트위터 추가하기";
-  const linkedinLabel = profileSns.linkedinId
-    ? `@${profileSns.linkedinId}`
-    : "링크드인 추가하기";
+  // 메모이제이션으로 레이블 계산 최적화
+  const instagramLabel = useMemo(
+    () => profileSns.instagramId ? `@${profileSns.instagramId}` : "인스타 추가하기",
+    [profileSns.instagramId]
+  );
+  const twitterLabel = useMemo(
+    () => profileSns.twitterId ? `@${profileSns.twitterId}` : "트위터 추가하기",
+    [profileSns.twitterId]
+  );
+  const linkedinLabel = useMemo(
+    () => profileSns.linkedinId ? `@${profileSns.linkedinId}` : "링크드인 추가하기",
+    [profileSns.linkedinId]
+  );
 
   const openSnsProfile = (platform: "instagram" | "twitter" | "linkedin") => {
     const rawId =
@@ -86,7 +115,8 @@ const Profile = () => {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  if (loading) {
+  // 캐시된 데이터가 없을 때만 로딩 스피너 표시 (깜빡임 방지)
+  if (loading && !profile) {
     return (
       <div className="relative min-h-screen flex items-center justify-center">
         <div

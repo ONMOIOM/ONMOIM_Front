@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import logoSrc from "../../assets/icons/onmoim logo_big.svg";
 import notificationsSrc from "../../assets/icons/notifications.svg";
@@ -6,6 +6,7 @@ import profileSrc from "../../assets/icons/profile.svg";
 import useProfile from "../../hooks/useProfile";
 import AlarmModal from "./AlarmModal";
 import ProfileMenu from "./ProfileMenu";
+import { convertImageUrl } from "../../utils/imageUrlConverter";
 
 const NavBar = () => {
   const navigate = useNavigate();
@@ -14,9 +15,21 @@ const NavBar = () => {
   const [isAlarmOpen, setIsAlarmOpen] = useState(false);
   const [alarmModalTop, setAlarmModalTop] = useState(0);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const { profile } = useProfile();
-  const profileImageUrl = profile?.profileImageUrl || profileSrc;
-  const profileName = profile?.nickname || "윤수호";
+  
+  // 메모이제이션으로 프로필 이미지 URL 계산 최적화
+  const profileImageUrl = useMemo(() => {
+    const convertedUrl = convertImageUrl(profile?.profileImageUrl);
+    return convertedUrl || profileSrc;
+  }, [profile?.profileImageUrl]);
+  
+  const profileName = useMemo(() => profile?.nickname || "윤수호", [profile?.nickname]);
+  
+  // 프로필 이미지 URL이 변경되면 에러 상태 리셋
+  useEffect(() => {
+    setImageError(false);
+  }, [profileImageUrl]);
 
   const openAlarmModal = () => {
     const rect = alarmButtonRef.current?.getBoundingClientRect();
@@ -73,22 +86,35 @@ const NavBar = () => {
         <div className="relative" ref={profileMenuRef}>
           <button
             type="button"
-            className="h-10 w-10 shrink-0 overflow-hidden rounded-full"
+            className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-gray-200"
             aria-label="프로필"
             aria-haspopup="true"
             aria-expanded={isProfileMenuOpen}
             aria-controls="profile-menu"
             onClick={() => setIsProfileMenuOpen((prev) => !prev)}
           >
-            <img
-              src={profileImageUrl}
-              alt=""
-              className="h-full w-full object-cover"
-            />
+            {/* 에러가 발생했거나 프로필 이미지가 없으면 기본 이미지, 그 외에는 프로필 이미지 */}
+            {imageError || !profile?.profileImageUrl ? (
+              <img
+                src={profileSrc}
+                alt=""
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <img
+                src={profileImageUrl}
+                alt=""
+                className="h-full w-full object-cover"
+                onError={() => {
+                  // 프로필 이미지 로드 실패 시 기본 이미지로 fallback
+                  setImageError(true);
+                }}
+              />
+            )}
           </button>
           <ProfileMenu
             isOpen={isProfileMenuOpen}
-            profileImageSrc={profileImageUrl}
+            profileImageSrc={imageError || !profile?.profileImageUrl ? profileSrc : profileImageUrl}
             profileName={profileName}
           />
         </div>
