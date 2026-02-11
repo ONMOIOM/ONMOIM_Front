@@ -9,6 +9,7 @@ import location_icon from "../../assets/icons/location_icon.svg";
 import price_icon from "../../assets/icons/price_icon.svg";
 import participant_icon from "../../assets/icons/participant_icon.svg";
 import Music from "../../assets/icons/Music.svg";
+import { FONTTYPE_CLASS } from "./types/types";
 
 function formatDateTime(startAt: Date | null, endAt: Date | null): string {
   if (!startAt || !endAt) return "일시 미정";
@@ -29,6 +30,7 @@ export default function EventPreview() {
   const navigate = useNavigate();
 
   const data = useEventDraftStore((s) => s.data);
+  const fontType = useEventDraftStore((s) => s.data.fontType);
   const publish = useEventDraftStore((s) => s.publish);
   const publishStatus = useEventDraftStore((s) => s.publishStatus);
   const initStatus = useEventDraftStore((s) => s.initStatus);
@@ -40,7 +42,9 @@ export default function EventPreview() {
     return (
       <div className="min-h-screen bg-white p-10">
         <div className="max-w-[720px]">
-          <div className="text-lg font-semibold mb-2">미리보기 정보가 없어요.</div>
+          <div className="text-lg font-semibold mb-2">
+            미리보기 정보가 없어요.
+          </div>
           <button
             className="rounded-lg border border-gray-200 px-4 py-2 text-sm"
             onClick={() => navigate("/event-create")}
@@ -62,37 +66,56 @@ export default function EventPreview() {
       : "인원 미정";
   const dateTimeText = formatDateTime(
     data.schedule?.startAt ?? null,
-    data.schedule?.endAt ?? null
+    data.schedule?.endAt ?? null,
   );
 
   return (
     <EventEditorLayout
       left={
         <section className="w-full mt-[192px] ml-[161px]">
-          <h1 className="text-[32px] font-bold text-[#1A1A1A] font-sans">
-            {data.title || "제목 없음"}
-          </h1>
-
-          <div className="mt-[10px] text-h5 text-[#1A1A1A]">
-            {dateTimeText}
+          <div
+            className={[
+              "text-[42px] font-bold text-[#1A1A1A] font-sans", // 기본 스타일
+              FONTTYPE_CLASS[fontType], // 선택된 폰트 스타일
+            ].join(" ")}
+          >
+            {data.title || "행사 제목"}
           </div>
+
+          <div className="mt-[10px] text-h5 text-[#1A1A1A]">{dateTimeText}</div>
 
           <div className="mt-[52px] space-y-[17px] text-[14px] font-medium text-[#1A1A1A]">
             <div className="flex items-start gap-[8px]">
-              <img src={location_icon} alt="location" className="w-[24px] h-[24px] shrink-0" />
+              <img
+                src={location_icon}
+                alt="location"
+                className="w-[24px] h-[24px] shrink-0"
+              />
               <span>{locationText}</span>
             </div>
             <div className="flex items-start gap-[8px]">
-              <img src={price_icon} alt="price" className="w-[24px] h-[24px] shrink-0" />
+              <img
+                src={price_icon}
+                alt="price"
+                className="w-[24px] h-[24px] shrink-0"
+              />
               <span>{priceText}</span>
             </div>
             <div className="flex items-start gap-[8px]">
-              <img src={participant_icon} alt="participants" className="w-[24px] h-[24px] shrink-0" />
+              <img
+                src={participant_icon}
+                alt="participants"
+                className="w-[24px] h-[24px] shrink-0"
+              />
               <span>{capacityText}</span>
             </div>
             {(data.playlist?.trim() ?? "") && (
               <div className="flex items-start gap-[8px]">
-                <img src={Music} alt="playlist" className="w-[24px] h-[24px] shrink-0" />
+                <img
+                  src={Music}
+                  alt="playlist"
+                  className="w-[24px] h-[24px] shrink-0"
+                />
                 <span>{data.playlist}</span>
               </div>
             )}
@@ -104,19 +127,25 @@ export default function EventPreview() {
             </p>
           </div>
 
-          <div className="mt-[70px] text-h6 text-[#1A1A1A] font-semibold">참여자</div>
+          <div className="mt-[70px] text-h6 text-[#1A1A1A] font-semibold">
+            참여자
+          </div>
           <div className="mt-[12px] flex items-center">
             <div className="overflow-x-auto custom-scrollbar w-[232px]">
               <div className="text-gray-400 text-sm">참여자가 없습니다.</div>
             </div>
           </div>
 
-          <div className="mt-[70px] text-h6 text-[#1A1A1A] font-semibold">댓글</div>
+          <div className="mt-[70px] text-h6 text-[#1A1A1A] font-semibold">
+            댓글
+          </div>
           <div className="mt-[12px] w-[644px]">
             <div className="h-[2px] w-full bg-[#F24148]" />
             <div className="mt-[12px] h-[2px] w-full bg-[#F24148]" />
             <div className="mt-[32px] h-[200px] overflow-y-auto">
-              <div className="text-gray-400 text-center py-8">댓글이 없습니다.</div>
+              <div className="text-gray-400 text-center py-8">
+                댓글이 없습니다.
+              </div>
             </div>
             <div className="mt-[32px] h-[2px] w-full bg-[#F24148]" />
             <div className="mt-[12px] h-[2px] w-full bg-[#F24148]" />
