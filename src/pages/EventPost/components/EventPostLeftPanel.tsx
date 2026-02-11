@@ -26,6 +26,7 @@ import participant_icon from "../../../assets/icons/participant_icon.svg";
 import playlist_icon from "../../../assets/icons/Music.svg";
 import add_icon from "../../../assets/icons/add.svg";
 import { convertImageUrl } from "../../../utils/imageUrlConverter";
+import { parseApiDate } from "../../../utils/formatDate";
 import useProfile from "../../../hooks/useProfile";
 
 type ModalKey = "schedule" | "location" | "seats" | "price" | "playlist" | null;
@@ -47,7 +48,8 @@ const formatDateTime = (
   if (!startTime || !endTime) return "일시 미정";
 
   const formatDate = (iso: string) => {
-    const d = new Date(iso);
+    const d = parseApiDate(iso);
+    if (Number.isNaN(d.getTime())) return "";
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, "0");
     const day = String(d.getDate()).padStart(2, "0");

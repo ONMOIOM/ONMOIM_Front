@@ -336,7 +336,7 @@ export const LeftFormPanel = () => {
         onSave={async (next) => {
           setSchedule(next);
           try {
-            await saveSchedule();
+            await saveSchedule(next);
             close();
           } catch {}
         }}
