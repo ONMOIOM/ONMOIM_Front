@@ -144,6 +144,18 @@ type AnalysisChartProps = {
 };
 
 const AnalysisChart = ({ data = DEFAULT_CHART_DATA }: AnalysisChartProps) => {
+  // 데이터가 비어있을 때 기본 축 구조를 보여주기 위한 더미 데이터
+  const displayData =
+    data.length > 0
+      ? data
+      : Array.from({ length: 7 }, (_, i) => ({
+          name: String(i + 1),
+          click: 0,
+          participation: 0,
+          done: 0,
+          time: 0,
+        }));
+
   return (
     <div className="analysis-chart h-[502px] w-[1386px] min-h-[400px] min-w-[600px] shrink-0 rounded-[20px] border border-gray-300 bg-gray-0 p-8 shadow-sm">
       <ResponsiveContainer
@@ -152,7 +164,7 @@ const AnalysisChart = ({ data = DEFAULT_CHART_DATA }: AnalysisChartProps) => {
         minWidth={600}
         minHeight={400}
       >
-        <ComposedChart data={data} margin={CHART_MARGIN}>
+        <ComposedChart data={displayData} margin={CHART_MARGIN}>
           <CartesianGrid
             strokeDasharray="3 3"
             vertical={false}
@@ -161,22 +173,24 @@ const AnalysisChart = ({ data = DEFAULT_CHART_DATA }: AnalysisChartProps) => {
           <XAxis
             dataKey="name"
             tickLine={false}
-            axisLine={false}
+            axisLine={true}
             tick={{ fill: "#9CA3AF" }}
           />
 
           <YAxis
             yAxisId="left"
             tickLine={false}
-            axisLine={false}
+            axisLine={true}
             domain={[0, 100]}
+            tick={{ fill: "#9CA3AF" }}
           />
           <YAxis
             yAxisId="right"
             orientation="right"
             tickLine={false}
-            axisLine={false}
-            domain={[0, "dataMax"]}
+            axisLine={true}
+            domain={[0, 100]}
+            tick={{ fill: "#9CA3AF" }}
             tickFormatter={(v) => {
               const sec = Number(v);
               const m = Math.floor(sec / 60);

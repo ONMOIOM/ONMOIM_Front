@@ -2,34 +2,25 @@
 import axiosInstance from './axiosInstance';
 import { BaseResponse } from '../constants/types';
 
+/** 회원 조회 응답 data (GET /api/v1/users) */
 export type ProfileData = {
-  memberId: number;
-  username: string;
+  id: number;
+  email: string;
   nickname: string;
   introduction: string;
-  status: string;
   instagramId?: string | null;
   twitterId?: string | null;
   linkedinId?: string | null;
-  createdAt: string;
-  updatedAt: string;
-  email: string;
-  imageUrl: string;
+  profileImageUrl: string;
 };
 
+/** 내 프로필 수정 요청 (PATCH /api/v1/users) */
 export type UpdateProfileRequest = {
-  memberId?: number;
-  username?: string;
-  nickname?: string;
-  introduction?: string;
-  status?: string;
+  nickname?: string | null;
+  introduction?: string | null;
   instagramId?: string | null;
   twitterId?: string | null;
   linkedinId?: string | null;
-  createdAt?: string;
-  updatedAt?: string;
-  email?: string;
-  imageUrl?: string;
 };
 
 export const profileAPI = {
@@ -40,16 +31,42 @@ export const profileAPI = {
     );
     return res.data;
   },
-  /** 회원정보 수정: POST /api/v1/users (bearerAuth) */
+  /** 다른 사용자 프로필 조회: GET /api/v1/users/{userId} (bearerAuth) */
+  getUserProfile: async (userId: number): Promise<BaseResponse<ProfileData>> => {
+    const res = await axiosInstance.get<BaseResponse<ProfileData>>(
+      `/api/v1/users/${userId}`
+    );
+    return res.data;
+  },
+  /** 내 프로필 수정: PATCH /api/v1/users (bearerAuth) */
   updateProfile: async (
     body: UpdateProfileRequest
-  ): Promise<BaseResponse> => {
-    const res = await axiosInstance.post<BaseResponse>('/api/v1/users', body);
+  ): Promise<BaseResponse<ProfileData>> => {
+    const res = await axiosInstance.patch<BaseResponse<ProfileData>>(
+      '/api/v1/users',
+      body
+    );
+    return res.data;
+  },
+  /** 프로필 이미지 변경: POST /api/v1/users/profile-image (bearerAuth) */
+  uploadProfileImage: async (
+    imageFile: File
+  ): Promise<BaseResponse<string>> => {
+    const formData = new FormData();
+    formData.append('image', imageFile);
+    const res = await axiosInstance.post<BaseResponse<string>>(
+      '/api/v1/users/profile-image',
+      formData
+    );
     return res.data;
   },
   /** 회원 탈퇴: DELETE /api/v1/users (bearerAuth) */
-  deleteProfile: async (): Promise<BaseResponse> => {
-    const res = await axiosInstance.delete<BaseResponse>('/api/v1/users');
+  deleteProfile: async (): Promise<
+    BaseResponse<Record<string, never>>
+  > => {
+    const res = await axiosInstance.delete<
+      BaseResponse<Record<string, never>>
+    >('/api/v1/users');
     return res.data;
   },
 };

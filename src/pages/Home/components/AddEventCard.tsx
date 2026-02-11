@@ -5,14 +5,21 @@
 
 import { useNavigate } from "react-router-dom";
 import plusIcon from "../../../assets/icons/Plus.svg";
+import { useEventDraftStore } from "../../EventCreate/store/useEventDraftStore";
 
 const AddEventCard = () => {
   const navigate = useNavigate();
+  const reset = useEventDraftStore((s) => s.reset);
+
+  const handleClick = () => {
+    reset();
+    navigate("/event-create");
+  };
 
   return (
     <button
       type="button"
-      onClick={() => navigate("/event-create")}
+      onClick={handleClick}
       className="flex h-[379px] w-[228px] shrink-0 cursor-pointer items-center justify-center rounded-[20px] border-2 border-dashed border-[#595959] bg-[#F7F7F7] transition-colors hover:border-red-400 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:ring-offset-2"
       aria-label="이벤트 생성하기"
     >

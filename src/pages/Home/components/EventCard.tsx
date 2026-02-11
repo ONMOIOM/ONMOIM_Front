@@ -6,11 +6,15 @@
  */
 
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { HiOutlineDotsHorizontal } from "react-icons/hi";
 import EventCardMenu from "./EventCardMenu";
 import StopNotificationModal from "./StopNotificationModal";
+import { startSession } from "../../../api/analysis";
 
 export interface EventCardProps {
+  /** 행사 ID (삭제 시 사용) */
+  eventId: number;
   /** 행사 제목 */
   title: string;
   /** 일시 (표시용 문자열, 예: 수요일 10:45 AM) */
@@ -21,16 +25,24 @@ export interface EventCardProps {
   imageUrl?: string;
   /** 우측 상단 ... 버튼 클릭 시 (선택, 메뉴 토글과 별개) */
   onMenuClick?: () => void;
+  /** 행사 삭제 클릭 시 (eventId 전달) */
+  onDelete?: (eventId: number) => void;
+  /** 본인이 만든 행사인지 여부 */
+  isMyEvent?: boolean;
 }
 
 /** 피그마 box1_1: 456×379, 상단 이미지 약 60~65% 높이 */
 const EventCard = ({
+  eventId,
   title,
   dateTime,
   hostName,
   imageUrl,
   onMenuClick: _onMenuClick,
+  onDelete,
+  isMyEvent = true, // 기본값 true: API 호출 실패 시에도 삭제 가능하도록
 }: EventCardProps) => {
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const cardRef = useRef<HTMLElement>(null);
@@ -46,10 +58,27 @@ const EventCard = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
 
+  const handleCardClick = async () => {
+    // 메인 페이지에서 행사 클릭 시 클릭 수 증가 및 세션 시작
+    try {
+      const result = await startSession(eventId);
+      if (result.success && result.data?.sessionId) {
+        // 세션 ID를 localStorage에 저장하여 EventPost에서 사용
+        localStorage.setItem(`session_${eventId}`, result.data.sessionId);
+        console.log("[Analytics] 행사 클릭 - 세션 시작:", result.data.sessionId);
+      }
+    } catch (error) {
+      console.error("[Analytics] 행사 클릭 - 세션 시작 실패:", error);
+      // 에러가 발생해도 페이지 이동은 진행
+    }
+    navigate(`/event-post/${eventId}`);
+  };
+
   return (
     <article
       ref={cardRef}
-      className="relative flex h-[379px] w-[456px] shrink-0 flex-col overflow-visible rounded-8 bg-gray-0 shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
+      onClick={handleCardClick}
+      className="relative flex h-[379px] w-[456px] shrink-0 flex-col overflow-visible rounded-8 bg-gray-0 shadow-[0_2px_8px_rgba(0,0,0,0.08)] cursor-pointer hover:shadow-[0_4px_12px_rgba(0,0,0,0.12)] transition-shadow"
     >
       {/* 상단 이미지 영역 (Rectangle 4364) - 메뉴가 나오므로 overflow-visible */}
       <div className="relative h-[256px] w-[456px] shrink-0 overflow-visible rounded-t-8 bg-[#E0E0E0]">
@@ -83,6 +112,13 @@ const EventCard = ({
                 setMenuOpen(false);
                 setModalOpen(true);
               }}
+              onDelete={() => {
+                setMenuOpen(false);
+                if (window.confirm("이 행사를 삭제하시겠습니까?")) {
+                  onDelete?.(eventId);
+                }
+              }}
+              isMyEvent={isMyEvent}
             />
           </div>
         )}

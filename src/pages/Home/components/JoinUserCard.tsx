@@ -4,26 +4,50 @@
  * 하단: 이름(우상단) + SNS 아이콘(하단 18px, 좌측 인스타 기준 20px, 아이콘 간격 12px, 29×29)
  */
 
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import instagramIcon from "../../../assets/icons/icons_instagram.svg";
 import linkedinIcon from "../../../assets/icons/icons_linkedin.svg";
 import twitterIcon from "../../../assets/icons/TwitterGroup.svg";
+import { convertImageUrl } from "../../../utils/imageUrlConverter";
 
 export interface JoinUserCardProps {
   /** 참여자 이름 (예: 윤수호) */
   name: string;
   /** 프로필 이미지 URL (없으면 #D9D9D9 플레이스홀더) */
   imageUrl?: string;
+  /** 사용자 ID (프로필 페이지 이동용) */
+  userId: string;
 }
 
 const ICON_SIZE_PX = 29;
 
-const JoinUserCard = ({ name, imageUrl }: JoinUserCardProps) => {
+const JoinUserCard = ({ name, imageUrl, userId }: JoinUserCardProps) => {
+  const navigate = useNavigate();
+  const [imageError, setImageError] = useState(false);
+  
+  const convertedImageUrl = imageUrl && imageUrl.trim() ? convertImageUrl(imageUrl) : null;
+
+  const handleCardClick = () => {
+    navigate(`/profile/${userId}`);
+  };
+
   return (
-    <article className="flex w-[285px] shrink-0 flex-col">
+    <article 
+      className="flex w-[285px] shrink-0 flex-col cursor-pointer hover:opacity-80 transition-opacity"
+      onClick={handleCardClick}
+    >
       {/* 상단: 프로필 영역 (Rectangle 4367) - 284×231, #D9D9D9, 20px 20px 0 0 */}
       <div className="flex h-[231px] w-[285px] shrink-0 items-center justify-center overflow-hidden rounded-t-[20px] bg-[#D9D9D9]">
-        {imageUrl ? (
-          <img src={imageUrl} alt="" className="h-full w-full object-cover" />
+        {convertedImageUrl && !imageError ? (
+          <img
+            src={convertedImageUrl}
+            alt={name}
+            className="h-full w-full object-cover"
+            onError={() => {
+              setImageError(true);
+            }}
+          />
         ) : null}
       </div>
 

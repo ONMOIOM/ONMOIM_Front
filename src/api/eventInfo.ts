@@ -47,8 +47,24 @@ export type VoteParticipantData = {
 
 /*행사 참여 여부 조회 Response Data */
 export type GetParticipantData = {
-  userId: string;
-  name: string;
+  userId: number; // API 응답: integer($int64)
+  nickname: string;
+  status: string;
+  imageUrl?: string; // 프로필 이미지 (API 응답: imageUrl)
+};
+
+/* 내가 만든 행사 조회용 Response Data (flat 구조) */
+export type EventInfoDetailData = {
+  eventId: number;
+  title?: string | null;
+  startTime?: string | null;
+  endTime?: string | null;
+  introduction?: string | null;
+  streetAddress?: string | null;
+  lotNumberAddress?: string | null;
+  price?: number | null;
+  playlistUrl?: string | null;
+  capacity?: number | null;
   status: string;
 };
 
@@ -57,11 +73,11 @@ export type GetParticipantData = {
 /** 1. 행사 수정: PATCH /api/v1/users/events/{eventId} */
 export const editEvent = async (
   eventId: number,
-  updateData: EditEventRequest
+  updateData: EditEventRequest,
 ): Promise<BaseResponse<EventInfoData>> => {
   const res = await axiosInstance.patch<BaseResponse<EventInfoData>>(
     `/api/v1/users/events/${eventId}`,
-    updateData
+    updateData,
   );
   return res.data;
 };
@@ -71,27 +87,27 @@ export const getEventList = async (): Promise<
   BaseResponse<EventInfoData[]>
 > => {
   const res = await axiosInstance.get<BaseResponse<EventInfoData[]>>(
-    "/api/v1/users/events"
+    "/api/v1/users/events",
   );
   return res.data;
 };
 
 /** 2. 행사 상세 조회: GET /api/v1/users/events/{eventId} */
 export const getEvent = async (
-  eventId: number
+  eventId: number,
 ): Promise<BaseResponse<EventInfoData>> => {
   const res = await axiosInstance.get<BaseResponse<EventInfoData>>(
-    `/api/v1/users/events/${eventId}`
+    `/api/v1/users/events/${eventId}`,
   );
   return res.data;
 };
 
 /** 3. 행사 삭제: DELETE /api/v1/users/events/{eventId} */
 export const deleteEvent = async (
-  eventId: number
+  eventId: number,
 ): Promise<BaseResponse<EventInfoData>> => {
   const res = await axiosInstance.delete<BaseResponse<EventInfoData>>(
-    `/api/v1/users/events/${eventId}`
+    `/api/v1/users/events/${eventId}`,
   );
   return res.data;
 };
@@ -100,21 +116,55 @@ export const deleteEvent = async (
 export const voteEventParticipation = async (
   eventId: number,
   userId: string,
-  status: string
+  status: string,
 ): Promise<BaseResponse<VoteParticipantData>> => {
   const res = await axiosInstance.put<BaseResponse<VoteParticipantData>>(
     `/api/v1/users/events/${eventId}/participants/${userId}`,
-    { status }
+    { status },
+  );
+  return res.data;
+};
+
+/** 행사 참여 투표: POST /api/v1/users/events/{eventId}/participants (ATTEND/PENDING/ABSENT) */
+export type ParticipationStatus = "ATTEND" | "PENDING" | "ABSENT";
+
+export const voteParticipation = async (
+  eventId: number,
+  status: ParticipationStatus
+): Promise<BaseResponse<unknown>> => {
+  const res = await axiosInstance.post<BaseResponse<unknown>>(
+    `/api/v1/users/events/${eventId}/participants`,
+    { status },
   );
   return res.data;
 };
 
 /** 5. 행사 참여 여부 조회: GET api/v1/users/events/{eventId}/participants */
 export const getEventParticipation = async (
-  eventId: number
+  eventId: number,
 ): Promise<BaseResponse<GetParticipantData[]>> => {
   const res = await axiosInstance.get<BaseResponse<GetParticipantData[]>>(
-    `/api/v1/users/events/${eventId}/participants`
+    `/api/v1/users/events/${eventId}/participants`,
   );
+  return res.data;
+};
+
+/** 내가 만든 행사 조회: GET /api/v1/users/events/hosted */
+export const getMyHostedEvents = async (): Promise<
+  BaseResponse<EventInfoDetailData[]>
+> => {
+  const res = await axiosInstance.get<
+    BaseResponse<EventInfoDetailData[]>
+  >("/api/v1/users/events/hosted");
+  return res.data;
+};
+
+/** 내가 참여한 행사 조회: GET /api/v1/users/events/participating */
+export const getMyParticipatedEvents = async (): Promise<
+  BaseResponse<EventInfoDetailData[]>
+> => {
+  const res = await axiosInstance.get<
+    BaseResponse<EventInfoDetailData[]>
+  >("/api/v1/users/events/participating");
   return res.data;
 };

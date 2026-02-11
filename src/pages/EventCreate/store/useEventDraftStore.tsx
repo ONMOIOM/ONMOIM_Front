@@ -3,15 +3,9 @@ import { persist } from "zustand/middleware";
 
 import {
   createEventDraft,
-  saveEventTitle,
-  saveEventSchedule,
-  saveEventLocation,
-  saveEventCapacity,
-  saveEventPrice,
-  saveEventPlaylist,
-  saveEventInformation,
+  patchEvent,
   publishEvent,
-} from "../../../api/event_updated"; // 네 경로대로
+} from "../../../api/event_updated";
 
 type SaveStatus = "idle" | "saving" | "error";
 
@@ -174,6 +168,7 @@ export const useEventDraftStore = create<EventDraftStore>()(
             initStatus: "error",
             initError: e?.message ?? "초안 생성 오류",
           });
+          throw e;
         }
       },
 
@@ -211,14 +206,14 @@ export const useEventDraftStore = create<EventDraftStore>()(
       // ---- save: title ----
       saveTitle: async () => {
         const { eventId, data } = get();
-        if (!eventId) throw new Error("eventId 없음: initDraft 먼저");
+        if (eventId == null) throw new Error("eventId 없음: initDraft 먼저");
 
         set({ titleStatus: "saving", titleError: null });
         try {
           const title = data.title.trim();
           if (!title) throw new Error("제목을 입력해줘.");
 
-          const res = await saveEventTitle({ title });
+          const res = await patchEvent(eventId, { title });
           if (!res.success) throw new Error(res.message ?? "제목 저장 실패");
 
           set({ titleStatus: "idle" });
@@ -232,18 +227,16 @@ export const useEventDraftStore = create<EventDraftStore>()(
       // ---- save: schedule ----
       saveSchedule: async () => {
         const { eventId, data } = get();
-        if (!eventId) throw new Error("eventId 없음: initDraft 먼저");
+        if (eventId == null) throw new Error("eventId 없음: initDraft 먼저");
 
         set({ scheduleStatus: "saving", scheduleError: null });
         try {
           const { startAt, endAt } = data.schedule;
           if (!startAt || !endAt) throw new Error("일자를 입력해줘.");
 
-          const res = await saveEventSchedule({
-            schedule: {
-              startDate: startAt.toISOString(),
-              endDate: endAt.toISOString(),
-            },
+          const res = await patchEvent(eventId, {
+            startTime: startAt.toISOString(),
+            endTime: endAt.toISOString(),
           });
           if (!res.success) throw new Error(res.message ?? "일정 저장 실패");
 
@@ -258,19 +251,18 @@ export const useEventDraftStore = create<EventDraftStore>()(
       // ---- save: location ----
       saveLocation: async () => {
         const { eventId, data } = get();
-        if (!eventId) throw new Error("eventId 없음: initDraft 먼저");
+        if (eventId == null) throw new Error("eventId 없음: initDraft 먼저");
 
         set({ locationStatus: "saving", locationError: null });
         try {
           const streetAddress = data.location.streetAddress.trim();
           if (!streetAddress) throw new Error("장소를 입력해줘.");
 
-          const lotNumber = data.location.lotNumber?.trim()
-            ? data.location.lotNumber.trim()
-            : null;
+          const lotNumberAddress = data.location.lotNumber?.trim() || null;
 
-          const res = await saveEventLocation({
-            location: { streetAddress, lotNumber },
+          const res = await patchEvent(eventId, {
+            streetAddress,
+            lotNumberAddress,
           });
           if (!res.success) throw new Error(res.message ?? "장소 저장 실패");
 
@@ -285,11 +277,11 @@ export const useEventDraftStore = create<EventDraftStore>()(
       // ---- save: capacity ----
       saveCapacity: async () => {
         const { eventId, data } = get();
-        if (!eventId) throw new Error("eventId 없음: initDraft 먼저");
+        if (eventId == null) throw new Error("eventId 없음: initDraft 먼저");
 
         set({ capacityStatus: "saving", capacityError: null });
         try {
-          const res = await saveEventCapacity({ capacity: data.capacity });
+          const res = await patchEvent(eventId, { capacity: data.capacity });
           if (!res.success) throw new Error(res.message ?? "정원 저장 실패");
 
           set({ capacityStatus: "idle" });
@@ -303,11 +295,11 @@ export const useEventDraftStore = create<EventDraftStore>()(
       // ---- save: price ----
       savePrice: async () => {
         const { eventId, data } = get();
-        if (!eventId) throw new Error("eventId 없음: initDraft 먼저");
+        if (eventId == null) throw new Error("eventId 없음: initDraft 먼저");
 
         set({ priceStatus: "saving", priceError: null });
         try {
-          const res = await saveEventPrice({ price: data.price });
+          const res = await patchEvent(eventId, { price: data.price });
           if (!res.success) throw new Error(res.message ?? "가격 저장 실패");
 
           set({ priceStatus: "idle" });
@@ -321,11 +313,13 @@ export const useEventDraftStore = create<EventDraftStore>()(
       // ---- save: playlist ----
       savePlaylist: async () => {
         const { eventId, data } = get();
-        if (!eventId) throw new Error("eventId 없음: initDraft 먼저");
+        if (eventId == null) throw new Error("eventId 없음: initDraft 먼저");
 
         set({ playlistStatus: "saving", playlistError: null });
         try {
-          const res = await saveEventPlaylist({ playlist: data.playlist.trim() });
+          const res = await patchEvent(eventId, {
+            playlistUrl: data.playlist.trim() || undefined,
+          });
           if (!res.success) throw new Error(res.message ?? "플레이리스트 저장 실패");
 
           set({ playlistStatus: "idle" });
@@ -339,11 +333,13 @@ export const useEventDraftStore = create<EventDraftStore>()(
       // ---- save: information ----
       saveInformation: async () => {
         const { eventId, data } = get();
-        if (!eventId) throw new Error("eventId 없음: initDraft 먼저");
+        if (eventId == null) throw new Error("eventId 없음: initDraft 먼저");
 
         set({ informationStatus: "saving", informationError: null });
         try {
-          const res = await saveEventInformation({ information: data.information.trim() });
+          const res = await patchEvent(eventId, {
+            introduction: data.information.trim() || undefined,
+          });
           if (!res.success) throw new Error(res.message ?? "소개글 저장 실패");
 
           set({ informationStatus: "idle" });
@@ -354,19 +350,20 @@ export const useEventDraftStore = create<EventDraftStore>()(
         }
       },
 
-      // ---- publish ----
+      // ---- publish (저장 클릭 시: eventId만으로 발행, PATCH는 옵션 선택 시 각각 호출됨) ----
       publish: async () => {
         const { eventId } = get();
-        if (!eventId) throw new Error("eventId 없음: initDraft 먼저");
 
         set({ publishStatus: "saving", publishError: null });
         try {
+          if (eventId == null) throw new Error("초안이 없습니다. 페이지를 새로고침해주세요.");
+
           const res = await publishEvent(eventId);
           if (!res.success) throw new Error(res.message ?? "발행 실패");
 
           set({ publishStatus: "idle" });
         } catch (e: any) {
-          const msg = e?.response?.data?.message ?? e?.message ?? "발행 실패";
+          const msg = e?.response?.data?.message ?? e?.message ?? "저장 실패";
           set({ publishStatus: "error", publishError: msg });
           throw e;
         }

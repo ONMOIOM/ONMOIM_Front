@@ -10,10 +10,16 @@ export type EmailVerificationRequest = {
   turnstileToken: string;
 };
 
+/** 이메일 인증 코드 검증 요청: POST /api/v1/auth/email/verify */
+export type VerifyEmailRequest = {
+  email: string;
+  code: string;
+};
+
 /** 로그인 요청: POST /api/v1/users/login */
 export type LoginRequest = {
   email: string;
-  authcode: string;
+  authCode: string;
 };
 
 /** 로그인 응답 data (명세서 예시는 []이나, 실제 토큰 반환 시 사용) */
@@ -47,7 +53,8 @@ export type MeData = {
 export type EmailResponse = {
   email: string;
   sentAt: string;
-  expireAt: string;
+  expiresInSeconds: number;
+  isRegistered: boolean;
 }
 // --- API 함수 ---
 
@@ -64,7 +71,7 @@ export const requestEmailVerification = async (
 
 /** 이메일 인증 코드 검증: POST /api/v1/auth/email/verify (request body에 code) */
 export const verifyEmail = async (
-  body: LoginRequest
+  body: VerifyEmailRequest
 ): Promise<BaseResponse<verifyEmailRequestData>> => {
   const res = await axiosInstance.post<BaseResponse<verifyEmailRequestData>>(
     '/api/v1/auth/email/verify',

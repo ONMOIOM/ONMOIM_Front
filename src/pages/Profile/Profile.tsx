@@ -1,32 +1,70 @@
-import { useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRef, useState, useMemo } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import profileSrc from "../../assets/icons/profile.svg";
 import editProfileSrc from "../../assets/icons/edit.png";
 import instagramSrc from "../../assets/icons/icons_instagram.svg";
 import twitterSrc from "../../assets/icons/TwitterGroup.svg";
 import linkedinSrc from "../../assets/icons/icons_linkedin.svg";
 import editProfileIconSrc from "../../assets/icons/editprofile.png";
-import { profileAPI } from "../../api/profile";
+import { profileAPI, type ProfileData } from "../../api/profile";
 import useProfile from "../../hooks/useProfile";
-import { formatDate } from "../../utils/formatDate";
 import { compressImage } from "../../utils/imageCompression";
+import { convertImageUrl } from "../../utils/imageUrlConverter";
+import { getUserIdFromToken } from "../../utils/jwtDecoder";
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { profile } = useProfile();
+  const queryClient = useQueryClient();
+  const { userId: userIdParam } = useParams<{ userId?: string }>();
+  const targetUserId = userIdParam ? Number(userIdParam) : null;
+  const isViewingOtherProfile = targetUserId !== null;
+  
+  const { profile: myProfile, loading: loadingMyProfile } = useProfile();
+  const myUserId = myProfile?.id ?? getUserIdFromToken();
+  const isMyProfile = !isViewingOtherProfile || (myUserId !== null && targetUserId === myUserId);
+
+  const { data: otherUserProfile, isLoading: loadingOtherProfile } = useQuery({
+    queryKey: ["userProfile", targetUserId],
+    queryFn: async (): Promise<ProfileData | null> => {
+      if (!targetUserId) return null;
+      const res = await profileAPI.getUserProfile(targetUserId);
+      if (res.success && res.data) {
+        return res.data;
+      }
+      return null;
+    },
+    enabled: isViewingOtherProfile && targetUserId !== null,
+    staleTime: 1000 * 60 * 30,
+    gcTime: 1000 * 60 * 60,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const profile = isViewingOtherProfile ? otherUserProfile : myProfile;
+  const loading = isViewingOtherProfile ? loadingOtherProfile : loadingMyProfile;
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [localImageUrl, setLocalImageUrl] = useState<string | null>(null);
-  const profileImageUrl = localImageUrl || profile?.imageUrl || profileSrc;
-  const displayName = profile?.nickname || "윤수호";
-  const introduction = profile?.introduction || "사용자의 자기소개 부분";
-  const joinedAtText = profile?.createdAt
-    ? `${formatDate(profile.createdAt, "YYYY년 MM월 DD일")}부터 이용중입니다`
-    : "2026년 10월 1일부터 이용중입니다";
-  const profileSns = {
+
+  const profileImageUrl = useMemo(() => {
+    if (isViewingOtherProfile) {
+      const url = convertImageUrl(profile?.profileImageUrl);
+      return url || profileSrc;
+    }
+    const url = convertImageUrl(localImageUrl || profile?.profileImageUrl);
+    return url || profileSrc;
+  }, [localImageUrl, profile?.profileImageUrl, isViewingOtherProfile]);
+  
+  const displayName = useMemo(() => profile?.nickname ?? "", [profile?.nickname]);
+  const introduction = useMemo(() => profile?.introduction ?? "", [profile?.introduction]);
+  const joinedAtText = "이용중입니다";
+  
+  const profileSns = useMemo(() => ({
     instagramId: profile?.instagramId ?? null,
     twitterId: profile?.twitterId ?? null,
     linkedinId: profile?.linkedinId ?? null,
-  };
+  }), [profile?.instagramId, profile?.twitterId, profile?.linkedinId]);
 
   const handleSelectProfileImage = () => {
     fileInputRef.current?.click();
@@ -45,40 +83,47 @@ const Profile = () => {
 
     try {
       const compressed = await compressImage(file, 512, 0.85);
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          if (typeof reader.result === "string") {
-            resolve(reader.result);
-          } else {
-            reject(new Error("Failed to read image"));
-          }
-        };
-        reader.onerror = () => reject(reader.error);
-        reader.readAsDataURL(compressed);
+      const blob = compressed as Blob;
+      const imageFile = new File([blob], file.name || "image.jpg", {
+        type: blob.type || "image/jpeg",
       });
 
-      setLocalImageUrl(dataUrl);
-      await profileAPI.updateProfile({
-        memberId: profile?.memberId,
-        imageUrl: dataUrl,
-      });
+      const res = await profileAPI.uploadProfileImage(imageFile);
+      console.log("[Profile] 프로필 이미지 업로드 응답:", res);
+      console.log("[Profile] res.success:", res.success);
+      console.log("[Profile] res.data:", res.data);
+      
+      if (res.success && res.data) {
+        // 백엔드에서 반환된 URL을 변환하여 저장
+        const convertedUrl = convertImageUrl(res.data);
+        console.log("[Profile] 변환된 URL:", convertedUrl);
+        setLocalImageUrl(convertedUrl);
+        
+        // 프로필 쿼리 캐시 무효화하여 최신 데이터로 갱신
+        queryClient.invalidateQueries({ queryKey: ["profile"] });
+      } else {
+        console.error("[Profile] 프로필 이미지 업로드 실패 - 응답 형식 오류:", res);
+      }
     } catch (error) {
-      console.warn("[Profile] 프로필 이미지 변경 실패:", error);
+      console.error("[Profile] 프로필 이미지 변경 실패:", error);
     } finally {
       event.target.value = "";
     }
   };
 
-  const instagramLabel = profileSns.instagramId
-    ? `@${profileSns.instagramId}`
-    : "인스타 추가하기";
-  const twitterLabel = profileSns.twitterId
-    ? `@${profileSns.twitterId}`
-    : "트위터 추가하기";
-  const linkedinLabel = profileSns.linkedinId
-    ? `@${profileSns.linkedinId}`
-    : "링크드인 추가하기";
+  // 메모이제이션으로 레이블 계산 최적화
+  const instagramLabel = useMemo(
+    () => profileSns.instagramId ? `@${profileSns.instagramId}` : "인스타 추가하기",
+    [profileSns.instagramId]
+  );
+  const twitterLabel = useMemo(
+    () => profileSns.twitterId ? `@${profileSns.twitterId}` : "트위터 추가하기",
+    [profileSns.twitterId]
+  );
+  const linkedinLabel = useMemo(
+    () => profileSns.linkedinId ? `@${profileSns.linkedinId}` : "링크드인 추가하기",
+    [profileSns.linkedinId]
+  );
 
   const openSnsProfile = (platform: "instagram" | "twitter" | "linkedin") => {
     const rawId =
@@ -98,6 +143,25 @@ const Profile = () => {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
+  if (loading && !profile) {
+    return (
+      <div className="relative min-h-screen flex items-center justify-center">
+        <div
+          className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-[#F24148]"
+          aria-label="로딩 중"
+        />
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="relative min-h-screen flex items-center justify-center">
+        <p className="text-gray-600">프로필을 찾을 수 없습니다.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="relative min-h-screen">
       <div className="ml-[179px] mt-nav-bar-to-buttons flex items-center">
@@ -107,27 +171,31 @@ const Profile = () => {
             alt="프로필"
             className="h-full w-full rounded-full object-cover"
           />
-          <button
-            type="button"
-            className="absolute bottom-[16px] right-[16px] z-10 h-[65px] w-[65px]"
-            aria-label="프로필 이미지 변경"
-            onClick={handleSelectProfileImage}
-          >
-            <img
-              src={editProfileSrc}
-              alt=""
-              className="h-full w-full object-contain"
-            />
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleProfileImageChange}
-            aria-hidden="true"
-            tabIndex={-1}
-          />
+          {isMyProfile && (
+            <>
+              <button
+                type="button"
+                className="absolute bottom-[16px] right-[16px] z-10 h-[65px] w-[65px]"
+                aria-label="프로필 이미지 변경"
+                onClick={handleSelectProfileImage}
+              >
+                <img
+                  src={editProfileSrc}
+                  alt=""
+                  className="h-full w-full object-contain"
+                />
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleProfileImageChange}
+                aria-hidden="true"
+                tabIndex={-1}
+              />
+            </>
+          )}
         </div>
         <div className="ml-[54px] flex flex-col">
           <p className="text-h7 text-gray-900">{displayName}</p>
@@ -174,19 +242,21 @@ const Profile = () => {
           </button>
         </div>
       </div>
-      <button
-        type="button"
-        className="ml-[204.5px] mt-[40px] flex h-[53px] w-[280px] items-center justify-center gap-[10px] rounded-[10px] border border-[#BFBFBF] bg-white"
-        onClick={() => navigate("/profile/edit")}
-      >
-        <img
-          src={editProfileIconSrc}
-          alt=""
-          className="h-[26px] w-[26px] shrink-0"
-          aria-hidden="true"
-        />
-        <span className="text-h5 font-semibold text-[#525252]">프로필 수정</span>
-      </button>
+      {isMyProfile && (
+        <button
+          type="button"
+          className="ml-[204.5px] mt-[40px] flex h-[53px] w-[280px] items-center justify-center gap-[10px] rounded-[10px] border border-[#BFBFBF] bg-white"
+          onClick={() => navigate("/profile/edit")}
+        >
+          <img
+            src={editProfileIconSrc}
+            alt=""
+            className="h-[26px] w-[26px] shrink-0"
+            aria-hidden="true"
+          />
+          <span className="text-h5 font-semibold text-[#525252]">프로필 수정</span>
+        </button>
+      )}
     </div>
   );
 };

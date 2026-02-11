@@ -1,28 +1,44 @@
-import { useRef, useState } from "react";
-import RSVPCard from "./RSVPCard";
-import { useEventDraftStore } from "../store/useEventDraftStore";
+import { useState, useEffect, useRef } from "react";
+import ReplyOptions from "./ReplyOptions";
+import add_photo_icon from "../../../assets/icons/add_photo_icon.svg";
+import edit_icon from "../../../assets/icons/edit_icon.svg";
+import { getEvent } from "../../../api/eventInfo";
 import { uploadEventImage } from "../../../api/event_updated";
 import { compressImage } from "../../../utils/imageCompression";
 import { convertImageUrl } from "../../../utils/imageUrlConverter";
-// 에셋
-import add_photo_icon from "../../../assets/icons/add_photo_icon.svg";
-import edit_icon from '../../../assets/icons/edit_icon.svg';
 
-
-type Props = { 
-  mode: "edit" | "preview"
+type Props = {
+  eventId: number;
+  isMyEvent: boolean;
 };
 
-export const RightFormPanel = ({mode}: Props) => {
-  const coverImageUrl = useEventDraftStore((s) => s.data.coverImageUrl);
-  const setCoverImageUrl = useEventDraftStore((s) => s.setCoverImageUrl);
-  const eventId = useEventDraftStore((s) => s.eventId);
+export const EventPostRightPanel = ({ eventId, isMyEvent }: Props) => {
+  const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-
+  const [isLoading, setIsLoading] = useState(true);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
+  // 이벤트 데이터에서 이미지 URL 가져오기
+  useEffect(() => {
+    const fetchEventImage = async () => {
+      try {
+        const res = await getEvent(eventId);
+        if (res.success && res.data?.imageUrl) {
+          const convertedUrl = convertImageUrl(res.data.imageUrl);
+          setCoverImageUrl(convertedUrl || null);
+        }
+      } catch (error) {
+        console.error("[EventPostRightPanel] 이벤트 이미지 조회 실패:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchEventImage();
+  }, [eventId]);
+
   const openFilePicker = () => {
-    if (mode !== "edit") return;
+    if (!isMyEvent || isUploading) return;
     fileRef.current?.click();
   };
 
@@ -33,13 +49,6 @@ export const RightFormPanel = ({mode}: Props) => {
     // 이미지 파일만 허용
     if (!file.type.startsWith("image/")) {
       alert("이미지 파일만 업로드할 수 있어요.");
-      e.target.value = "";
-      return;
-    }
-
-    // eventId가 없으면 업로드 불가
-    if (!eventId) {
-      alert("행사 초안이 생성되지 않았습니다. 잠시 후 다시 시도해주세요.");
       e.target.value = "";
       return;
     }
@@ -60,12 +69,12 @@ export const RightFormPanel = ({mode}: Props) => {
 
       // API 호출하여 이미지 업로드
       const res = await uploadEventImage(eventId, imageFile);
-      console.log("[EventCreate] 행사 이미지 업로드 응답:", res);
+      console.log("[EventPostRightPanel] 행사 이미지 업로드 응답:", res);
       
       if (res.success && res.data) {
         // 백엔드에서 반환된 URL을 변환하여 저장
         const convertedUrl = convertImageUrl(res.data);
-        console.log("[EventCreate] 변환된 URL:", convertedUrl);
+        console.log("[EventPostRightPanel] 변환된 URL:", convertedUrl);
         
         // 임시 URL 해제하고 서버 URL로 교체
         URL.revokeObjectURL(tempUrl);
@@ -73,12 +82,10 @@ export const RightFormPanel = ({mode}: Props) => {
       } else {
         // 업로드 실패 시 임시 URL 제거
         URL.revokeObjectURL(tempUrl);
-        setCoverImageUrl(null);
         alert("이미지 업로드에 실패했습니다. 다시 시도해주세요.");
       }
     } catch (error) {
-      console.error("[EventCreate] 행사 이미지 업로드 실패:", error);
-      setCoverImageUrl(null);
+      console.error("[EventPostRightPanel] 행사 이미지 업로드 실패:", error);
       alert("이미지 업로드 중 오류가 발생했습니다.");
     } finally {
       setIsUploading(false);
@@ -87,47 +94,36 @@ export const RightFormPanel = ({mode}: Props) => {
     }
   };
 
-  const isEdit = mode === "edit";
+  const hasImage =
+    coverImageUrl &&
+    typeof coverImageUrl === "string" &&
+    coverImageUrl.trim() !== "" &&
+    coverImageUrl !== "null" &&
+    coverImageUrl !== "undefined";
 
-  const isValidImageUrl =
-  typeof coverImageUrl === "string" &&
-  coverImageUrl.trim() !== "" &&
-  coverImageUrl !== "null" &&
-  coverImageUrl !== "undefined";
-
-  const hasImage = isValidImageUrl;
-  
   return (
     <div className="w-full mt-[192px]">
       {/* edit 모드일 때, 파일 인풋 */}
-      <input
-        ref={fileRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={handleFileChange}
-      />
+      {isMyEvent && (
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileChange}
+        />
+      )}
 
       {/* 이미지 업로드 영역 */}
-      <button
-        type="button"
-        onClick={() => {
-          if (!isEdit || isUploading) return;
-          if (!hasImage) openFilePicker();
-        }}
-        disabled={!isEdit || isUploading}
+      <div
         className={[
           "relative w-full h-[540px] rounded-[10px]",
           "flex items-center justify-center",
-          isEdit
+          isMyEvent
             ? "border-[2px] border-dashed border-[#525252] bg-[#F7F7F7]"
             : "border-0 bg-[#D9D9D9]",
-          isEdit && !hasImage && !isUploading ? "cursor-pointer" : "cursor-default",
-          "disabled:opacity-100",
         ].join(" ")}
-        aria-label="upload cover image"
       >
-
         {isUploading ? (
           // 업로드 중일 때
           <div className="flex flex-col items-center gap-2 text-gray-400">
@@ -143,8 +139,8 @@ export const RightFormPanel = ({mode}: Props) => {
               className="absolute inset-0 w-full h-full object-cover rounded-[10px]"
             />
 
-            {/* edit 모드일 때, 수정하기 */}
-            {isEdit && (
+            {/* 본인 행사일 때, 수정하기 버튼 */}
+            {isMyEvent && (
               <div
                 role="button"
                 tabIndex={0}
@@ -174,26 +170,34 @@ export const RightFormPanel = ({mode}: Props) => {
             )}
           </>
         ) : (
-          // 사진 없을 때, edit은 아이콘 / preview는 회색 바탕
-          isEdit ? (
-            <div className="flex flex-col items-center gap-2 text-gray-400">
+          // 사진 없을 때
+          isMyEvent ? (
+            <button
+              type="button"
+              onClick={openFilePicker}
+              disabled={isUploading}
+              className="flex flex-col items-center gap-2 text-gray-400 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+            >
               <img
                 src={add_photo_icon}
                 alt="add_photo_icon"
                 className="w-[67.5px] h-[67.5px]"
               />
-            </div>
-          ) : <div className="bg-[#D9D9D9]"/>
+            </button>
+          ) : (
+            <div className="bg-[#D9D9D9]" />
+          )
         )}
-      </button>
-
-      {/* 회신 선택지 */}
-      <div className="mt-[39px]">
-        <div className="mb-[16px] text-[24px] font-semibold text-[#1A1A1A]">
-          회신 선택지
-        </div>
-        <RSVPCard />
       </div>
+
+      {!isMyEvent && (
+        <div className="mt-[39px]">
+          <div className="mb-[16px] text-[24px] font-semibold text-[#1A1A1A]">
+            회신 선택지
+          </div>
+          <ReplyOptions eventId={eventId} />
+        </div>
+      )}
     </div>
   );
 };

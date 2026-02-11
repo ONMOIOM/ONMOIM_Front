@@ -8,22 +8,20 @@ type Props = {
   email: string;
   onResult: (isRegistered: boolean) => void;
   onClose: () => void;
+  isResend?: boolean; // 재전송 여부
 };
 
-export default function EmailSendPage({ email, onResult, onClose }: Props) {
+export default function EmailSendPage({ email, onResult, onClose, isResend = false }: Props) {
   const sitekey = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
 
-  // ✅ 백엔드 없이 로직 테스트하려면 .env에 VITE_USE_AUTH_MOCK=true
   const USE_MOCK = import.meta.env.VITE_USE_AUTH_MOCK === "true";
 
   const [token, setToken] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
-  // ✅ Mock 규칙(테스트용): 이메일에 "new" 포함이면 신규회원(signup), 아니면 기존회원(login)
   const mockIsRegistered = (emailAddr: string) => !emailAddr.includes("new");
 
   const sendMail = async () => {
-    // 0) Mock 모드면 서버 없이도 바로 분기 가능
     if (USE_MOCK) {
       const registered = mockIsRegistered(email);
       console.log("[EmailSendPage][MOCK] isRegistered =", registered);
@@ -31,7 +29,6 @@ export default function EmailSendPage({ email, onResult, onClose }: Props) {
       return;
     }
 
-    // 1) sitekey가 있을 때는 Turnstile 인증이 먼저 필요
     if (sitekey && !token) {
       alert("보안 확인을 먼저 완료해주세요.");
       return;
@@ -39,23 +36,32 @@ export default function EmailSendPage({ email, onResult, onClose }: Props) {
 
     setLoading(true);
     try {
-      const turnstileToken = sitekey ? token : "mock_token";
-      console.log("[EmailSendPage] sendMail called", { email, turnstileToken });
+      const turnstileToken = sitekey ? token : "onmoim";
+      console.log("[EmailSendPage] 인증 이메일 받기 요청", {
+        email,
+        turnstileToken: turnstileToken ? "(있음)" : "(없음)",
+      });
 
       const res = await sendVerificationEmail({ email, turnstileToken });
-      console.log("[EmailSendPage] sendVerificationEmail res", res);
+      console.log("[EmailSendPage] sendVerificationEmail 응답", {
+        success: res.success,
+        code: (res as any).code,
+        message: res.message,
+        data: res.data,
+      });
 
       if (!res.success || !res.data) {
         throw new Error(res.message ?? "인증 메일 발송 실패");
       }
 
-      // ✅ isRegistered가 없으면 분기가 깨지니까 안전장치
       const registered = Boolean(res.data.isRegistered);
-      console.log("[EmailSendPage] calling onResult", registered);
-
       onResult(registered);
-    } catch (err) {
-      console.log("[EmailSendPage] sendMail error", err);
+    } catch (err: any) {
+      console.log("[EmailSendPage] 인증 이메일 발송 에러", {
+        message: err?.message,
+        response: err?.response?.data,
+        code: err?.response?.data?.code,
+      });
       alert("인증 메일 발송에 실패했습니다.");
     } finally {
       setLoading(false);

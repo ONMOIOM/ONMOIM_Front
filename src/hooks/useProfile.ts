@@ -1,44 +1,40 @@
-import { useEffect, useState } from "react";
-
+import { useQuery } from "@tanstack/react-query";
 import { profileAPI, type ProfileData } from "../api/profile";
+import { MOCK_PROFILE } from "../openapi/mockProfile";
+import { getUserIdFromToken } from "../utils/jwtDecoder";
 
 const useProfile = () => {
-  const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchProfile = async () => {
-      setLoading(true);
-      setError(false);
-      try {
-        const res = await profileAPI.getProfile();
-        if (!isMounted) return;
-        if (res.success && res.data) {
-          setProfile(res.data);
-        } else {
-          setProfile(null);
-        }
-      } catch {
-        if (!isMounted) return;
-        setError(true);
-        setProfile(null);
-      } finally {
-        if (!isMounted) return;
-        setLoading(false);
+  const userId = getUserIdFromToken();
+  
+  const { data: profile, isLoading: loading, error, isFetching, dataUpdatedAt } = useQuery({
+    queryKey: ["profile", userId],
+    queryFn: async (): Promise<ProfileData> => {
+      if (!userId) {
+        return MOCK_PROFILE;
       }
-    };
+      const res = await profileAPI.getUserProfile(userId);
+      if (res.success && res.data) {
+        return res.data;
+      }
+      return MOCK_PROFILE;
+    },
+    enabled: !!userId,
+    staleTime: 1000 * 60 * 30,
+    gcTime: 1000 * 60 * 60,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchInterval: false,
+    placeholderData: (previousData) => previousData,
+    retry: 1,
+  });
 
-    fetchProfile();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  return { profile, loading, error };
+  return { 
+    profile: profile || null, 
+    loading: loading && !profile,
+    error: !!error,
+    isFetching,
+  };
 };
 
 export default useProfile;

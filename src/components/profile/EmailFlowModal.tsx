@@ -70,7 +70,7 @@ const EmailFlowModal = ({
     try {
       const res = await requestEmailVerification({
         email,
-        turnstileToken: "dummy-token-for-dev",
+        turnstileToken: "onmoim",
       });
       if (res.success) {
         onRequestVerification();
@@ -86,7 +86,7 @@ const EmailFlowModal = ({
     try {
       const res = await verifyEmail({
         email,
-        authcode: verificationCode,
+        code: verificationCode,
       });
       if (res.success) {
         onConfirmVerification();
@@ -102,7 +102,7 @@ const EmailFlowModal = ({
     try {
       const res = await requestEmailVerification({
         email,
-        turnstileToken: "dummy-token-for-dev",
+        turnstileToken: "onmoim",
       });
       if (!res.success) {
         console.warn("[EmailFlowModal] 인증 메일 재발송 실패:", res.message);

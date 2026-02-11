@@ -17,8 +17,8 @@ export function EventEditorLayout({ left, right, bottom }: Props) {
           <div className="w-[540px]">{right}</div>
         </section>
 
-        {/* 하단: BottomActionBar */}
-        <div className="mt-[92px] flex justify-end pr-[348px]">{bottom}</div>
+        {/* 하단: BottomActionBar (EventPost와 유사하게 상하 마진 적용) */}
+        <div className="mt-[92px] mb-[48px] flex justify-end pr-[348px]">{bottom}</div>
       </div>
     </main>
   );

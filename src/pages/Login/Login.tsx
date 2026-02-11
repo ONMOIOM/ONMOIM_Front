@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import EmailSendPage from './EmailSendPage';
 import CodeExpiredPage from './CodeExpiredPage';
 import { type Step } from './types/types';
-import { verifyEmailCode, signUp, login } from '../../api/auth_updated';
+import { signUp, login } from '../../api/auth_updated';
 import { useNavigate } from 'react-router-dom';
 // 에셋
 import onmoim_logo from '../../assets/icons/onmoim_logo.png';
@@ -11,16 +11,26 @@ import Success from '../../assets/icons/Success.svg';
 import Fail from '../../assets/icons/Fail.svg';
 
 
+const SKIP_EMAIL_VERIFICATION =
+  import.meta.env.VITE_SKIP_EMAIL_VERIFICATION === "true";
+
+if (SKIP_EMAIL_VERIFICATION) {
+  console.log(
+    "[Login] VITE_SKIP_EMAIL_VERIFICATION=true → 이메일 인증 스킵, 로그인 화면으로 바로 진입"
+  );
+}
+
 export default function Login() {
-  // 백엔드 없이 임시
   const USE_MOCK = import.meta.env.VITE_USE_AUTH_MOCK === "true";
 
-
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(
+    SKIP_EMAIL_VERIFICATION ? "test@test.com" : ""
+  );
   const [authCode, setAuthCode] = useState("");
-  const [step, setStep] = useState<Step>("email");
+  const [step, setStep] = useState<Step>(
+    SKIP_EMAIL_VERIFICATION ? "login" : "email"
+  );
 
-  // 인증 메일 전송 후 -> 로그인 / 회원가입
   const [isRegistered, setIsRegistered] = useState<boolean | null>(null);
 
   const isValidEmail = (email: string) => {
@@ -39,10 +49,7 @@ export default function Login() {
     if (step === "signup") return "회원가입";
     return "로그인";
   }, [step]);
-
-
-  // === 재전송 쿨다운 === //
-  const [resendCooldown, setResendCooldown] = useState(0); // 남은 초 (0이면 가능)
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -57,21 +64,15 @@ export default function Login() {
   const handleResend = () => {
     if (resendCooldown > 0) return;
 
-    // 재전송 ui 확인 위해서 밑 막음
-    setResendCooldown(30);
-    if (true) return;
-
-    // ✅ 여기서 실제 재발송 로직(= sending step 이동) 실행
+    console.log("[Login] 재발송 클릭");
+    
+    // 실제 재발송 로직(= sending step 이동)
     setAuthCode("");
     setErrorMsg(null);
     setStep("sending");
 
-    // ✅ 30초 쿨다운 시작
     setResendCooldown(30);
   };
-
-
-  // === 로그인/회원 가입 완료 버튼 클릭 === //
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -82,7 +83,6 @@ export default function Login() {
   const isExpiredError = (e: any) => {
     const code = e?.response?.data?.code;
     const msg = e?.response?.data?.message ?? "";
-    // ✅ 나중에 백엔드 code 확정되면 code 하나만 남기기
     return (
       code === "EMAIL_AUTH_CODE_EXPIRED" ||
       code === "AUTH_CODE_EXPIRED" ||
@@ -96,12 +96,10 @@ export default function Login() {
     const code = authCode.trim();
     if (!code) return;
 
-    // ✅ MOCK 모드: 백엔드 없이도 로직 끝까지 테스트
     if (USE_MOCK) {
       setSubmitting(true);
       setErrorMsg(null);
 
-      // 가짜 지연(UX/로딩 테스트용)
       await new Promise((r) => setTimeout(r, 400));
 
       // 만료 테스트
@@ -130,18 +128,28 @@ export default function Login() {
     setErrorMsg(null);
 
     try {
-      // 1) 코드 검증
-      const v = await verifyEmailCode({ email, authcode: code });
-      if (!v.success) throw new Error(v.message ?? "인증 코드 검증 실패");
+      console.log("[Login] handleComplete 요청", { step, email, authCode: code });
 
-      // 2) 회원가입이면 회원가입 먼저
       if (step === "signup") {
-        const s = await signUp({ email, authcode: code });
+        const s = await signUp({ email, authCode: code });
+        console.log("[Login] signUp 응답", {
+          success: s.success,
+          code: (s as any).code,
+          message: s.message,
+          data: s.data,
+        });
         if (!s.success) throw new Error(s.message ?? "회원가입 실패");
       }
+      // 로그인 step: 이메일 검증 스킵, 로그인 API만 호출
 
-      // 3) 로그인(토큰 받기)
-      const l = await login({ email, authcode: code });
+      // 로그인(토큰 받기)
+      const l = await login({ email, authCode: code });
+      console.log("[Login] login 응답", {
+        success: l.success,
+        code: (l as any).code,
+        message: l.message,
+        data: l.data,
+      });
       if (!l.success || !l.data?.accessToken) {
         throw new Error(l.message ?? "로그인 실패(토큰 없음)");
       }
@@ -152,6 +160,11 @@ export default function Login() {
       // 5) 메인 화면 이동
       navigate("/", { replace: true });
     } catch (e: any) {
+      console.log("[Login] handleComplete 에러", {
+        message: e?.message,
+        response: e?.response?.data,
+        code: e?.response?.data?.code,
+      });
       if (isExpiredError(e)) {
         setStep("expired");
         return;
@@ -215,7 +228,7 @@ export default function Login() {
               >
                 <span className="inline-flex w-[16px] h-[16px] items-center justify-center">
                   <img
-                    src={emailStatus === "valid" ? Success : Fail} // ⬅️ invalid용 아이콘 추가
+                    src={emailStatus === "valid" ? Success : Fail}
                     alt={emailStatus === "valid" ? "올바른 이메일 양식" : "올바르지 않은 이메일 양식"}
                     className="w-[16px] h-[16px]"
                   />
@@ -232,7 +245,10 @@ export default function Login() {
                   "w-full h-[60px] mb-[115px] rounded-[10px] border border-[#BFBFBF] bg-[#F7F7F8] text-[#595959] text-[16px] font-medium"
                 }
                 disabled={!canGoNext}
-                onClick={() => setStep("sending")}
+                onClick={() => {
+                  console.log("[Login] 로그인 클릭 → 인증 메일 발송", { email });
+                  setStep("sending");
+                }}
               >
                 로그인
               </button>
@@ -248,6 +264,7 @@ export default function Login() {
                 setIsRegistered(registered);
                 setStep(registered ? "login" : "signup");
               }}
+              isResend={isRegistered !== null} // 재전송 여부 (이미 한 번 시도한 경우)
             />
           )}
 
@@ -283,7 +300,8 @@ export default function Login() {
                   className="w-full h-[54px] rounded-[10px] border border-[#BFBFBF] bg-[#FFF] pl-[41px] text-[16px] font-medium text-[#1A1A1A] outline-none placeholder:text-[#BFBFBF] focus:border-gray-400"
                   placeholder="이메일을 입력해 주세요"
                   value={email}
-                  disabled
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={!SKIP_EMAIL_VERIFICATION}
                 />
               </div>
 
@@ -352,7 +370,10 @@ export default function Login() {
                     type="button"
                     className="w-full h-[64px] px-[74px] rounded-[10px] bg-[#F24148] text-[#FFFFFF] text-[16px] font-medium disabled:opacity-60 disabled:cursor-not-allowed"
                     disabled={!authCode.trim() || submitting}
-                    onClick={handleComplete}
+                    onClick={() => {
+                      console.log("[Login] 동의합니다 클릭");
+                      handleComplete();
+                    }}
                   >
                     {submitting ? "처리 중..." : "동의합니다"}
                   </button>
@@ -368,7 +389,10 @@ export default function Login() {
                       "w-full h-[64px] px-[74px] rounded-[10px] bg-[#F24148] text-[#FFFFFF] text-[16px] font-medium"
                     }
                     disabled={!authCode.trim() || submitting}
-                    onClick={handleComplete}
+                    onClick={() => {
+                      console.log("[Login] 로그인하기 클릭");
+                      handleComplete();
+                    }}
                   >
                     {submitting ? "처리 중..." : "로그인하기"}
                   </button>
