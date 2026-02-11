@@ -11,6 +11,7 @@ import {
   createComment,
   type CommentItem,
 } from "../../../api/comment";
+import { CommentRow } from "./CommentRow";
 import { patchEvent } from "../../../api/event_updated";
 import { buildPatchBody } from "../utils/buildPatchBody";
 import { ScheduleModal } from "../../EventCreate/modals/ScheduleModal";
@@ -36,6 +37,7 @@ type Props = {
 
 export type EventPostLeftPanelRef = {
   save: () => Promise<void>;
+  refetchParticipants: () => Promise<void>;
 };
 
 const formatDateTime = (
@@ -57,14 +59,6 @@ const formatDateTime = (
   };
 
   return `${formatDate(startTime)} ~ ${formatDate(endTime)}`;
-};
-
-const formatDate = (iso: string): string => {
-  const d = new Date(iso);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}.${m}.${day}`;
 };
 
 /** 데이터에서 날짜/위치 등 추출 (flat 또는 nested 지원) */
@@ -168,6 +162,7 @@ export const EventPostLeftPanel = forwardRef<EventPostLeftPanelRef, Props>(
             saveInProgress.current = false;
           }
         },
+        refetchParticipants: () => fetchData(),
       }),
       [eventId, eventData],
     );
@@ -299,7 +294,11 @@ export const EventPostLeftPanel = forwardRef<EventPostLeftPanelRef, Props>(
     const lotNum = getLotNumber(eventData);
     const startT = getStartTime(eventData);
     const endT = getEndTime(eventData);
-    const currentParticipants = participants.length;
+    // 참여자 수/목록은 '참여(ATTEND)'만 사용 (고민중·못가요 제외)
+    const attendingOnly = participants.filter(
+      (p) => (p as { status?: string }).status === "ATTEND"
+    );
+    const currentParticipants = attendingOnly.length;
     const totalCapacity = eventData.capacity ?? 0;
     const remainingSpots = totalCapacity - currentParticipants;
     const locationText = streetAddr
@@ -316,8 +315,8 @@ export const EventPostLeftPanel = forwardRef<EventPostLeftPanelRef, Props>(
         ? `${currentParticipants}/${totalCapacity}, 현재 ${remainingSpots}자리가 남았습니다.`
         : "인원 미정";
     const visibleParticipants = showAllParticipants
-      ? participants.slice(0, 18)
-      : participants.slice(0, 4);
+      ? attendingOnly.slice(0, 18)
+      : attendingOnly.slice(0, 4);
 
     return (
       <div className="w-full mt-[192px] pl-[161px]">
@@ -494,19 +493,23 @@ export const EventPostLeftPanel = forwardRef<EventPostLeftPanelRef, Props>(
                     className="h-[52px] w-[52px] flex items-center justify-center shrink-0"
                   >
                     <div className="h-[44px] w-[44px] rounded-full bg-[#D9D9D9] flex items-center justify-center overflow-hidden">
-                      {(participant as any).profileImageUrl ? (
-                        <img
-                          src={convertImageUrl((participant as any).profileImageUrl)}
-                          alt={participant.nickname}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <img
-                          src={participant_icon}
-                          alt="participant_icon"
-                          className="w-[44px] h-[44px]"
-                        />
-                      )}
+                      {(() => {
+                        const url = (participant as any).profileImageUrl || (participant as any).imageUrl;
+                        const resolved = url && String(url).trim() ? convertImageUrl(url) : null;
+                        return resolved ? (
+                          <img
+                            src={resolved}
+                            alt={participant.nickname}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <img
+                            src={participant_icon}
+                            alt="participant_icon"
+                            className="w-[44px] h-[44px]"
+                          />
+                        );
+                      })()}
                     </div>
                   </div>
                 ))
@@ -539,48 +542,14 @@ export const EventPostLeftPanel = forwardRef<EventPostLeftPanelRef, Props>(
           <div className="mt-[32px] h-[800px] overflow-y-auto custom-scrollbar">
             {comments.length > 0 ? (
               comments.map((comment) => (
-                <div
+                <CommentRow
                   key={comment.commentId}
-                  className="min-h-[145px] w-[644px] border-b border-[#BFBFBF]"
-                >
-                  <div className="pl-[44px] pt-[32px]">
-                    <div className="flex items-center">
-                      <div className="h-[52px] w-[52px] flex items-center justify-center">
-                        <div className="h-[44px] w-[44px] rounded-full bg-[#D9D9D9] flex items-center justify-center overflow-hidden">
-                          {comment.profileImageUrl && comment.profileImageUrl.trim() ? (
-                            <img
-                              src={convertImageUrl(comment.profileImageUrl)}
-                              alt={comment.nickname}
-                              className="h-full w-full object-cover"
-                              onError={(e) => {
-                                // 이미지 로드 실패 시 디폴트 아이콘 표시
-                                (e.target as HTMLImageElement).src = participant_icon;
-                              }}
-                            />
-                          ) : (
-                            <img
-                              src={participant_icon}
-                              alt="participant_icon"
-                              className="w-[44px] h-[44px]"
-                            />
-                          )}
-                        </div>
-                      </div>
-                      <div className="ml-[8px]">
-                        <div className="text-h4 font-semibold text-[#1A1A1A]">
-                          {comment.nickname}
-                        </div>
-                        <div className="text-[10px] font-medium text-[#1A1A1A]">
-                          {formatDate(comment.createdAt)}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-[10px] text-h3 text-[#1A1A1A] whitespace-pre-line">
-                      {comment.content}
-                    </div>
-                  </div>
-                </div>
+                  comment={comment}
+                  isOwnComment={profile?.nickname === comment.nickname}
+                  onDeleted={(commentId) =>
+                    setComments((prev) => prev.filter((c) => c.commentId !== commentId))
+                  }
+                />
               ))
             ) : (
               <div className="text-gray-400 text-center py-8">
@@ -709,11 +678,16 @@ export const EventPostLeftPanel = forwardRef<EventPostLeftPanelRef, Props>(
             // API 응답은 nickname 필드를 사용 (OpenAPI 스펙 확인)
             const participantName = (p as any).nickname || (p as any).name || "";
 
+            const rawUrl = (p as any).profileImageUrl || (p as any).imageUrl;
+            const profileImageUrl =
+              rawUrl && String(rawUrl).trim()
+                ? convertImageUrl(rawUrl)
+                : undefined;
             return {
-              id: String(p.userId), // userId를 문자열로 변환
+              id: String(p.userId),
               name: participantName,
               status,
-              profileImageUrl: convertImageUrl((p as any).profileImageUrl),
+              profileImageUrl,
             };
           })}
         />

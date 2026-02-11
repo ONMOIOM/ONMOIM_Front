@@ -235,11 +235,9 @@ export const useEventDraftStore = create<EventDraftStore>()(
           if (!startAt || !endAt) throw new Error("일자를 입력해줘.");
 
           const res = await patchEvent(eventId, {
-            schedule: {
-              startDate: startAt.toISOString(),
-              endDate: endAt.toISOString(),
-            },
-          });
+            startTime: startAt.toISOString(),
+            endTime: endAt.toISOString(),
+          } as any);
           if (!res.success) throw new Error(res.message ?? "일정 저장 실패");
 
           set({ scheduleStatus: "idle" });
@@ -263,11 +261,9 @@ export const useEventDraftStore = create<EventDraftStore>()(
           const lotNumberAddress = data.location.lotNumber?.trim() || null;
 
           const res = await patchEvent(eventId, {
-            location: {
-              streetAddress,
-              lotNumber: lotNumberAddress,
-            },
-          });
+            streetAddress,
+            lotNumberAddress: lotNumberAddress ?? undefined,
+          } as any);
           if (!res.success) throw new Error(res.message ?? "장소 저장 실패");
 
           set({ locationStatus: "idle" });

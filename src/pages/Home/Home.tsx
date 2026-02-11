@@ -9,6 +9,10 @@ import {
   getMyHostedEvents,
   getMyParticipatedEvents,
 } from "../../api/eventInfo";
+import type {
+  EventInfoData,
+  EventInfoDetailData,
+} from "../../api/eventInfo";
 import { profileAPI } from "../../api/profile";
 import useProfile from "../../hooks/useProfile";
 import { formatEventDateTime } from "../../utils/formatDate";
@@ -30,7 +34,7 @@ const Home = () => {
 
   const { profile } = useProfile();
 
-  // 행사 목록 조회 (캐싱)
+  // 행사 목록 조회 (캐싱) - 마운트 시 stale이면 리패치(발행/수정 후 복귀 시 목록 갱신)
   const { data: events = [] } = useQuery({
     queryKey: ["eventList"],
     queryFn: async () => {
@@ -41,7 +45,7 @@ const Home = () => {
       return [];
     },
     staleTime: 1000 * 60 * 10, // 10분간 캐시 유지
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
   });
 
@@ -54,8 +58,8 @@ const Home = () => {
       }
       return [];
     },
-    staleTime: 1000 * 60 * 10, // 10분간 캐시 유지
-    refetchOnMount: false,
+    staleTime: 1000 * 60 * 10,
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
   });
 
@@ -68,14 +72,52 @@ const Home = () => {
       }
       return [];
     },
-    staleTime: 1000 * 60 * 10, // 10분간 캐시 유지
-    refetchOnMount: false,
+    staleTime: 1000 * 60 * 10,
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
   });
 
   const myHostedEventIds = useMemo(() => {
     return new Set(hostedEvents.map((e) => e.eventId));
   }, [hostedEvents]);
+
+  // 행사 목록을 createdAt 기준 최신순으로 정렬
+  const sortedEvents = useMemo(() => {
+    return [...events].sort((a, b) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return dateB - dateA; // 내림차순 (최신이 먼저)
+    });
+  }, [events]);
+
+  const sortedHostedEvents = useMemo(() => {
+    return [...hostedEvents].sort((a, b) => {
+      // startTime이 있으면 startTime 기준, 없으면 맨 뒤로
+      const dateA = a.startTime ? new Date(a.startTime).getTime() : 0;
+      const dateB = b.startTime ? new Date(b.startTime).getTime() : 0;
+      return dateB - dateA; // 내림차순 (최신이 먼저)
+    });
+  }, [hostedEvents]);
+
+  const sortedParticipatedEvents = useMemo(() => {
+    return [...participatedEvents].sort((a, b) => {
+      // startTime이 있으면 startTime 기준, 없으면 맨 뒤로
+      const dateA = a.startTime ? new Date(a.startTime).getTime() : 0;
+      const dateB = b.startTime ? new Date(b.startTime).getTime() : 0;
+      return dateB - dateA; // 내림차순 (최신이 먼저)
+    });
+  }, [participatedEvents]);
+
+  // eventId → 행사 이미지 URL (모든 탭에서 카드 썸네일 공통 사용)
+  const eventIdToImageUrl = useMemo(() => {
+    const map = new Map<number, string>();
+    events.forEach((e) => {
+      if (e.eventId != null && e.imageUrl != null && e.imageUrl !== "") {
+        map.set(e.eventId, e.imageUrl);
+      }
+    });
+    return map;
+  }, [events]);
 
   const allEventIds = useMemo(() => {
     const ids = new Set<number>();
@@ -176,7 +218,21 @@ const Home = () => {
     try {
       const res = await deleteEvent(eventId);
       if (res.success) {
-        // 캐시 무효화하여 최신 데이터로 갱신
+        // 1) 로컬 캐시에서 우선 제거하여 모든 탭에서 즉시 사라지도록 처리
+        queryClient.setQueryData<EventInfoData[] | undefined>(
+          ["eventList"],
+          (prev) => (prev ? prev.filter((e) => e.eventId !== eventId) : prev),
+        );
+        queryClient.setQueryData<EventInfoDetailData[] | undefined>(
+          ["myHostedEvents"],
+          (prev) => (prev ? prev.filter((e) => e.eventId !== eventId) : prev),
+        );
+        queryClient.setQueryData<EventInfoDetailData[] | undefined>(
+          ["myParticipatedEvents"],
+          (prev) => (prev ? prev.filter((e) => e.eventId !== eventId) : prev),
+        );
+
+        // 2) 캐시 무효화하여 백엔드와 동기화
         queryClient.invalidateQueries({ queryKey: ["eventList"] });
         queryClient.invalidateQueries({ queryKey: ["myHostedEvents"] });
         queryClient.invalidateQueries({ queryKey: ["myParticipatedEvents"] });
@@ -246,8 +302,8 @@ const Home = () => {
                 {item.key === "search" ? (
                   <>
                     <EventCardRoller>
-                      {events.length > 0
-                        ? events.map((event) => {
+                      {sortedEvents.length > 0
+                        ? sortedEvents.map((event) => {
                             const isMyEvent =
                               myHostedEventIds === null || myHostedEventIds.has(event.eventId);
                             return (
@@ -294,16 +350,16 @@ const Home = () => {
                 ) : item.key === "week" ? (
                   <>
                     <EventCardRoller>
-                      {events.length > 0
-                        ? events
+                      {sortedEvents.length > 0
+                        ? sortedEvents
                             .filter((event) => {
                               const start = event.schedule?.startDate;
                               if (!start) return false;
                               const startDate = new Date(start);
                               const now = new Date();
-                              const weekLater = new Date(now);
-                              weekLater.setDate(weekLater.getDate() + 7);
-                              return startDate >= now && startDate <= weekLater;
+                              const rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+                              const rangeEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7, 23, 59, 59, 999);
+                              return startDate >= rangeStart && startDate <= rangeEnd;
                             })
                             .map((event) => {
                               const isMyEvent =
@@ -352,8 +408,8 @@ const Home = () => {
                 ) : item.key === "hosting" ? (
                   <>
                     <EventCardRoller>
-                      {hostedEvents.length > 0
-                        ? hostedEvents.map((event) => (
+                      {sortedHostedEvents.length > 0
+                        ? sortedHostedEvents.map((event) => (
                             <EventCard
                               key={event.eventId}
                               eventId={event.eventId}
@@ -364,7 +420,7 @@ const Home = () => {
                                   : "일시 미정"
                               }
                               hostName={displayName}
-                              imageUrl={undefined}
+                              imageUrl={eventIdToImageUrl.get(event.eventId) ?? undefined}
                               onDelete={handleDeleteEvent}
                               isMyEvent={true}
                             />
@@ -394,8 +450,8 @@ const Home = () => {
                 ) : item.key === "joined" ? (
                   <>
                     <EventCardRoller>
-                      {participatedEvents.length > 0
-                        ? participatedEvents.map((event) => (
+                      {sortedParticipatedEvents.length > 0
+                        ? sortedParticipatedEvents.map((event) => (
                             <EventCard
                               key={event.eventId}
                               eventId={event.eventId}
@@ -406,7 +462,7 @@ const Home = () => {
                                   : "일시 미정"
                               }
                               hostName="호스트"
-                              imageUrl={undefined}
+                              imageUrl={eventIdToImageUrl.get(event.eventId) ?? undefined}
                               onDelete={handleDeleteEvent}
                               isMyEvent={false}
                             />

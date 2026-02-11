@@ -13,6 +13,9 @@ import { getUserIdFromToken } from "../../utils/jwtDecoder";
 type Participant = {
   userId: string;
   name: string;
+  /** 참여자 API imageUrl */
+  imageUrl?: string;
+  /** 프로필 API로 보강한 이미지 (메인 하단과 동일) */
   profileImageUrl?: string;
 };
 
@@ -62,14 +65,26 @@ const EventParticipants = () => {
             const uid = String(p.userId);
             if (uid === myId) continue;
             const name = p.nickname ?? "";
-            const profileImageUrl = (p as { profileImageUrl?: string }).profileImageUrl;
+            const imageUrl = (p as { imageUrl?: string }).imageUrl;
             if (!map.has(uid)) {
               map.set(uid, {
                 userId: uid,
                 name,
-                profileImageUrl,
+                imageUrl,
               });
             }
+          }
+        }
+        // 메인 하단과 동일: 프로필 API로 이미지 보강
+        for (const uid of map.keys()) {
+          try {
+            const res = await profileAPI.getUserProfile(Number(uid));
+            if (res.success && res.data?.profileImageUrl) {
+              const existing = map.get(uid)!;
+              map.set(uid, { ...existing, profileImageUrl: res.data.profileImageUrl });
+            }
+          } catch {
+            // 무시
           }
         }
         setParticipants(Array.from(map.values()));
@@ -120,7 +135,7 @@ const EventParticipants = () => {
               <JoinUserCard
                 key={participant.userId}
                 name={participant.name}
-                imageUrl={participant.profileImageUrl}
+                imageUrl={participant.profileImageUrl ?? participant.imageUrl}
                 userId={participant.userId}
               />
             ))}

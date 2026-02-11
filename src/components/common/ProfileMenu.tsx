@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import arrowForwardSrc from "../../assets/icons/arrow_forward_ios.png";
 import plusSrc from "../../assets/icons/Plus.png";
 import supervisorAccountSrc from "../../assets/icons/supervisor_account.png";
-import helpCircleSrc from "../../assets/icons/Help circle.png";
 import logOutSrc from "../../assets/icons/Log out.png";
 
 type ProfileMenuProps = {
@@ -27,7 +26,7 @@ const ProfileMenu = ({
     <div
       id="profile-menu"
       role="menu"
-      className="absolute right-0 z-50 mt-4 flex h-[413px] w-[410.61px] flex-col rounded-[15.92px] bg-white shadow-[0_10px_30px_rgba(0,0,0,0.12)]"
+      className="absolute right-0 z-50 mt-4 flex h-[355px] w-[410.61px] flex-col rounded-[15.92px] bg-white shadow-[0_10px_30px_rgba(0,0,0,0.12)]"
     >
       <button
         type="button"
@@ -73,7 +72,7 @@ const ProfileMenu = ({
           </span>
         </button>
       </div>
-      <div className="flex flex-1 flex-col justify-between border-t border-gray-200 px-[31.83px] py-8">
+      <div className="flex flex-1 flex-col justify-between border-t border-gray-200 px-[31.83px] py-6">
         <button
           type="button"
           className="flex w-full items-center justify-start gap-3 text-left"
@@ -85,21 +84,7 @@ const ProfileMenu = ({
             className="h-[19px] w-[19px]"
             aria-hidden="true"
           />
-          <span className="text-h3 text-[#525252]">
-            같은 행사 참여자 보기
-          </span>
-        </button>
-        <button
-          type="button"
-          className="flex w-full items-center justify-start gap-3 text-left"
-        >
-          <img
-            src={helpCircleSrc}
-            alt=""
-            className="h-[19.1px] w-[19.1px]"
-            aria-hidden="true"
-          />
-          <span className="text-h3 text-[#525252]">문의하기</span>
+          <span className="text-h3 text-[#525252]">같은 행사 참여자 보기</span>
         </button>
         <button
           type="button"

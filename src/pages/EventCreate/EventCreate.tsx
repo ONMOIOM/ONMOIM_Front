@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { LeftFormPanel } from "./components/LeftFormPanel";
 import { RightFormPanel } from "./components/RightFormPanel";
 import { BottomActionBar } from "./components/BottomActionBar";
@@ -8,6 +9,7 @@ import { EventEditorLayout } from "./layout/EventEditorLayout";
 
 export default function EventCreate() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const initDraft = useEventDraftStore((s) => s.initDraft);
   const publish = useEventDraftStore((s) => s.publish);
@@ -77,6 +79,12 @@ export default function EventCreate() {
                 onClick: async () => {
                   try {
                     await publish();
+                    queryClient.invalidateQueries({ queryKey: ["eventList"] });
+                    queryClient.invalidateQueries({ queryKey: ["myHostedEvents"] });
+                    queryClient.invalidateQueries({ queryKey: ["myParticipatedEvents"] });
+                    await queryClient.refetchQueries({ queryKey: ["eventList"] });
+                    await queryClient.refetchQueries({ queryKey: ["myHostedEvents"] });
+                    await queryClient.refetchQueries({ queryKey: ["myParticipatedEvents"] });
                     navigate("/");
                   } catch {
                     // publish에서 에러 상태 설정됨

@@ -10,9 +10,10 @@ import { convertImageUrl } from "../../../utils/imageUrlConverter";
 type Props = {
   eventId: number;
   isMyEvent: boolean;
+  onParticipationChange?: () => void;
 };
 
-export const EventPostRightPanel = ({ eventId, isMyEvent }: Props) => {
+export const EventPostRightPanel = ({ eventId, isMyEvent, onParticipationChange }: Props) => {
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -195,7 +196,10 @@ export const EventPostRightPanel = ({ eventId, isMyEvent }: Props) => {
           <div className="mb-[16px] text-[24px] font-semibold text-[#1A1A1A]">
             회신 선택지
           </div>
-          <ReplyOptions eventId={eventId} />
+          <ReplyOptions
+            eventId={eventId}
+            onStatusChange={() => onParticipationChange?.()}
+          />
         </div>
       )}
     </div>
