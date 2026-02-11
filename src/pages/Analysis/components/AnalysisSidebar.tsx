@@ -2,10 +2,10 @@
  * 분석 페이지 좌측 사이드바 (행사 목록, API에서 제목 표시)
  */
 
-import type { EventInfoData } from "../../../api/eventInfo";
+import type { EventInfoDetailData } from "../../../api/eventInfo";
 
 type AnalysisSidebarProps = {
-  events: EventInfoData[];
+  events: EventInfoDetailData[];
   selectedEventId: number | null;
   onSelectEvent: (eventId: number) => void;
 };

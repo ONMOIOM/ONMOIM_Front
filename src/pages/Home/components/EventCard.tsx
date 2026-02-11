@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { HiOutlineDotsHorizontal } from "react-icons/hi";
 import EventCardMenu from "./EventCardMenu";
 import StopNotificationModal from "./StopNotificationModal";
+import { startSession } from "../../../api/analysis";
 
 export interface EventCardProps {
   /** 행사 ID (삭제 시 사용) */
@@ -57,7 +58,19 @@ const EventCard = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
 
-  const handleCardClick = () => {
+  const handleCardClick = async () => {
+    // 메인 페이지에서 행사 클릭 시 클릭 수 증가 및 세션 시작
+    try {
+      const result = await startSession(eventId);
+      if (result.success && result.data?.sessionId) {
+        // 세션 ID를 localStorage에 저장하여 EventPost에서 사용
+        localStorage.setItem(`session_${eventId}`, result.data.sessionId);
+        console.log("[Analytics] 행사 클릭 - 세션 시작:", result.data.sessionId);
+      }
+    } catch (error) {
+      console.error("[Analytics] 행사 클릭 - 세션 시작 실패:", error);
+      // 에러가 발생해도 페이지 이동은 진행
+    }
     navigate(`/event-post/${eventId}`);
   };
 

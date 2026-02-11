@@ -103,11 +103,27 @@ axiosInstance.interceptors.response.use(
     console.log("[API ERROR] status:", error.response?.status);
     console.log("[API ERROR] response:", error.response?.data);
     if (error.response?.status === 401) {
+      // 에러 정보를 localStorage에 저장
+      const errorInfo = {
+        url: error.config?.url,
+        method: error.config?.method,
+        status: error.response?.status,
+        data: error.response?.data,
+        timestamp: new Date().toISOString(),
+      };
+      localStorage.setItem("lastApiError", JSON.stringify(errorInfo));
+      console.error("[401 에러 상세 정보]", errorInfo);
+      
+      // 401 에러 발생 시 accessToken 제거
       localStorage.removeItem("accessToken");
-      // 로그인/회원가입 API 실패가 아닐 때만 로그인 페이지로 리다이렉트
+      
       const url = error.config?.url ?? "";
+      // 로그인/회원가입 API 실패가 아닐 때만 로그인 페이지로 리다이렉트
       if (!url.includes("/login") && !url.includes("/signup")) {
-        window.location.href = "/login";
+        // 콘솔 로그 확인을 위해 약간의 딜레이 추가
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 5000); // 5초 딜레이
       }
     }
     return Promise.reject(error);

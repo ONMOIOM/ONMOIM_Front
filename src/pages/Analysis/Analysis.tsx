@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { getEventList } from "../../api/eventInfo";
+import { getMyHostedEvents } from "../../api/eventInfo";
 import { getEventAnalysis, type StatisticsData } from "../../api/analysis";
-import { MOCK_EVENT_ANALYSIS, MOCK_EVENT_LIST } from "../../openapi/mockAnalysis";
-import type { EventInfoData } from "../../api/eventInfo";
+import type { EventInfoDetailData } from "../../api/eventInfo";
 import AnalysisSidebar from "./components/AnalysisSidebar";
 import StatCard from "./components/StatCard";
 import cursorIcon from "../../assets/icons/Cursor_perspective_matte.svg";
@@ -53,24 +52,24 @@ function statsToChartData(stats: StatisticsData[]): ChartDataPoint[] {
 }
 
 const Analysis = () => {
-  const [events, setEvents] = useState<EventInfoData[]>([]);
+  const [events, setEvents] = useState<EventInfoDetailData[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
   const [stats, setStats] = useState<StatisticsData[]>([]);
 
   useEffect(() => {
-    getEventList()
+    getMyHostedEvents()
       .then((res) => {
         if (res.success && res.data && res.data.length > 0) {
           setEvents(res.data);
           setSelectedEventId((prev) => prev ?? res.data![0].eventId);
         } else {
-          setEvents(MOCK_EVENT_LIST);
-          setSelectedEventId(MOCK_EVENT_LIST[0]?.eventId ?? null);
+          setEvents([]);
+          setSelectedEventId(null);
         }
       })
       .catch(() => {
-        setEvents(MOCK_EVENT_LIST);
-        setSelectedEventId(MOCK_EVENT_LIST[0]?.eventId ?? null);
+        setEvents([]);
+        setSelectedEventId(null);
       });
   }, []);
 
@@ -79,17 +78,18 @@ const Analysis = () => {
       setStats([]);
       return;
     }
-    const mockByEvent = MOCK_EVENT_ANALYSIS.find((e) => e.eventId === selectedEventId);
+    // 실제 백엔드 API에서 데이터 가져오기
     getEventAnalysis(selectedEventId)
       .then((res) => {
         if (res.success && res.data?.stats && res.data.stats.length > 0) {
-          setStats(mockByEvent?.stats ?? res.data.stats);
+          setStats(res.data.stats);
         } else {
-          setStats(mockByEvent?.stats ?? []);
+          setStats([]);
         }
       })
-      .catch(() => {
-        setStats(mockByEvent?.stats ?? []);
+      .catch((error) => {
+        console.warn("[Analysis] 통계 데이터 조회 실패:", error);
+        setStats([]);
       });
   }, [selectedEventId]);
 
@@ -99,14 +99,12 @@ const Analysis = () => {
   const completionPercent = useMemo(() => avgCompletion(stats), [stats]);
   const sessionFormatted = useMemo(() => avgSessionFormatted(stats), [stats]);
 
-  const displayEvents = events.length > 0 ? events : MOCK_EVENT_LIST;
+  const displayEvents = events;
 
   const handleSelectEvent = (eventId: number) => {
     setSelectedEventId(eventId);
     const event = displayEvents.find((e) => e.eventId === eventId);
-    const mockData = MOCK_EVENT_ANALYSIS.find((e) => e.eventId === eventId);
     console.log("[분석] 선택한 행사:", event?.title ?? "(제목 없음)", "| eventId:", eventId);
-    console.log("[분석] 해당 행사 목데이터(stats):", mockData?.stats ?? "없음");
   };
 
   return (
