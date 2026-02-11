@@ -11,6 +11,7 @@ export default function EventCreate() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+  const reset = useEventDraftStore((s) => s.reset);
   const initDraft = useEventDraftStore((s) => s.initDraft);
   const publish = useEventDraftStore((s) => s.publish);
   const publishStatus = useEventDraftStore((s) => s.publishStatus);
@@ -21,6 +22,11 @@ export default function EventCreate() {
   const isReady = initStatus === "ready" && eventId != null;
   const schedule = useEventDraftStore((s) => s.data.schedule);
   const setSchedule = useEventDraftStore((s) => s.setSchedule);
+
+  // 다른 페이지 갔다가 다시 들어오면 폼 기본값으로 초기화 후 새 초안 생성
+  useEffect(() => {
+    reset();
+  }, [reset]);
 
   // 행사 생성하기 클릭 시: 초안 생성 API 호출
   useEffect(() => {
