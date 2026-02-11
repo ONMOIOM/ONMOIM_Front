@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 // 에셋
 import playlist_icon from '../../../assets/icons/playlist_icon.svg';
 import close from '../../../assets/icons/close.svg';
@@ -11,6 +12,14 @@ export type PlaylistModalProps = {
 };
 
 export const PlaylistModal = ({ open, onClose, value, onSave, saving }: PlaylistModalProps) => {
+  const [input, setInput] = useState("");
+
+  // ✅ 모달 열릴 때 value로 input 초기화
+  useEffect(() => {
+    if (!open) return;
+    setInput(value || "");
+  }, [open, value]);
+
   if (!open) return null;
 
   return (
@@ -43,8 +52,8 @@ export const PlaylistModal = ({ open, onClose, value, onSave, saving }: Playlist
           <div className="pl-[46px] pr-[43px] mb-[111px]">
             <div className="font-semibold text-[24px] mb-[20px]">링크 추가</div>
             <input
-                value={value}
-                onChange={(e) => onSave(e.target.value)}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
                 className="w-[435px] h-[58px] border border-[#BFBFBF] rounded-[20px] bg-[#FFFFFF] px-[24px] text-[16px] text-[#595959] placeholder:text-[#BFBFBF] outline-none"
                 placeholder="ex) http://open.spotify.com/playlist/yourplaylist"
                 />
@@ -57,7 +66,10 @@ export const PlaylistModal = ({ open, onClose, value, onSave, saving }: Playlist
                 "h-[71px] w-[435px] rounded-[10px]",
                 "bg-[#F7F7F8] text-[#595959]"
               ].join(" ")}
-              onClick={onClose}
+              onClick={() => {
+                onSave(input.trim());
+                onClose();
+              }}
             >
               <span className="text-[20px] font-semibold text-[#595959]">확인</span>
             </button>
