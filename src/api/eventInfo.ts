@@ -48,8 +48,9 @@ export type VoteParticipantData = {
 /*행사 참여 여부 조회 Response Data */
 export type GetParticipantData = {
   userId: string;
-  name: string;
+  nickname: string; // API 응답은 nickname 필드 사용
   status: string;
+  profileImageUrl?: string; // 프로필 이미지 (선택적)
 };
 
 /* 내가 만든 행사 조회용 Response Data (flat 구조) */

@@ -18,6 +18,7 @@ import { LocationModal } from "../../EventCreate/modals/LocationModal";
 import { SeatsModal } from "../../EventCreate/modals/CapacityModal";
 import { PriceModal } from "../../EventCreate/modals/PriceModal";
 import { PlaylistModal } from "../../EventCreate/modals/PlaylistModal";
+import { ParticipantsModal } from "../../EventCreate/modals/ParticipantsModal";
 import location_icon from "../../../assets/icons/location_icon.svg";
 import price_icon from "../../../assets/icons/price_icon.svg";
 import participant_icon from "../../../assets/icons/participant_icon.svg";
@@ -82,6 +83,7 @@ export const EventPostLeftPanel = forwardRef<EventPostLeftPanelRef, Props>(
     const [commentContent, setCommentContent] = useState("");
     const [submittingComment, setSubmittingComment] = useState(false);
     const [showAllParticipants, setShowAllParticipants] = useState(false);
+    const [showParticipantsModal, setShowParticipantsModal] = useState(false);
     const [editingField, setEditingField] = useState<string | null>(null);
     const [editValue, setEditValue] = useState("");
     const [openModal, setOpenModal] = useState<ModalKey>(null);
@@ -464,7 +466,13 @@ export const EventPostLeftPanel = forwardRef<EventPostLeftPanelRef, Props>(
                           alt={participant.nickname}
                           className="h-full w-full object-cover"
                         />
-                      ) : null}
+                      ) : (
+                        <img
+                          src={participant_icon}
+                          alt="participant_icon"
+                          className="w-[44px] h-[44px]"
+                        />
+                      )}
                     </div>
                   </div>
                 ))
@@ -474,10 +482,10 @@ export const EventPostLeftPanel = forwardRef<EventPostLeftPanelRef, Props>(
             </div>
           </div>
 
-          {participants.length > 4 && (
+          {participants.length > 0 && (
             <button
               type="button"
-              onClick={() => setShowAllParticipants((prev) => !prev)}
+              onClick={() => setShowParticipantsModal(true)}
               className="ml-[12px] h-[44px] w-[118px] rounded-[20px] border border-[#919191] bg-[#F7F7F8] flex items-center justify-center gap-1"
             >
               <img src={add_icon} alt="add" className="h-[24px] w-[24px]" />
@@ -513,7 +521,13 @@ export const EventPostLeftPanel = forwardRef<EventPostLeftPanelRef, Props>(
                               alt={comment.nickname}
                               className="h-full w-full object-cover"
                             />
-                          ) : null}
+                          ) : (
+                            <img
+                              src={participant_icon}
+                              alt="participant_icon"
+                              className="w-[44px] h-[44px]"
+                            />
+                          )}
                         </div>
                       </div>
                       <div className="ml-[8px]">
@@ -627,6 +641,27 @@ export const EventPostLeftPanel = forwardRef<EventPostLeftPanelRef, Props>(
           onSave={(next) =>
             setEventData({ ...eventData, playlistUrl: next, playlist: next })
           }
+        />
+        <ParticipantsModal
+          open={showParticipantsModal}
+          onClose={() => setShowParticipantsModal(false)}
+          participants={participants.map((p) => {
+            // API status를 모달 형식으로 변환
+            let status: "going" | "pending" | "declined" = "pending";
+            if (p.status === "ATTEND") status = "going";
+            else if (p.status === "PENDING") status = "pending";
+            else if (p.status === "ABSENT") status = "declined";
+
+            // API 응답은 nickname 필드를 사용 (OpenAPI 스펙 확인)
+            const participantName = (p as any).nickname || (p as any).name || "";
+
+            return {
+              id: String(p.userId), // userId를 문자열로 변환
+              name: participantName,
+              status,
+              profileImageUrl: (p as any).profileImageUrl,
+            };
+          })}
         />
       </div>
     );
