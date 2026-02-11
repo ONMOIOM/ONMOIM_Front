@@ -90,23 +90,33 @@ const Home = () => {
     });
   }, [events]);
 
+  // 행사 목록(events)의 순서와 동일하게: eventId → createdAt (행사 목록에 있으면 그 순서 사용)
+  const eventIdToCreatedAt = useMemo(() => {
+    const map = new Map<number, number>();
+    events.forEach((e) => {
+      if (e.eventId != null && e.createdAt) {
+        map.set(e.eventId, new Date(e.createdAt).getTime());
+      }
+    });
+    return map;
+  }, [events]);
+
+  // 행사 목록과 같은 순서: 목록에 있으면 그 createdAt 기준, 없으면 해당 이벤트의 createdAt/startTime
   const sortedHostedEvents = useMemo(() => {
     return [...hostedEvents].sort((a, b) => {
-      // startTime이 있으면 startTime 기준, 없으면 맨 뒤로
-      const dateA = a.startTime ? new Date(a.startTime).getTime() : 0;
-      const dateB = b.startTime ? new Date(b.startTime).getTime() : 0;
-      return dateB - dateA; // 내림차순 (최신이 먼저)
+      const dateA = eventIdToCreatedAt.get(a.eventId) ?? (a.createdAt ? new Date(a.createdAt).getTime() : (a.startTime ? new Date(a.startTime).getTime() : 0));
+      const dateB = eventIdToCreatedAt.get(b.eventId) ?? (b.createdAt ? new Date(b.createdAt).getTime() : (b.startTime ? new Date(b.startTime).getTime() : 0));
+      return dateB - dateA; // 내림차순 (최신이 왼쪽)
     });
-  }, [hostedEvents]);
+  }, [hostedEvents, eventIdToCreatedAt]);
 
   const sortedParticipatedEvents = useMemo(() => {
     return [...participatedEvents].sort((a, b) => {
-      // startTime이 있으면 startTime 기준, 없으면 맨 뒤로
-      const dateA = a.startTime ? new Date(a.startTime).getTime() : 0;
-      const dateB = b.startTime ? new Date(b.startTime).getTime() : 0;
-      return dateB - dateA; // 내림차순 (최신이 먼저)
+      const dateA = eventIdToCreatedAt.get(a.eventId) ?? (a.createdAt ? new Date(a.createdAt).getTime() : (a.startTime ? new Date(a.startTime).getTime() : 0));
+      const dateB = eventIdToCreatedAt.get(b.eventId) ?? (b.createdAt ? new Date(b.createdAt).getTime() : (b.startTime ? new Date(b.startTime).getTime() : 0));
+      return dateB - dateA; // 내림차순 (최신이 왼쪽)
     });
-  }, [participatedEvents]);
+  }, [participatedEvents, eventIdToCreatedAt]);
 
   // eventId → 행사 이미지 URL (모든 탭에서 카드 썸네일 공통 사용)
   const eventIdToImageUrl = useMemo(() => {
