@@ -14,7 +14,6 @@ import TestPage from "./pages/TestPage_kaya";
 import TestPageOther from "./pages/TestPage";
 import EventPost from "./pages/EventPost/EventPost";
 
-/** 루트(/) 진입 시 토큰 없으면 /login으로 보냄 */
 function HomeOrRedirectToLogin() {
   const navigate = useNavigate();
   useEffect(() => {
