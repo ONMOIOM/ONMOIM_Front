@@ -5,6 +5,10 @@
             "destination": "http://168.138.41.19:8080/api/:path*"
         },
         {
+            "source": "/images/:path*",
+            "destination": "http://168.138.41.19:8080/images/:path*"
+        },
+        {
             "source": "/(.*)",
             "destination": "/index.html"
         }

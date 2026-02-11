@@ -100,7 +100,7 @@ export type EventDraftStore = {
 
   // save actions (필드별 저장 유지!)
   saveTitle: () => Promise<void>;
-  saveSchedule: () => Promise<void>;
+  saveSchedule: (override?: DraftData["schedule"]) => Promise<void>;
   saveLocation: () => Promise<void>;
   saveCapacity: () => Promise<void>;
   savePrice: () => Promise<void>;
@@ -225,13 +225,14 @@ export const useEventDraftStore = create<EventDraftStore>()(
       },
 
       // ---- save: schedule ----
-      saveSchedule: async () => {
+      saveSchedule: async (override) => {
         const { eventId, data } = get();
         if (eventId == null) throw new Error("eventId 없음: initDraft 먼저");
 
+        const scheduleToSave = override ?? data.schedule;
         set({ scheduleStatus: "saving", scheduleError: null });
         try {
-          const { startAt, endAt } = data.schedule;
+          const { startAt, endAt } = scheduleToSave;
           if (!startAt || !endAt) throw new Error("일자를 입력해줘.");
 
           const res = await patchEvent(eventId, {
