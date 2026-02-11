@@ -7,6 +7,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { HiOutlineDotsHorizontal } from "react-icons/hi";
 import EventCardMenu from "./EventCardMenu";
 import StopNotificationModal from "./StopNotificationModal";
@@ -43,6 +44,7 @@ const EventCard = ({
   isMyEvent = true, // 기본값 true: API 호출 실패 시에도 삭제 가능하도록
 }: EventCardProps) => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [menuOpen, setMenuOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const cardRef = useRef<HTMLElement>(null);
@@ -59,17 +61,19 @@ const EventCard = ({
   }, [menuOpen]);
 
   const handleCardClick = async () => {
+    // 행사 상세/수정으로 갈 때 목록 캐시 무효화 → 복귀 시 리로딩
+    queryClient.invalidateQueries({ queryKey: ["eventList"] });
+    queryClient.invalidateQueries({ queryKey: ["myHostedEvents"] });
+    queryClient.invalidateQueries({ queryKey: ["myParticipatedEvents"] });
     // 메인 페이지에서 행사 클릭 시 클릭 수 증가 및 세션 시작
     try {
       const result = await startSession(eventId);
       if (result.success && result.data?.sessionId) {
-        // 세션 ID를 localStorage에 저장하여 EventPost에서 사용
         localStorage.setItem(`session_${eventId}`, result.data.sessionId);
         console.log("[Analytics] 행사 클릭 - 세션 시작:", result.data.sessionId);
       }
     } catch (error) {
       console.error("[Analytics] 행사 클릭 - 세션 시작 실패:", error);
-      // 에러가 발생해도 페이지 이동은 진행
     }
     navigate(`/event-post/${eventId}`);
   };

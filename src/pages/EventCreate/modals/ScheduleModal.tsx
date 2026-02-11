@@ -226,8 +226,7 @@ export function ScheduleModal({
         return { startAt: s, endAt: e };
       }
     });
-
-    setActive(null);
+    // active를 null로 바꾸지 않음 → 같은 박스(시작/종료)로 계속 시간 선택 가능
   };
 
   /** ✅ 시간 리스트에서 “현재 선택된 시간” 빨간 표시(= active 박스 기준) */

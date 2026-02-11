@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEventDraftStore } from "./store/useEventDraftStore";
 import { RightFormPanel } from "./components/RightFormPanel";
 import { BottomActionBar } from "./components/BottomActionBar";
@@ -28,6 +29,7 @@ function formatDateTime(startAt: Date | null, endAt: Date | null): string {
 
 export default function EventPreview() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const data = useEventDraftStore((s) => s.data);
   const fontType = useEventDraftStore((s) => s.data.fontType);
@@ -183,6 +185,12 @@ export default function EventPreview() {
             onClick: async () => {
               try {
                 await publish();
+                queryClient.invalidateQueries({ queryKey: ["eventList"] });
+                queryClient.invalidateQueries({ queryKey: ["myHostedEvents"] });
+                queryClient.invalidateQueries({ queryKey: ["myParticipatedEvents"] });
+                await queryClient.refetchQueries({ queryKey: ["eventList"] });
+                await queryClient.refetchQueries({ queryKey: ["myHostedEvents"] });
+                await queryClient.refetchQueries({ queryKey: ["myParticipatedEvents"] });
                 navigate("/");
               } catch {
                 // publish에서 에러 상태 설정됨

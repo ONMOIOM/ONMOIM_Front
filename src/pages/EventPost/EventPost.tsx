@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { EventPostLeftPanel } from "./components/EventPostLeftPanel";
 import type { EventPostLeftPanelRef } from "./components/EventPostLeftPanel";
 import { EventPostRightPanel } from "./components/EventPostRightPanel";
@@ -12,9 +13,20 @@ const EventPost = () => {
   const eventId = eventIdParam ? Number(eventIdParam) : null;
   const isMyEvent = useIsMyEvent(eventId);
   const leftPanelRef = useRef<EventPostLeftPanelRef>(null);
+  const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
   const sessionIdRef = useRef<string | null>(null);
   const navigate = useNavigate();
+
+  const handleParticipationChange = () => {
+    leftPanelRef.current?.refetchParticipants?.();
+    queryClient.invalidateQueries({ queryKey: ["eventList"] });
+    queryClient.invalidateQueries({ queryKey: ["myHostedEvents"] });
+    queryClient.invalidateQueries({ queryKey: ["myParticipatedEvents"] });
+    if (eventId != null) {
+      queryClient.invalidateQueries({ queryKey: ["eventParticipation", eventId] });
+    }
+  };
 
   // 세션 추적: 메인 페이지에서 시작된 세션 사용 (클릭 수는 메인 페이지에서 이미 증가됨)
   useEffect(() => {
@@ -62,6 +74,12 @@ const EventPost = () => {
     setSaving(true);
     try {
       await leftPanelRef.current.save();
+      queryClient.invalidateQueries({ queryKey: ["eventList"] });
+      queryClient.invalidateQueries({ queryKey: ["myHostedEvents"] });
+      queryClient.invalidateQueries({ queryKey: ["myParticipatedEvents"] });
+      await queryClient.refetchQueries({ queryKey: ["eventList"] });
+      await queryClient.refetchQueries({ queryKey: ["myHostedEvents"] });
+      await queryClient.refetchQueries({ queryKey: ["myParticipatedEvents"] });
       navigate("/");
     } finally {
       setSaving(false);
@@ -86,7 +104,11 @@ const EventPost = () => {
             <EventPostLeftPanel ref={leftPanelRef} eventId={eventIdNumber} isMyEvent={isMyEvent} />
           </div>
           <div className="w-[540px]">
-            <EventPostRightPanel eventId={eventIdNumber} isMyEvent={isMyEvent} />
+            <EventPostRightPanel
+            eventId={eventIdNumber}
+            isMyEvent={isMyEvent}
+            onParticipationChange={handleParticipationChange}
+          />
           </div>
         </section>
         <div className="mt-[48px] mb-[48px] flex justify-end pr-[100px]">
