@@ -9,8 +9,8 @@ export type FontTypeKey = typeof FONTTYPE_ITEMS[number]["key"];
 
 export const FONTTYPE_CLASS: Record<FontTypeKey, string> = {
   normal: "font-normal", // 나중에 실제 폰트 넣기
-  library: "font-serif", 
-  thin: "font-light",
+  library: "font-library", 
+  thin: "fontthin",
 };
 
 
