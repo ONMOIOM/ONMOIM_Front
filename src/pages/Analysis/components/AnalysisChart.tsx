@@ -145,15 +145,16 @@ type AnalysisChartProps = {
 
 const AnalysisChart = ({ data = DEFAULT_CHART_DATA }: AnalysisChartProps) => {
   // 데이터가 비어있을 때 기본 축 구조를 보여주기 위한 더미 데이터
-  const displayData = data.length > 0 
-    ? data 
-    : Array.from({ length: 7 }, (_, i) => ({
-        name: String(i + 1),
-        click: 0,
-        participation: 0,
-        done: 0,
-        time: 0,
-      }));
+  const displayData =
+    data.length > 0
+      ? data
+      : Array.from({ length: 7 }, (_, i) => ({
+          name: String(i + 1),
+          click: 0,
+          participation: 0,
+          done: 0,
+          time: 0,
+        }));
 
   return (
     <div className="analysis-chart h-[502px] w-[1386px] min-h-[400px] min-w-[600px] shrink-0 rounded-[20px] border border-gray-300 bg-gray-0 p-8 shadow-sm">

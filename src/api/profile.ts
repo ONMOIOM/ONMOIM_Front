@@ -31,6 +31,13 @@ export const profileAPI = {
     );
     return res.data;
   },
+  /** 다른 사용자 프로필 조회: GET /api/v1/users/{userId} (bearerAuth) */
+  getUserProfile: async (userId: number): Promise<BaseResponse<ProfileData>> => {
+    const res = await axiosInstance.get<BaseResponse<ProfileData>>(
+      `/api/v1/users/${userId}`
+    );
+    return res.data;
+  },
   /** 내 프로필 수정: PATCH /api/v1/users (bearerAuth) */
   updateProfile: async (
     body: UpdateProfileRequest

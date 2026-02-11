@@ -10,6 +10,7 @@ import {
   getMyParticipatedEvents,
 } from "../../api/eventInfo";
 import { profileAPI } from "../../api/profile";
+import useProfile from "../../hooks/useProfile";
 import { formatEventDateTime } from "../../utils/formatDate";
 import AddEventCard from "./components/AddEventCard";
 import EventCard from "./components/EventCard";
@@ -27,20 +28,7 @@ const TAB_ITEMS = [
 const Home = () => {
   const queryClient = useQueryClient();
 
-  // 프로필 조회 (캐싱)
-  const { data: profile } = useQuery({
-    queryKey: ["profile"],
-    queryFn: async () => {
-      const res = await profileAPI.getProfile();
-      if (res.success && res.data) {
-        return res.data;
-      }
-      throw new Error("프로필 조회 실패");
-    },
-    staleTime: 1000 * 60 * 30, // 30분간 캐시 유지
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-  });
+  const { profile } = useProfile();
 
   // 행사 목록 조회 (캐싱)
   const { data: events = [] } = useQuery({
@@ -117,32 +105,72 @@ const Home = () => {
     })),
   });
 
-  const coParticipants = useMemo(() => {
+  const uniqueUserIds = useMemo(() => {
     if (!profile?.id || allEventIds.length === 0) return [];
-
-    const myId = String(profile.id);
-    const map = new Map<string, { userId: string; name: string; profileImageUrl?: string }>();
+    const myId = profile.id;
+    const userIdSet = new Set<number>();
 
     eventParticipationQueries.forEach((query) => {
       if (!query.data) return;
       for (const p of query.data) {
-        const uid = String(p.userId);
-        if (uid === myId) continue;
-        const name = p.nickname ?? "";
-        const imageUrl = p.imageUrl;
-        if (!map.has(uid)) {
-          map.set(uid, { userId: uid, name, profileImageUrl: imageUrl });
-        } else {
-          const existing = map.get(uid);
-          if (existing && imageUrl && !existing.profileImageUrl) {
-            map.set(uid, { ...existing, profileImageUrl: imageUrl });
-          }
+        const uid = p.userId;
+        if (uid !== myId) {
+          userIdSet.add(uid);
         }
       }
     });
 
-    return Array.from(map.values());
+    return Array.from(userIdSet);
   }, [profile?.id, eventParticipationQueries, allEventIds]);
+
+  const userProfileQueries = useQueries({
+    queries: uniqueUserIds.map((userId) => ({
+      queryKey: ["userProfile", userId],
+      queryFn: async () => {
+        const res = await profileAPI.getUserProfile(userId);
+        if (res.success && res.data) {
+          return res.data;
+        }
+        return null;
+      },
+      enabled: uniqueUserIds.length > 0,
+      staleTime: 1000 * 60 * 30,
+      gcTime: 1000 * 60 * 60,
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+    })),
+  });
+
+  const coParticipants = useMemo(() => {
+    if (!profile?.id || allEventIds.length === 0) return [];
+
+    const myId = profile.id;
+    const map = new Map<number, { userId: string; name: string; profileImageUrl?: string }>();
+
+    eventParticipationQueries.forEach((query) => {
+      if (!query.data) return;
+      for (const p of query.data) {
+        const uid = p.userId;
+        if (uid === myId) continue;
+        const name = p.nickname ?? "";
+        if (!map.has(uid)) {
+          map.set(uid, { userId: String(uid), name });
+        }
+      }
+    });
+
+    userProfileQueries.forEach((query) => {
+      if (!query.data) return;
+      const uid = query.data.id;
+      const existing = map.get(uid);
+      if (existing) {
+        map.set(uid, { ...existing, profileImageUrl: query.data.profileImageUrl });
+      }
+    });
+
+    return Array.from(map.values());
+  }, [profile?.id, eventParticipationQueries, userProfileQueries, allEventIds]);
 
   const handleDeleteEvent = async (eventId: number) => {
     try {

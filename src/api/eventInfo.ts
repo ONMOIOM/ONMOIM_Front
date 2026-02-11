@@ -47,8 +47,8 @@ export type VoteParticipantData = {
 
 /*행사 참여 여부 조회 Response Data */
 export type GetParticipantData = {
-  userId: string;
-  nickname: string; // API 응답은 nickname 필드 사용
+  userId: number; // API 응답: integer($int64)
+  nickname: string;
   status: string;
   imageUrl?: string; // 프로필 이미지 (API 응답: imageUrl)
 };
