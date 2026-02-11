@@ -14,7 +14,6 @@ export type CapacityModalProps = {
 export const SeatsModal = ({ open, onClose, value, onSave, saving }: CapacityModalProps) => {
     const [input, setInput] = useState("");
 
-    // ✅ 모달 열릴 때 value → input 초기화
     useEffect(() => {
       if (!open) return;
       setInput(value == null ? "" : String(value));

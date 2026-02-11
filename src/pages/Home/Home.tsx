@@ -1,6 +1,6 @@
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { useMemo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueries, useQueryClient } from "@tanstack/react-query";
 import { HiOutlineSearch } from "react-icons/hi";
 import {
   deleteEvent,
@@ -57,7 +57,6 @@ const Home = () => {
     refetchOnWindowFocus: false,
   });
 
-  // 내가 만든 행사 목록 조회 (캐싱)
   const { data: hostedEvents = [] } = useQuery({
     queryKey: ["myHostedEvents"],
     queryFn: async () => {
@@ -72,7 +71,6 @@ const Home = () => {
     refetchOnWindowFocus: false,
   });
 
-  // 내가 참여한 행사 목록 조회 (캐싱)
   const { data: participatedEvents = [] } = useQuery({
     queryKey: ["myParticipatedEvents"],
     queryFn: async () => {
@@ -87,55 +85,64 @@ const Home = () => {
     refetchOnWindowFocus: false,
   });
 
-  // 내가 만든 행사 ID Set (메모이제이션)
   const myHostedEventIds = useMemo(() => {
     return new Set(hostedEvents.map((e) => e.eventId));
   }, [hostedEvents]);
 
-  // 같은 행사 참여자 조회 (캐싱)
-  const { data: coParticipants = [] } = useQuery({
-    queryKey: ["coParticipants", profile?.id, participatedEvents.length, hostedEvents.length],
-    queryFn: async () => {
-      if (!profile?.id) return [];
-      
-      const allEventIds = new Set<number>();
-      participatedEvents.forEach((e) => {
-        if (e.eventId != null) allEventIds.add(e.eventId);
-      });
-      hostedEvents.forEach((e) => {
-        if (e.eventId != null) allEventIds.add(e.eventId);
-      });
-      
-      if (allEventIds.size === 0) return [];
+  const allEventIds = useMemo(() => {
+    const ids = new Set<number>();
+    participatedEvents.forEach((e) => {
+      if (e.eventId != null) ids.add(e.eventId);
+    });
+    hostedEvents.forEach((e) => {
+      if (e.eventId != null) ids.add(e.eventId);
+    });
+    return Array.from(ids);
+  }, [participatedEvents, hostedEvents]);
 
-      const myId = String(profile.id);
-      const map = new Map<string, { userId: string; name: string; profileImageUrl?: string }>();
-      
-      for (const eventId of allEventIds) {
-        try {
-          const partRes = await getEventParticipation(eventId);
-          if (!partRes.success || !partRes.data) continue;
-          for (const p of partRes.data) {
-            const uid = String(p.userId);
-            if (uid === myId) continue;
-            const name = p.nickname ?? "";
-            const profileImageUrl = p.profileImageUrl;
-            if (!map.has(uid)) {
-              map.set(uid, { userId: uid, name, profileImageUrl });
-            }
+  const eventParticipationQueries = useQueries({
+    queries: allEventIds.map((eventId) => ({
+      queryKey: ["eventParticipation", eventId],
+      queryFn: async () => {
+        const res = await getEventParticipation(eventId);
+        if (!res.success || !res.data) return [];
+        return res.data;
+      },
+      enabled: !!profile?.id && allEventIds.length > 0,
+      staleTime: 1000 * 60 * 30,
+      gcTime: 1000 * 60 * 60,
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+    })),
+  });
+
+  const coParticipants = useMemo(() => {
+    if (!profile?.id || allEventIds.length === 0) return [];
+
+    const myId = String(profile.id);
+    const map = new Map<string, { userId: string; name: string; profileImageUrl?: string }>();
+
+    eventParticipationQueries.forEach((query) => {
+      if (!query.data) return;
+      for (const p of query.data) {
+        const uid = String(p.userId);
+        if (uid === myId) continue;
+        const name = p.nickname ?? "";
+        const imageUrl = p.imageUrl;
+        if (!map.has(uid)) {
+          map.set(uid, { userId: uid, name, profileImageUrl: imageUrl });
+        } else {
+          const existing = map.get(uid);
+          if (existing && imageUrl && !existing.profileImageUrl) {
+            map.set(uid, { ...existing, profileImageUrl: imageUrl });
           }
-        } catch (err) {
-          console.warn(`[Home] 행사 ${eventId} 참여자 조회 실패:`, err);
         }
       }
-      
-      return Array.from(map.values());
-    },
-    enabled: !!profile?.id && (participatedEvents.length > 0 || hostedEvents.length > 0),
-    staleTime: 1000 * 60 * 10, // 10분간 캐시 유지
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-  });
+    });
+
+    return Array.from(map.values());
+  }, [profile?.id, eventParticipationQueries, allEventIds]);
 
   const handleDeleteEvent = async (eventId: number) => {
     try {
@@ -213,9 +220,6 @@ const Home = () => {
                     <EventCardRoller>
                       {events.length > 0
                         ? events.map((event) => {
-                            // 내가 만든 행사인지 확인
-                            // myHostedEventIds가 null이면 API 호출 실패 → 모든 행사 삭제 가능 (기본값 true)
-                            // myHostedEventIds가 Set이면 해당 eventId가 있으면 내가 만든 행사
                             const isMyEvent =
                               myHostedEventIds === null || myHostedEventIds.has(event.eventId);
                             return (
@@ -273,7 +277,6 @@ const Home = () => {
                               return startDate >= now && startDate <= weekLater;
                             })
                             .map((event) => {
-                              // 내가 만든 행사인지 확인
                               const isMyEvent =
                                 myHostedEventIds === null || myHostedEventIds.has(event.eventId);
                               return (
@@ -339,29 +342,65 @@ const Home = () => {
                         : null}
                       <AddEventCard />
                     </EventCardRoller>
+                    <div className="mt-[130px] flex items-center">
+                      <h2 className="text-h6 text-gray-900">
+                        같은 행사에 참여한 분들
+                      </h2>
+                      <ParticipantSectionArrows />
+                    </div>
+                    <div className="mt-[42px] mb-[100px] flex flex-wrap gap-x-[54px] gap-y-[36px]">
+                      {coParticipants.length > 0
+                        ? coParticipants.map((p) => (
+                            <JoinUserCard
+                              key={p.userId}
+                              name={p.name}
+                              imageUrl={p.profileImageUrl}
+                            />
+                          ))
+                        : null}
+                    </div>
                   </>
                 ) : item.key === "joined" ? (
-                  <EventCardRoller>
-                    {participatedEvents.length > 0
-                      ? participatedEvents.map((event) => (
-                          <EventCard
-                            key={event.eventId}
-                            eventId={event.eventId}
-                            title={event.title ?? "제목 없음"}
-                            dateTime={
-                              event.startTime
-                                ? formatEventDateTime(event.startTime)
-                                : "일시 미정"
-                            }
-                            hostName="호스트"
-                            imageUrl={undefined}
-                            onDelete={handleDeleteEvent}
-                            isMyEvent={false}
-                          />
-                        ))
-                      : null}
-                    <AddEventCard />
-                  </EventCardRoller>
+                  <>
+                    <EventCardRoller>
+                      {participatedEvents.length > 0
+                        ? participatedEvents.map((event) => (
+                            <EventCard
+                              key={event.eventId}
+                              eventId={event.eventId}
+                              title={event.title ?? "제목 없음"}
+                              dateTime={
+                                event.startTime
+                                  ? formatEventDateTime(event.startTime)
+                                  : "일시 미정"
+                              }
+                              hostName="호스트"
+                              imageUrl={undefined}
+                              onDelete={handleDeleteEvent}
+                              isMyEvent={false}
+                            />
+                          ))
+                        : null}
+                      <AddEventCard />
+                    </EventCardRoller>
+                    <div className="mt-[130px] flex items-center">
+                      <h2 className="text-h6 text-gray-900">
+                        같은 행사에 참여한 분들
+                      </h2>
+                      <ParticipantSectionArrows />
+                    </div>
+                    <div className="mt-[42px] mb-[100px] flex flex-wrap gap-x-[54px] gap-y-[36px]">
+                      {coParticipants.length > 0
+                        ? coParticipants.map((p) => (
+                            <JoinUserCard
+                              key={p.userId}
+                              name={p.name}
+                              imageUrl={p.profileImageUrl}
+                            />
+                          ))
+                        : null}
+                    </div>
+                  </>
                 ) : (
                   <p className="mt-6 text-gray-600">
                     {(item as (typeof TAB_ITEMS)[number]).label} 콘텐츠 영역

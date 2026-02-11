@@ -68,7 +68,6 @@ export default function EventPreview() {
   return (
     <EventEditorLayout
       left={
-        // ✅ Layout이 left 폭을 w-[793px]로 잡아주니까, 여기서는 w-full로 쓰면 됨
         <section className="w-full mt-[192px] ml-[161px]">
           <h1 className="text-[32px] font-bold text-[#1A1A1A] font-sans">
             {data.title || "제목 없음"}

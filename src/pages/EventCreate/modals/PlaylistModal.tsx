@@ -14,7 +14,6 @@ export type PlaylistModalProps = {
 export const PlaylistModal = ({ open, onClose, value, onSave, saving }: PlaylistModalProps) => {
   const [input, setInput] = useState("");
 
-  // ✅ 모달 열릴 때 value로 input 초기화
   useEffect(() => {
     if (!open) return;
     setInput(value || "");

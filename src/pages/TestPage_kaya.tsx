@@ -39,7 +39,6 @@ const TestPage = () => {
   const [turnstileToken, setTurnstileToken] = useState<string>("");
   const [authCode, setAuthCode] = useState<string>("");
 
-  // ✅ EVENT 새 함수 테스트용 더미 입력값 (사용자가 입력 안 해도 됨)
   const [dummyTitle] = useState("오늘의 하루 소개하기");
   const [dummyStartDate] = useState("2026-01-01T00:00:00Z");
   const [dummyEndDate] = useState("2026-02-03T00:00:00Z");
@@ -171,7 +170,6 @@ const TestPage = () => {
     return run("행사 발행 (publish)", () => publishEvent(id));
   };
   
-  // ✅ 추가된 event.ts 함수들 테스트 (버튼만 누르면 더미로 호출)
 
   // 1) 제목
   const testSaveEventTitleOnly = () => {
@@ -215,8 +213,6 @@ const TestPage = () => {
   // 6) 플레이리스트
   const testSaveEventPlaylistOnly = () => {
     return run("행사 플레이리스트 저장 (PATCH)", () =>
-      // ⚠️ event.ts에서 body 타입이 잘못되어 있을 수 있어서(네가 SaveEventTitleRequest로 써둠)
-      // 일단 테스트페이지에서는 any로 한번 호출 가능하게 해둠
       saveEventPlaylist({ playlist: dummyPlaylist } as any)
     );
   };

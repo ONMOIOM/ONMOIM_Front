@@ -46,7 +46,7 @@ const axiosInstance: AxiosInstance = axios.create({
   baseURL,
   timeout: 10000,
   headers: {
-    "Content-Type": "application/json", // 서버한테 보낼 때 json 형식으로 보낸다고 알려줌
+    "Content-Type": "application/json",
   },
   // refreshToken이 쿠키
   // withCredentials: true,
@@ -55,7 +55,6 @@ const axiosInstance: AxiosInstance = axios.create({
 // 요청 인터셉터
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // FormData 전송 시 Content-Type 제거 → 브라우저가 multipart/form-data; boundary=... 자동 설정
     // (기본 application/json이 있으면 multipart 대신 x-www-form-urlencoded로 전송되는 문제 방지)
     if (config.data instanceof FormData && config.headers) {
       delete config.headers["Content-Type"];
@@ -64,7 +63,6 @@ axiosInstance.interceptors.request.use(
         (config.headers as { delete: (k: string) => void }).delete("Content-Type");
       }
     }
-    // 로그인 전(이메일 발송 등)에는 토큰 없음 → Authorization 헤더 추가 안 함
     const token = localStorage.getItem("accessToken");
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -103,7 +101,6 @@ axiosInstance.interceptors.response.use(
     console.log("[API ERROR] status:", error.response?.status);
     console.log("[API ERROR] response:", error.response?.data);
     if (error.response?.status === 401) {
-      // 에러 정보를 localStorage에 저장
       const errorInfo = {
         url: error.config?.url,
         method: error.config?.method,
@@ -118,9 +115,7 @@ axiosInstance.interceptors.response.use(
       localStorage.removeItem("accessToken");
       
       const url = error.config?.url ?? "";
-      // 로그인/회원가입 API 실패가 아닐 때만 로그인 페이지로 리다이렉트
       if (!url.includes("/login") && !url.includes("/signup")) {
-        // 콘솔 로그 확인을 위해 약간의 딜레이 추가
         setTimeout(() => {
           window.location.href = "/login";
         }, 5000); // 5초 딜레이

@@ -92,11 +92,8 @@ export function ScheduleModal({
     const baseDay = new Date(baseDate);
     baseDay.setHours(0, 0, 0, 0);
 
-    // start/end가 없으면 기본값 부여(정석: 최소 1개는 만들어 둔다)
     if (!nextDraft.startAt) {
       const s = clampTo15(new Date(baseDate));
-      // 기본 시작 6:00로 잡고 싶으면 아래 2줄로 교체 가능
-      // const s = new Date(baseDay); s.setHours(6, 0, 0, 0);
       nextDraft.startAt = s;
     }
     if (!nextDraft.endAt) {
@@ -105,14 +102,12 @@ export function ScheduleModal({
       nextDraft.endAt = e;
     }
 
-    // start/end 날짜를 selectedDate와 동기화(정석: 날짜는 하나로 고정)
     const s = new Date(baseDay);
     s.setHours(nextDraft.startAt.getHours(), nextDraft.startAt.getMinutes(), 0, 0);
 
     const e = new Date(baseDay);
     e.setHours(nextDraft.endAt.getHours(), nextDraft.endAt.getMinutes(), 0, 0);
 
-    // end가 start보다 빠르면 보정(기본 3시간)
     if (e.getTime() < s.getTime()) {
       e.setTime(s.getTime());
       e.setHours(e.getHours() + 3);
@@ -184,7 +179,6 @@ export function ScheduleModal({
     });
   };
 
-  /** ✅ 말 안되는 종료시간 막기(종료가 시작보다 빠른 경우 disable) */
   const isDisabledTime = (h: number, m: number) => {
     if (!selectedDate) return false;
 
@@ -197,7 +191,6 @@ export function ScheduleModal({
     return false;
   };
 
-  /** ✅ 시간 선택: selectedDate 기준으로만 시간 변경 */
   const applyTime = (h: number, m: number) => {
     if (!active || !selectedDate) return;
     if (isDisabledTime(h, m)) return;
@@ -210,11 +203,9 @@ export function ScheduleModal({
         const s = new Date(selectedDate);
         s.setHours(h, m, 0, 0);
 
-        // end 날짜도 같은 날짜 유지
         const e = new Date(selectedDate);
         e.setHours(nextEnd.getHours(), nextEnd.getMinutes(), 0, 0);
 
-        // end가 start보다 빠르면 보정(3시간)
         if (e.getTime() < s.getTime()) {
           e.setTime(s.getTime());
           e.setHours(e.getHours() + 3);
@@ -236,7 +227,6 @@ export function ScheduleModal({
       }
     });
 
-    // ✅ 너가 원한 UX: 시간 선택하면 빨간 테두리 해제
     setActive(null);
   };
 

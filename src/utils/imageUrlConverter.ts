@@ -26,7 +26,6 @@ export const convertImageUrl = (url: string | null | undefined): string => {
   // 서명된 URL인 경우 변환하지 않음 (서명이 무효화됨)
   // 백엔드에서 외부 접근 가능한 호스트명으로 서명된 URL을 생성해야 함
   if (isSignedUrl) {
-    console.warn('[ImageURLConverter] 서명된 URL은 변환할 수 없습니다. 백엔드에서 외부 호스트명으로 서명된 URL을 생성해야 합니다:', url);
     return url;
   }
   

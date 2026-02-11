@@ -12,11 +12,11 @@ function Root() {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 1000 * 60 * 30, // 30분간 캐시 유지 (기본값)
-            gcTime: 1000 * 60 * 60, // 1시간간 가비지 컬렉션 방지
-            refetchOnWindowFocus: false, // 창 포커스 시 자동 리패치 비활성화
-            refetchOnMount: false, // 마운트 시 리패치 비활성화 (캐시 우선)
-            refetchOnReconnect: false, // 재연결 시 리패치 비활성화
+            staleTime: 1000 * 60 * 30,
+            gcTime: 1000 * 60 * 60,
+            refetchOnWindowFocus: false,
+            refetchOnMount: false,
+            refetchOnReconnect: false,
             retry: 1,
           },
         },

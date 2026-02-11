@@ -25,8 +25,7 @@ export default function EventCreate() {
     initDraft();
   }, [initDraft]);
 
-  // 이벤트 생성 페이지 진입 시, 오늘 날짜로 초기화
-    useEffect(() => {
+  useEffect(() => {
         // 이미 startAt이 있으면 초기화 안 함
         if (schedule?.startAt && schedule?.endAt) return;
 

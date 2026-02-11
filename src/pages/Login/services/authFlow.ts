@@ -5,7 +5,6 @@ import {
   login,
 } from "../../../api/auth_updated";
 
-// ✅ 환경변수로 mock 모드 켜기
 const USE_MOCK = import.meta.env.VITE_USE_AUTH_MOCK === "true";
 
 // ---- Mock 데이터 규칙 ----
@@ -26,7 +25,6 @@ export async function sendEmailAndGetMode(email: string, turnstileToken: string)
   const res = await sendVerificationEmail({ email, turnstileToken });
   if (!res.success || !res.data) throw new Error(res.message ?? "메일 발송 실패");
 
-  // ✅ 여기서 isRegistered가 undefined면: 백엔드/목 응답 문제라 추후 확인
   const isRegistered = Boolean(res.data.isRegistered);
   return isRegistered ? "login" : "signup";
 }
@@ -45,17 +43,14 @@ export async function completeAuth(email: string, authCode: string, mode: AuthMo
     return "mock_access_token_123";
   }
 
-  // 1) verify (API는 code 필드 사용)
   const v = await verifyEmailCode({ email, code: authCode });
   if (!v.success) throw new Error(v.message ?? "코드 검증 실패");
 
-  // 2) signup이면 회원가입
   if (mode === "signup") {
     const s = await signUp({ email, authCode });
     if (!s.success) throw new Error(s.message ?? "회원가입 실패");
   }
 
-  // 3) 로그인으로 토큰 받기
   const l = await login({ email, authCode });
   if (!l.success || !l.data?.accessToken) throw new Error(l.message ?? "로그인 실패");
 

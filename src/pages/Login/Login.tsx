@@ -31,7 +31,6 @@ export default function Login() {
     SKIP_EMAIL_VERIFICATION ? "login" : "email"
   );
 
-  // 인증 메일 전송 후 -> 로그인 / 회원가입
   const [isRegistered, setIsRegistered] = useState<boolean | null>(null);
 
   const isValidEmail = (email: string) => {
@@ -50,10 +49,7 @@ export default function Login() {
     if (step === "signup") return "회원가입";
     return "로그인";
   }, [step]);
-
-
-  // === 재전송 쿨다운 === //
-  const [resendCooldown, setResendCooldown] = useState(0); // 남은 초 (0이면 가능)
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -75,12 +71,8 @@ export default function Login() {
     setErrorMsg(null);
     setStep("sending");
 
-    // ✅ 30초 쿨다운 시작
     setResendCooldown(30);
   };
-
-
-  // === 로그인/회원 가입 완료 버튼 클릭 === //
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -91,7 +83,6 @@ export default function Login() {
   const isExpiredError = (e: any) => {
     const code = e?.response?.data?.code;
     const msg = e?.response?.data?.message ?? "";
-    // ✅ 나중에 백엔드 code 확정되면 code 하나만 남기기
     return (
       code === "EMAIL_AUTH_CODE_EXPIRED" ||
       code === "AUTH_CODE_EXPIRED" ||
@@ -105,12 +96,10 @@ export default function Login() {
     const code = authCode.trim();
     if (!code) return;
 
-    // ✅ MOCK 모드: 백엔드 없이도 로직 끝까지 테스트
     if (USE_MOCK) {
       setSubmitting(true);
       setErrorMsg(null);
 
-      // 가짜 지연(UX/로딩 테스트용)
       await new Promise((r) => setTimeout(r, 400));
 
       // 만료 테스트
@@ -142,7 +131,6 @@ export default function Login() {
       console.log("[Login] handleComplete 요청", { step, email, authCode: code });
 
       if (step === "signup") {
-        // 회원가입: verify 스킵, signUp API 직접 호출
         const s = await signUp({ email, authCode: code });
         console.log("[Login] signUp 응답", {
           success: s.success,
@@ -240,7 +228,7 @@ export default function Login() {
               >
                 <span className="inline-flex w-[16px] h-[16px] items-center justify-center">
                   <img
-                    src={emailStatus === "valid" ? Success : Fail} // ⬅️ invalid용 아이콘 추가
+                    src={emailStatus === "valid" ? Success : Fail}
                     alt={emailStatus === "valid" ? "올바른 이메일 양식" : "올바르지 않은 이메일 양식"}
                     className="w-[16px] h-[16px]"
                   />

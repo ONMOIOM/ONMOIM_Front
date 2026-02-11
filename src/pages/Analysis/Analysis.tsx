@@ -23,9 +23,6 @@ function avgCompletion(stats: StatisticsData[]): number {
   if (stats.length === 0) return 0;
   const sum = stats.reduce((s, d) => s + d.participationRate, 0);
   const avg = sum / stats.length;
-  // 백엔드에서 participationRate가 이미 백분율(0~100)로 오는 경우와 소수(0~1)로 오는 경우 모두 처리
-  // 값이 1보다 크면 이미 백분율로 간주, 1 이하면 소수로 간주하여 100을 곱함
-  // 최대값을 100으로 제한하여 700% 같은 이상한 값 방지
   const result = avg > 1 ? avg : avg * 100;
   return Math.min(Math.round(result * 100) / 100, 100);
 }

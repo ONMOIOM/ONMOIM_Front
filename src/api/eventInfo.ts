@@ -50,7 +50,7 @@ export type GetParticipantData = {
   userId: string;
   nickname: string; // API 응답은 nickname 필드 사용
   status: string;
-  profileImageUrl?: string; // 프로필 이미지 (선택적)
+  imageUrl?: string; // 프로필 이미지 (API 응답: imageUrl)
 };
 
 /* 내가 만든 행사 조회용 Response Data (flat 구조) */

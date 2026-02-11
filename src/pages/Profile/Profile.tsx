@@ -21,8 +21,7 @@ const Profile = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [localImageUrl, setLocalImageUrl] = useState<string | null>(null);
-  
-  // 메모이제이션으로 불필요한 재계산 방지
+
   const profileImageUrl = useMemo(() => {
     const url = convertImageUrl(localImageUrl || profile?.profileImageUrl);
     return url || profileSrc; // 기본 이미지로 fallback
@@ -115,7 +114,6 @@ const Profile = () => {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  // 캐시된 데이터가 없을 때만 로딩 스피너 표시 (깜빡임 방지)
   if (loading && !profile) {
     return (
       <div className="relative min-h-screen flex items-center justify-center">

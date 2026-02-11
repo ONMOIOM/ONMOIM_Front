@@ -12,11 +12,9 @@ const axiosInstance: AxiosInstance = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  // ✅ refreshToken이 쿠키면 나중에 켜기
   // withCredentials: true,
 });
 
-// ✅ 요청 인터셉터: accessToken 있으면만 붙이기 (dummy 토큰 제거)
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const accessToken = localStorage.getItem("accessToken");
@@ -25,7 +23,6 @@ axiosInstance.interceptors.request.use(
       config.headers = config.headers ?? {};
       config.headers.Authorization = `Bearer ${accessToken}`;
     } else {
-      // 토큰이 없으면 Authorization 자체를 보내지 않는 게 정상
       if (config.headers?.Authorization) {
         delete config.headers.Authorization;
       }
@@ -36,7 +33,6 @@ axiosInstance.interceptors.request.use(
   (error: AxiosError) => Promise.reject(error)
 );
 
-// ✅ 응답 인터셉터: 401이면 accessToken 제거 (리다이렉트는 라우터/가드에서)
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => response,
   (error: AxiosError) => {

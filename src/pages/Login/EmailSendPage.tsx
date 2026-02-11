@@ -14,17 +14,14 @@ type Props = {
 export default function EmailSendPage({ email, onResult, onClose, isResend = false }: Props) {
   const sitekey = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
 
-  // ✅ 백엔드 없이 로직 테스트하려면 .env에 VITE_USE_AUTH_MOCK=true
   const USE_MOCK = import.meta.env.VITE_USE_AUTH_MOCK === "true";
 
   const [token, setToken] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
-  // ✅ Mock 규칙(테스트용): 이메일에 "new" 포함이면 신규회원(signup), 아니면 기존회원(login)
   const mockIsRegistered = (emailAddr: string) => !emailAddr.includes("new");
 
   const sendMail = async () => {
-    // 0) Mock 모드면 서버 없이도 바로 분기 가능
     if (USE_MOCK) {
       const registered = mockIsRegistered(email);
       console.log("[EmailSendPage][MOCK] isRegistered =", registered);
@@ -32,7 +29,6 @@ export default function EmailSendPage({ email, onResult, onClose, isResend = fal
       return;
     }
 
-    // 1) sitekey가 있을 때는 Turnstile 인증이 먼저 필요 (재전송도 포함)
     if (sitekey && !token) {
       alert("보안 확인을 먼저 완료해주세요.");
       return;

@@ -14,7 +14,6 @@ export type PriceModalProps = {
 export const PriceModal = ({ open, onClose, value, onSave, saving }: PriceModalProps) => {
     const [input, setInput] = useState("");
 
-    // ✅ 모달 열릴 때 value로 input 초기화
     useEffect(() => {
       if (!open) return;
       setInput(value == null ? "" : String(value));
