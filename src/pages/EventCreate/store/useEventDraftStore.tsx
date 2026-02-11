@@ -235,8 +235,10 @@ export const useEventDraftStore = create<EventDraftStore>()(
           if (!startAt || !endAt) throw new Error("일자를 입력해줘.");
 
           const res = await patchEvent(eventId, {
-            startTime: startAt.toISOString(),
-            endTime: endAt.toISOString(),
+            schedule: {
+              startDate: startAt.toISOString(),
+              endDate: endAt.toISOString(),
+            },
           });
           if (!res.success) throw new Error(res.message ?? "일정 저장 실패");
 
@@ -261,8 +263,10 @@ export const useEventDraftStore = create<EventDraftStore>()(
           const lotNumberAddress = data.location.lotNumber?.trim() || null;
 
           const res = await patchEvent(eventId, {
-            streetAddress,
-            lotNumberAddress,
+            location: {
+              streetAddress,
+              lotNumber: lotNumberAddress,
+            },
           });
           if (!res.success) throw new Error(res.message ?? "장소 저장 실패");
 
@@ -318,7 +322,7 @@ export const useEventDraftStore = create<EventDraftStore>()(
         set({ playlistStatus: "saving", playlistError: null });
         try {
           const res = await patchEvent(eventId, {
-            playlistUrl: data.playlist.trim() || undefined,
+            playlist: data.playlist.trim() || undefined,
           });
           if (!res.success) throw new Error(res.message ?? "플레이리스트 저장 실패");
 
@@ -338,7 +342,7 @@ export const useEventDraftStore = create<EventDraftStore>()(
         set({ informationStatus: "saving", informationError: null });
         try {
           const res = await patchEvent(eventId, {
-            introduction: data.information.trim() || undefined,
+            information: data.information.trim() || undefined,
           });
           if (!res.success) throw new Error(res.message ?? "소개글 저장 실패");
 

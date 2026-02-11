@@ -76,15 +76,17 @@ const EventPost = () => {
     );
   }
 
+  const eventIdNumber = Number(eventIdParam);
+
   return (
     <main className="min-h-screen bg-white">
       <div className="w-full max-w-[1920px] flex flex-col">
         <section className="flex flex-1 ml-[137px] mr-[100px] gap-[102px]">
           <div className="w-[793px]">
-            <EventPostLeftPanel ref={leftPanelRef} eventId={eventId} isMyEvent={isMyEvent} />
+            <EventPostLeftPanel ref={leftPanelRef} eventId={eventIdNumber} isMyEvent={isMyEvent} />
           </div>
           <div className="w-[540px]">
-            <EventPostRightPanel eventId={eventId} isMyEvent={isMyEvent} />
+            <EventPostRightPanel eventId={eventIdNumber} isMyEvent={isMyEvent} />
           </div>
         </section>
         <div className="mt-[48px] mb-[48px] flex justify-end pr-[100px]">

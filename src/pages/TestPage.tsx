@@ -12,6 +12,7 @@ import {
   endSession,
 } from '../api/analysis';
 import { profileAPI } from '../api/profile';
+import { getUserIdFromToken } from '../utils/jwtDecoder';
 
 const TestPage = () => {
   const [sessionId, setSessionId] = useState<string>('');
@@ -58,8 +59,8 @@ const TestPage = () => {
     try {
       const result = await voteEventParticipation(
         testEventId,
-        testUserId,
-        { status: "ATTEND" }
+        String(testUserId),
+        "ATTEND"
       );
       console.log('✅ 행사 참여 여부 투표 성공:', result);
     } catch (error) {
@@ -118,7 +119,13 @@ const TestPage = () => {
   const testGetProfile = async () => {
     console.log('=== 프로필 조회 테스트 ===');
     try {
-      const result = await profileAPI.getProfile();
+      const userId = getUserIdFromToken();
+      if (!userId) {
+        alert('사용자 ID를 찾을 수 없습니다. 로그인이 필요합니다.');
+        console.error('❌ userId를 찾을 수 없음');
+        return;
+      }
+      const result = await profileAPI.getUserProfile(userId);
       alert('프로필 조회 성공');
       console.log('✅ 프로필 조회 성공:', result);
     } catch (error) {
