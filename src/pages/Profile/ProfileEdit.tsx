@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import profileSrc from "../../assets/icons/profile.svg";
 import editProfileSrc from "../../assets/icons/edit.png";
 import instagramSrc from "../../assets/icons/icons_instagram.svg";
@@ -18,6 +19,7 @@ import { convertImageUrl } from "../../utils/imageUrlConverter";
 
 const ProfileEdit = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { profile } = useProfile();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [localImageUrl, setLocalImageUrl] = useState<string | null>(null);
@@ -49,7 +51,7 @@ const ProfileEdit = () => {
   });
   const [introductionText, setIntroductionText] = useState("");
   const [profileEmail, setProfileEmail] = useState(profile?.email ?? "");
-  const joinedAtText = "이용중입니다";
+  const joinedAtText = "현재 활동중인 유저 사용자입니다.";
   const [searchParams, setSearchParams] = useSearchParams();
   const [isInstagramModalOpen, setIsInstagramModalOpen] = useState(false);
   const [isTwitterModalOpen, setIsTwitterModalOpen] = useState(false);
@@ -89,6 +91,7 @@ const ProfileEdit = () => {
 
     try {
       await profileAPI.updateProfile({ [key]: value });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
     } catch (error) {
       console.warn("[ProfileEdit] SNS 저장 실패:", error);
     }
@@ -151,6 +154,7 @@ const ProfileEdit = () => {
         twitterId: profileSns.twitterId,
         linkedinId: profileSns.linkedinId,
       });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
       navigate("/profile");
     } catch (error) {
       console.warn("[ProfileEdit] 회원 정보 수정 실패:", error);
