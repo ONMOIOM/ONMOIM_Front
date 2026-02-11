@@ -72,7 +72,7 @@ const ProfileMenu = ({
           </span>
         </button>
       </div>
-      <div className="flex flex-1 flex-col justify-between border-t border-gray-200 px-[31.83px] py-6">
+      <div className="flex flex-1 flex-col gap-6 border-t border-gray-200 px-[31.83px] py-6">
         <button
           type="button"
           className="flex w-full items-center justify-start gap-3 text-left"
@@ -84,7 +84,7 @@ const ProfileMenu = ({
             className="h-[19px] w-[19px]"
             aria-hidden="true"
           />
-          <span className="text-h3 text-[#525252]">같은 행사 참여자 보기</span>
+          <span className="text-h4 text-[#525252]">같은 행사 참여자 보기</span>
         </button>
         <button
           type="button"
@@ -100,7 +100,7 @@ const ProfileMenu = ({
             className="h-[19.1px] w-[19.1px]"
             aria-hidden="true"
           />
-          <span className="text-h3 text-[#525252]">로그아웃</span>
+          <span className="text-h4 text-[#525252]">로그아웃</span>
         </button>
       </div>
     </div>
