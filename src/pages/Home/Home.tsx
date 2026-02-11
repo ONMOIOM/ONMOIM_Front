@@ -77,6 +77,33 @@ const Home = () => {
     return new Set(hostedEvents.map((e) => e.eventId));
   }, [hostedEvents]);
 
+  // 행사 목록을 createdAt 기준 최신순으로 정렬
+  const sortedEvents = useMemo(() => {
+    return [...events].sort((a, b) => {
+      const dateA = new Date(a.createdAt).getTime();
+      const dateB = new Date(b.createdAt).getTime();
+      return dateB - dateA; // 내림차순 (최신이 먼저)
+    });
+  }, [events]);
+
+  const sortedHostedEvents = useMemo(() => {
+    return [...hostedEvents].sort((a, b) => {
+      // startTime이 있으면 startTime 기준, 없으면 맨 뒤로
+      const dateA = a.startTime ? new Date(a.startTime).getTime() : 0;
+      const dateB = b.startTime ? new Date(b.startTime).getTime() : 0;
+      return dateB - dateA; // 내림차순 (최신이 먼저)
+    });
+  }, [hostedEvents]);
+
+  const sortedParticipatedEvents = useMemo(() => {
+    return [...participatedEvents].sort((a, b) => {
+      // startTime이 있으면 startTime 기준, 없으면 맨 뒤로
+      const dateA = a.startTime ? new Date(a.startTime).getTime() : 0;
+      const dateB = b.startTime ? new Date(b.startTime).getTime() : 0;
+      return dateB - dateA; // 내림차순 (최신이 먼저)
+    });
+  }, [participatedEvents]);
+
   const allEventIds = useMemo(() => {
     const ids = new Set<number>();
     participatedEvents.forEach((e) => {
@@ -246,8 +273,8 @@ const Home = () => {
                 {item.key === "search" ? (
                   <>
                     <EventCardRoller>
-                      {events.length > 0
-                        ? events.map((event) => {
+                      {sortedEvents.length > 0
+                        ? sortedEvents.map((event) => {
                             const isMyEvent =
                               myHostedEventIds === null || myHostedEventIds.has(event.eventId);
                             return (
@@ -294,8 +321,8 @@ const Home = () => {
                 ) : item.key === "week" ? (
                   <>
                     <EventCardRoller>
-                      {events.length > 0
-                        ? events
+                      {sortedEvents.length > 0
+                        ? sortedEvents
                             .filter((event) => {
                               const start = event.schedule?.startDate;
                               if (!start) return false;
@@ -352,8 +379,8 @@ const Home = () => {
                 ) : item.key === "hosting" ? (
                   <>
                     <EventCardRoller>
-                      {hostedEvents.length > 0
-                        ? hostedEvents.map((event) => (
+                      {sortedHostedEvents.length > 0
+                        ? sortedHostedEvents.map((event) => (
                             <EventCard
                               key={event.eventId}
                               eventId={event.eventId}
@@ -394,8 +421,8 @@ const Home = () => {
                 ) : item.key === "joined" ? (
                   <>
                     <EventCardRoller>
-                      {participatedEvents.length > 0
-                        ? participatedEvents.map((event) => (
+                      {sortedParticipatedEvents.length > 0
+                        ? sortedParticipatedEvents.map((event) => (
                             <EventCard
                               key={event.eventId}
                               eventId={event.eventId}
