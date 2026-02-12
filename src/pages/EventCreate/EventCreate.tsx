@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { LeftFormPanel } from "./components/LeftFormPanel";
 import { RightFormPanel } from "./components/RightFormPanel";
@@ -9,6 +9,7 @@ import { EventEditorLayout } from "./layout/EventEditorLayout";
 
 export default function EventCreate() {
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
 
   const reset = useEventDraftStore((s) => s.reset);
@@ -23,10 +24,12 @@ export default function EventCreate() {
   const schedule = useEventDraftStore((s) => s.data.schedule);
   const setSchedule = useEventDraftStore((s) => s.setSchedule);
 
-  // 다른 페이지 갔다가 다시 들어오면 폼 기본값으로 초기화 후 새 초안 생성
+  // 다른 페이지 갔다가 다시 들어오면 폼 초기화. 단, 미리보기에서 닫기(수정)로 돌아온 경우는 유지
+  const fromPreview = (location.state as { fromPreview?: boolean } | null)?.fromPreview;
   useEffect(() => {
+    if (fromPreview) return;
     reset();
-  }, [reset]);
+  }, [reset, fromPreview]);
 
   // 행사 생성하기 클릭 시: 초안 생성 API 호출
   useEffect(() => {
@@ -77,7 +80,7 @@ export default function EventCreate() {
             <BottomActionBar
                 left={{
                 label: "미리보기",
-                onClick: () => navigate("/event-create/preview"),
+                onClick: () => navigate("/event-create/preview", { state: { fromPreview: false } }),
                 disabled: !isReady,
                 }}
                 right={{

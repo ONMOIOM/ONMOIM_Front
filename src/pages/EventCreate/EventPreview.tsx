@@ -178,7 +178,7 @@ export default function EventPreview() {
         <BottomActionBar
           left={{
             label: "수정",
-            onClick: () => navigate("/event-create"),
+            onClick: () => navigate("/event-create", { state: { fromPreview: true } }),
           }}
           right={{
             label: publishStatus === "saving" ? "저장 중..." : "저장",
