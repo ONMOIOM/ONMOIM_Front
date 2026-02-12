@@ -29,14 +29,6 @@ function totalParticipants(stats: StatisticsData[]): number {
   return stats.reduce((s, d) => s + d.participantCount, 0);
 }
 
-function avgCompletion(stats: StatisticsData[]): number {
-  if (stats.length === 0) return 0;
-  const sum = stats.reduce((s, d) => s + d.participationRate, 0);
-  const avg = sum / stats.length;
-  const result = avg > 1 ? avg : avg * 100;
-  return Math.min(Math.round(result * 100) / 100, 100);
-}
-
 function avgSessionFormatted(stats: StatisticsData[]): string {
   if (stats.length === 0) return "0:00";
   let totalSec = 0;
@@ -93,7 +85,7 @@ function buildSevenDayChartData(
       name: formatDateForChart(d.toISOString()),
       click: stat?.clickCount ?? 0,
       participation: stat?.participantCount ?? 0,
-      done: stat?.participationRate ?? 0,
+      done: 0, // 그래프에는 완료를 0으로만 표시 (상단 지표만 사용)
       time: sessionSec,
     };
   });
@@ -155,7 +147,6 @@ const Analysis = () => {
   );
   const clickTotal = useMemo(() => totalClicks(stats), [stats]);
   const participantTotal = useMemo(() => totalParticipants(stats), [stats]);
-  const completionPercent = useMemo(() => avgCompletion(stats), [stats]);
   const sessionFormatted = useMemo(() => avgSessionFormatted(stats), [stats]);
 
   const displayEvents = events;
@@ -188,7 +179,7 @@ const Analysis = () => {
           <StatCard
             icon={<img src={finishIcon} alt="" className="h-[100px] w-[90px]" />}
             label="완료"
-            value={stats.length ? `${completionPercent}%` : "0%"}
+            value="0%"
           />
           <StatCard
             icon={<img src={clockIcon} alt="" className="h-[100px] w-[90px]" />}
