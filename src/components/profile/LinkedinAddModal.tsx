@@ -65,10 +65,6 @@ const LinkedinAddModal = ({
             className="flex h-[61px] w-[210px] items-center justify-center rounded-[10px] bg-[#F24148] text-h5 font-semibold text-white"
             onClick={() => {
               const trimmed = linkedinValue.replace("@", "").trim();
-              if (!trimmed) {
-                onClose?.();
-                return;
-              }
               onConfirm?.(trimmed);
               onClose?.();
             }}

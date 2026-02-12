@@ -84,13 +84,14 @@ const ProfileEdit = () => {
     key: "instagramId" | "twitterId" | "linkedinId",
     value: string,
   ) => {
+    const normalized = value.trim() || null;
     setProfileSns((prev) => ({
       ...prev,
-      [key]: value,
+      [key]: normalized,
     }));
 
     try {
-      await profileAPI.updateProfile({ [key]: value });
+      await profileAPI.updateProfile({ [key]: normalized });
       queryClient.invalidateQueries({ queryKey: ["profile"] });
     } catch (error) {
       console.warn("[ProfileEdit] SNS 저장 실패:", error);

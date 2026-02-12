@@ -339,8 +339,8 @@ export const useEventDraftStore = create<EventDraftStore>()(
         set({ informationStatus: "saving", informationError: null });
         try {
           const res = await patchEvent(eventId, {
-            information: data.information.trim() || undefined,
-          });
+            introduction: data.information.trim() || undefined,
+          } as any);
           if (!res.success) throw new Error(res.message ?? "소개글 저장 실패");
 
           set({ informationStatus: "idle" });

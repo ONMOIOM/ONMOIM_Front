@@ -66,6 +66,8 @@ export type EventInfoDetailData = {
   playlistUrl?: string | null;
   capacity?: number | null;
   status: string;
+  /** 정렬용 (API에서 주면 사용) */
+  createdAt?: string | null;
 };
 
 // --- API 함수 구현  ---
