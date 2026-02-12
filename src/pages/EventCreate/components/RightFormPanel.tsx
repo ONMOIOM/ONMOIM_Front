@@ -183,7 +183,7 @@ export const RightFormPanel = ({mode}: Props) => {
                 className="w-[67.5px] h-[67.5px]"
               />
             </div>
-          ) : <div className="bg-[#D9D9D9]"/>
+          ) : <div className="w-full h-full min-h-[200px] rounded-[10px] bg-[#D9D9D9]"/>
         )}
       </button>
 

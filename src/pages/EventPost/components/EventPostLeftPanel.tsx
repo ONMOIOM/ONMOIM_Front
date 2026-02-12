@@ -125,7 +125,14 @@ export const EventPostLeftPanel = forwardRef<EventPostLeftPanelRef, Props>(
             eventRes.message ?? "행사 정보를 불러올 수 없습니다.",
           );
         }
-        setEventData(eventRes.data);
+        const raw = eventRes.data as Record<string, unknown>;
+        const playlistValue =
+          (raw.playlistUrl as string) ?? (raw.playlist as string) ?? "";
+        setEventData({
+          ...eventRes.data,
+          playlistUrl: playlistValue || undefined,
+          playlist: playlistValue || undefined,
+        });
         let participantsData: any[] = [];
         try {
           const participantsRes = await getEventParticipation(eventId);

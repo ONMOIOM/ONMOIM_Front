@@ -15,6 +15,7 @@ type Props = {
 
 export const EventPostRightPanel = ({ eventId, isMyEvent, onParticipationChange }: Props) => {
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
+  const [imageLoadError, setImageLoadError] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const fileRef = useRef<HTMLInputElement | null>(null);
@@ -26,6 +27,7 @@ export const EventPostRightPanel = ({ eventId, isMyEvent, onParticipationChange 
         const res = await getEvent(eventId);
         if (res.success && res.data?.imageUrl) {
           const convertedUrl = convertImageUrl(res.data.imageUrl);
+          setImageLoadError(false);
           setCoverImageUrl(convertedUrl || null);
         }
       } catch (error) {
@@ -66,6 +68,7 @@ export const EventPostRightPanel = ({ eventId, isMyEvent, onParticipationChange 
 
       // 임시 미리보기 URL 생성
       const tempUrl = URL.createObjectURL(file);
+      setImageLoadError(false);
       setCoverImageUrl(tempUrl);
 
       // API 호출하여 이미지 업로드
@@ -79,6 +82,7 @@ export const EventPostRightPanel = ({ eventId, isMyEvent, onParticipationChange 
         
         // 임시 URL 해제하고 서버 URL로 교체
         URL.revokeObjectURL(tempUrl);
+        setImageLoadError(false);
         setCoverImageUrl(convertedUrl);
       } else {
         // 업로드 실패 시 임시 URL 제거
@@ -131,13 +135,14 @@ export const EventPostRightPanel = ({ eventId, isMyEvent, onParticipationChange 
             <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-[#525252]" />
             <span className="text-[16px]">업로드 중...</span>
           </div>
-        ) : hasImage ? (
-          // 사진 있을 때
+        ) : hasImage && !imageLoadError ? (
+          // 사진 있을 때 (로드 실패 시 플레이스홀더로 대체)
           <>
             <img
               src={coverImageUrl}
               alt="cover"
               className="absolute inset-0 w-full h-full object-cover rounded-[10px]"
+              onError={() => setImageLoadError(true)}
             />
 
             {/* 본인 행사일 때, 수정하기 버튼 */}

@@ -47,7 +47,15 @@ const EventCard = ({
   const queryClient = useQueryClient();
   const [menuOpen, setMenuOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const cardRef = useRef<HTMLElement>(null);
+
+  // imageUrl이 바뀌면 로드 상태 초기화
+  useEffect(() => {
+    setImageLoaded(false);
+    setImageError(false);
+  }, [imageUrl]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -84,13 +92,15 @@ const EventCard = ({
       onClick={handleCardClick}
       className="relative flex h-[379px] w-[456px] shrink-0 flex-col overflow-visible rounded-8 bg-gray-0 shadow-[0_2px_8px_rgba(0,0,0,0.08)] cursor-pointer hover:shadow-[0_4px_12px_rgba(0,0,0,0.12)] transition-shadow"
     >
-      {/* 상단 이미지 영역 (Rectangle 4364) - 메뉴가 나오므로 overflow-visible */}
-      <div className="relative h-[256px] w-[456px] shrink-0 overflow-visible rounded-t-8 bg-[#E0E0E0]">
+      {/* 상단 이미지 영역 - 로드 성공 시에만 img 노출, 실패/미로드 시 원색만 보여서 엑박 미노출 */}
+      <div className="relative h-[256px] w-[456px] shrink-0 overflow-hidden rounded-t-8 bg-[#E0E0E0]">
         {imageUrl ? (
           <img
             src={imageUrl}
             alt=""
-            className="h-full w-full object-cover rounded-t-8"
+            className={`h-full w-full object-cover rounded-t-8 transition-opacity ${imageLoaded && !imageError ? "opacity-100" : "opacity-0"}`}
+            onLoad={() => setImageLoaded(true)}
+            onError={() => setImageError(true)}
           />
         ) : null}
 
