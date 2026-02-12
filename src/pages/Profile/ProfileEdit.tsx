@@ -175,10 +175,16 @@ const ProfileEdit = () => {
           lastName: parts[0],
           firstName: parts.slice(1).join(" "),
         });
+      } else if (baseName.length >= 2) {
+        // 저장 시 lastName+firstName 으로 붙여서 보냈을 때 공백 없으면 복원: 첫 글자=성, 나머지=이름
+        setProfileName({
+          lastName: baseName.slice(0, 1),
+          firstName: baseName.slice(1),
+        });
       } else {
         setProfileName({
           lastName: "",
-          firstName: parts[0],
+          firstName: baseName,
         });
       }
     }
@@ -299,7 +305,11 @@ const ProfileEdit = () => {
           <button
             type="button"
             className="mt-[13px] w-[485px] text-center text-h3 text-[#FB2C36]"
-            onClick={() => navigate("/profile/withdraw")}
+            onClick={() => {
+              if (window.confirm("정말 탈퇴하시겠습니까?")) {
+                navigate("/profile/withdraw");
+              }
+            }}
           >
             탈퇴하기
           </button>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, memo } from "react";
 
 import emptyParticipantsIcon from "../../assets/images/supervised_user_circle_off.png";
 import JoinUserCard from "../Home/components/JoinUserCard";
@@ -19,7 +19,18 @@ type Participant = {
   profileImageUrl?: string;
 };
 
-const EventParticipants = () => {
+/** 이전 목록과 동일하면 true (참조 갱신 방지로 불필요한 리렌더 방지) */
+function isSameParticipants(a: Participant[], b: Participant[]): boolean {
+  if (a.length !== b.length) return false;
+  return a.every(
+    (p, i) =>
+      p.userId === b[i].userId &&
+      p.name === b[i].name &&
+      (p.profileImageUrl ?? p.imageUrl) === (b[i].profileImageUrl ?? b[i].imageUrl),
+  );
+}
+
+const EventParticipantsInner = () => {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -87,9 +98,12 @@ const EventParticipants = () => {
             // 무시
           }
         }
-        setParticipants(Array.from(map.values()));
+        const next = Array.from(map.values());
+        setParticipants((prev) =>
+          isSameParticipants(prev, next) ? prev : next,
+        );
       } catch {
-        setParticipants([]);
+        setParticipants((prev) => (prev.length === 0 ? prev : []));
       } finally {
         setLoading(false);
       }
@@ -97,7 +111,10 @@ const EventParticipants = () => {
     load();
   }, []);
 
-  const isEmpty = participants.length === 0;
+  const isEmpty = useMemo(
+    () => participants.length === 0,
+    [participants.length],
+  );
 
   return (
     <div className="min-h-screen pl-[107px]">
@@ -146,4 +163,5 @@ const EventParticipants = () => {
   );
 };
 
+const EventParticipants = memo(EventParticipantsInner);
 export default EventParticipants;

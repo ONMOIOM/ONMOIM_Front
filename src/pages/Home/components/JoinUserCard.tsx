@@ -4,7 +4,7 @@
  * 하단: 이름 + SNS 아이콘 (123px, EventCard 하단과 동일)
  */
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import instagramIcon from "../../../assets/icons/icons_instagram.svg";
 import linkedinIcon from "../../../assets/icons/icons_linkedin.svg";
@@ -22,7 +22,7 @@ export interface JoinUserCardProps {
 
 const ICON_SIZE_PX = 29;
 
-const JoinUserCard = ({ name, imageUrl, userId }: JoinUserCardProps) => {
+const JoinUserCardInner = ({ name, imageUrl, userId }: JoinUserCardProps) => {
   const navigate = useNavigate();
   const [imageError, setImageError] = useState(false);
   
@@ -85,4 +85,5 @@ const JoinUserCard = ({ name, imageUrl, userId }: JoinUserCardProps) => {
   );
 };
 
+const JoinUserCard = memo(JoinUserCardInner);
 export default JoinUserCard;
