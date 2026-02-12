@@ -1,7 +1,7 @@
 /**
- * JoinUserCard - 같은 행사에 참여한 분들 카드 (Figma Rectangle 4367 + 4372)
- * 상단: 프로필 플레이스홀더 (284×231, #D9D9D9, 상단만 20px 라운드)
- * 하단: 이름(우상단) + SNS 아이콘(하단 18px, 좌측 인스타 기준 20px, 아이콘 간격 12px, 29×29)
+ * JoinUserCard - 같은 행사에 참여한 분들 카드 (EventCard와 동일 크기: 456×379)
+ * 상단: 프로필 영역 256px (EventCard 이미지 높이와 동일)
+ * 하단: 이름 + SNS 아이콘 (123px, EventCard 하단과 동일)
  */
 
 import { useState } from "react";
@@ -34,12 +34,12 @@ const JoinUserCard = ({ name, imageUrl, userId }: JoinUserCardProps) => {
   };
 
   return (
-    <article 
-      className="flex w-[285px] shrink-0 flex-col cursor-pointer hover:opacity-80 transition-opacity"
+    <article
+      className="flex h-[379px] w-[456px] shrink-0 flex-col cursor-pointer overflow-hidden rounded-8 bg-gray-0 shadow-[0_2px_8px_rgba(0,0,0,0.08)] hover:opacity-90 hover:shadow-[0_4px_12px_rgba(0,0,0,0.12)] transition-all"
       onClick={handleCardClick}
     >
-      {/* 상단: 프로필 영역 (Rectangle 4367) - 284×231, #D9D9D9, 20px 20px 0 0 */}
-      <div className="flex h-[231px] w-[285px] shrink-0 items-center justify-center overflow-hidden rounded-t-[20px] bg-[#D9D9D9]">
+      {/* 상단: 프로필 영역 - EventCard 이미지와 동일 456×256, rounded-t-8 */}
+      <div className="flex h-[256px] w-[456px] shrink-0 items-center justify-center overflow-hidden rounded-t-8 bg-[#E0E0E0]">
         {convertedImageUrl && !imageError ? (
           <img
             src={convertedImageUrl}
@@ -52,13 +52,12 @@ const JoinUserCard = ({ name, imageUrl, userId }: JoinUserCardProps) => {
         ) : null}
       </div>
 
-      {/* 하단: 이름(상단 19px, 우측 20px) + SNS 아이콘(하단 18px, 좌측 20px, 간격 12px, 29×29) */}
-      <div className="relative flex h-[107px] w-[285px] shrink-0 rounded-b-[20px] border border-t-0 border-[#D9D9D9] bg-white">
-        {/* H5_semiBold: 20px, 600, #1A1A1A → gray-900 토큰 사용 */}
-        <p className="absolute right-5 top-[19px] text-[20px] font-semibold leading-normal text-gray-900">
+      {/* 하단: EventCard와 동일 높이 123px, 이름 + SNS 아이콘 */}
+      <div className="relative flex min-h-[123px] flex-col justify-between px-4 py-4 rounded-b-8 border border-t-0 border-[#D9D9D9] bg-white">
+        <p className="text-[20px] font-semibold leading-normal text-gray-900 truncate">
           {name}
         </p>
-        <div className="absolute bottom-[18px] left-5 flex items-center gap-3">
+        <div className="flex items-center gap-3 mt-2">
           <img
             src={instagramIcon}
             alt="Instagram"

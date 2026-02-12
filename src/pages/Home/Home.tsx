@@ -18,7 +18,7 @@ import useProfile from "../../hooks/useProfile";
 import { formatEventDateTime } from "../../utils/formatDate";
 import AddEventCard from "./components/AddEventCard";
 import EventCard from "./components/EventCard";
-import EventCardRoller from "./components/EventCardCarousel.tsx";
+import EventCardRoller, { HorizontalWheelScroll } from "./components/EventCardCarousel.tsx";
 import JoinUserCard from "./components/JoinUserCard";
 import ParticipantSectionArrows from "./components/ParticipantSectionArrows";
 
@@ -344,7 +344,7 @@ const Home = () => {
                       </h2>
                       <ParticipantSectionArrows />
                     </div>
-                    <div className="mt-[42px] mb-[100px] flex flex-wrap gap-x-[54px] gap-y-[36px]">
+                    <HorizontalWheelScroll className="mt-[42px] mb-[100px] w-[1800px] max-w-[calc(100vw-200px)] flex flex-nowrap gap-x-[54px] overflow-x-auto">
                       {coParticipants.length > 0
                         ? coParticipants.map((p) => (
                             <JoinUserCard
@@ -355,7 +355,7 @@ const Home = () => {
                             />
                           ))
                         : null}
-                    </div>
+                    </HorizontalWheelScroll>
                   </>
                 ) : item.key === "week" ? (
                   <>
@@ -405,7 +405,7 @@ const Home = () => {
                       </h2>
                       <ParticipantSectionArrows />
                     </div>
-                    <div className="mt-[42px] flex flex-wrap gap-x-[54px] gap-y-[36px]">
+                    <HorizontalWheelScroll className="mt-[42px] w-[1800px] max-w-[calc(100vw-200px)] flex flex-nowrap gap-x-[54px] overflow-x-auto">
                       {coParticipants.length > 0
                         ? coParticipants.map((p) => (
                             <JoinUserCard
@@ -416,7 +416,7 @@ const Home = () => {
                             />
                           ))
                         : null}
-                    </div>
+                    </HorizontalWheelScroll>
                   </>
                 ) : item.key === "hosting" ? (
                   <>
@@ -447,7 +447,7 @@ const Home = () => {
                       </h2>
                       <ParticipantSectionArrows />
                     </div>
-                    <div className="mt-[42px] mb-[100px] flex flex-wrap gap-x-[54px] gap-y-[36px]">
+                    <HorizontalWheelScroll className="mt-[42px] mb-[100px] w-[1800px] max-w-[calc(100vw-200px)] flex flex-nowrap gap-x-[54px] overflow-x-auto">
                       {coParticipants.length > 0
                         ? coParticipants.map((p) => (
                             <JoinUserCard
@@ -458,7 +458,7 @@ const Home = () => {
                             />
                           ))
                         : null}
-                    </div>
+                    </HorizontalWheelScroll>
                   </>
                 ) : item.key === "joined" ? (
                   <>
@@ -489,7 +489,7 @@ const Home = () => {
                       </h2>
                       <ParticipantSectionArrows />
                     </div>
-                    <div className="mt-[42px] mb-[100px] flex flex-wrap gap-x-[54px] gap-y-[36px]">
+                    <HorizontalWheelScroll className="mt-[42px] mb-[100px] w-[1800px] max-w-[calc(100vw-200px)] flex flex-nowrap gap-x-[54px] overflow-x-auto">
                       {coParticipants.length > 0
                         ? coParticipants.map((p) => (
                             <JoinUserCard
@@ -500,7 +500,7 @@ const Home = () => {
                             />
                           ))
                         : null}
-                    </div>
+                    </HorizontalWheelScroll>
                   </>
                 ) : (
                   <p className="mt-6 text-gray-600">

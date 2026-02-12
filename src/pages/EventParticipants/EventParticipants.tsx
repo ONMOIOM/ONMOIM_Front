@@ -130,7 +130,7 @@ const EventParticipants = () => {
             </p>
           </div>
         ) : (
-          <div className="w-full max-w-[1210px] grid grid-cols-4 gap-x-[54px] gap-y-[36px]">
+          <div className="w-full max-w-[1476px] grid grid-cols-3 gap-x-[54px] gap-y-[48px]">
             {participants.map((participant) => (
               <JoinUserCard
                 key={participant.userId}
