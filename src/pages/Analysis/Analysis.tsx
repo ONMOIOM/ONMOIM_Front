@@ -81,11 +81,15 @@ function buildSevenDayChartData(
     const sessionSec = stat
       ? stat.avgSession.minutes * 60 + stat.avgSession.seconds
       : 0;
+    const click = stat?.clickCount ?? 0;
+    const participation = stat?.participantCount ?? 0;
+    const done =
+      click > 0 ? Math.round((participation / click) * 10000) / 100 : 0;
     return {
       name: formatDateForChart(d.toISOString()),
-      click: stat?.clickCount ?? 0,
-      participation: stat?.participantCount ?? 0,
-      done: 0, // 그래프에는 완료를 0으로만 표시 (상단 지표만 사용)
+      click,
+      participation,
+      done,
       time: sessionSec,
     };
   });
@@ -147,6 +151,11 @@ const Analysis = () => {
   );
   const clickTotal = useMemo(() => totalClicks(stats), [stats]);
   const participantTotal = useMemo(() => totalParticipants(stats), [stats]);
+  /** 참여율(%) = (참여 여부 클릭 수 / 링크 클릭 수) × 100 */
+  const participationRatePercent = useMemo(() => {
+    if (clickTotal === 0) return 0;
+    return Math.round((participantTotal / clickTotal) * 10000) / 100;
+  }, [clickTotal, participantTotal]);
   const sessionFormatted = useMemo(() => avgSessionFormatted(stats), [stats]);
 
   const displayEvents = events;
@@ -178,8 +187,8 @@ const Analysis = () => {
           />
           <StatCard
             icon={<img src={finishIcon} alt="" className="h-[100px] w-[90px]" />}
-            label="완료"
-            value="0%"
+            label="참여율"
+            value={`${participationRatePercent}%`}
           />
           <StatCard
             icon={<img src={clockIcon} alt="" className="h-[100px] w-[90px]" />}

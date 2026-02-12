@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-/** 범례 아이콘 색 (디자인 토큰), 순서: 링크 클릭수, 참여, 완료, 평균 세션시간 */
+/** 범례 아이콘 색 (디자인 토큰), 순서: 링크 클릭수, 참여, 참여율, 평균 세션시간 */
 const LEGEND_COLORS = [
   "var(--color-gray-300)",
   "var(--color-link-guide)",
@@ -34,7 +34,7 @@ const BAR_SERIES_CONFIG = [
   },
   {
     dataKey: "done",
-    name: "완료",
+    name: "참여율",
     fill: "var(--color-link-correct)",
     yAxisId: "left",
   },
@@ -73,6 +73,7 @@ function CustomTooltip({
       const s = Math.floor(value % 60);
       return `${m}:${s.toString().padStart(2, "0")}`;
     }
+    if (name === "참여율") return `${value}%`;
     return String(value);
   };
 
