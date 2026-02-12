@@ -2,6 +2,8 @@ import {
   useState,
   useEffect,
   useRef,
+  useMemo,
+  useCallback,
   useImperativeHandle,
   forwardRef,
 } from "react";
@@ -87,6 +89,31 @@ export const EventPostLeftPanel = forwardRef<EventPostLeftPanelRef, Props>(
     const [editValue, setEditValue] = useState("");
     const [openModal, setOpenModal] = useState<ModalKey>(null);
     const saveInProgress = useRef(false);
+
+    const handleCloseParticipantsModal = useCallback(() => {
+      setShowParticipantsModal(false);
+    }, []);
+
+    const participantsForModal = useMemo(() => {
+      return participants.map((p) => {
+        let status: "going" | "pending" | "declined" = "pending";
+        if (p.status === "ATTEND") status = "going";
+        else if (p.status === "PENDING") status = "pending";
+        else if (p.status === "ABSENT") status = "declined";
+        const participantName = (p as any).nickname || (p as any).name || "";
+        const rawUrl = (p as any).profileImageUrl || (p as any).imageUrl;
+        const profileImageUrl =
+          rawUrl && String(rawUrl).trim()
+            ? convertImageUrl(rawUrl)
+            : undefined;
+        return {
+          id: String(p.userId),
+          name: participantName,
+          status,
+          profileImageUrl,
+        };
+      });
+    }, [participants]);
 
     const fetchData = async () => {
       setLoading(true);
@@ -503,6 +530,9 @@ export const EventPostLeftPanel = forwardRef<EventPostLeftPanelRef, Props>(
                             src={resolved}
                             alt={participant.nickname}
                             className="h-full w-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = participant_icon;
+                            }}
                           />
                         ) : (
                           <img
@@ -669,29 +699,8 @@ export const EventPostLeftPanel = forwardRef<EventPostLeftPanelRef, Props>(
         />
         <ParticipantsModal
           open={showParticipantsModal}
-          onClose={() => setShowParticipantsModal(false)}
-          participants={participants.map((p) => {
-            // API status를 모달 형식으로 변환
-            let status: "going" | "pending" | "declined" = "pending";
-            if (p.status === "ATTEND") status = "going";
-            else if (p.status === "PENDING") status = "pending";
-            else if (p.status === "ABSENT") status = "declined";
-
-            // API 응답은 nickname 필드를 사용 (OpenAPI 스펙 확인)
-            const participantName = (p as any).nickname || (p as any).name || "";
-
-            const rawUrl = (p as any).profileImageUrl || (p as any).imageUrl;
-            const profileImageUrl =
-              rawUrl && String(rawUrl).trim()
-                ? convertImageUrl(rawUrl)
-                : undefined;
-            return {
-              id: String(p.userId),
-              name: participantName,
-              status,
-              profileImageUrl,
-            };
-          })}
+          onClose={handleCloseParticipantsModal}
+          participants={participantsForModal}
         />
       </div>
     );
