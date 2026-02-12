@@ -34,14 +34,14 @@ paths:
               email: "user@example.com"
               turnstileToken: "0.4n38..."
       responses:
-        '200':
+        "200":
           description: 인증 메일 발송 성공
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  isSuccess:
+                  success:
                     type: boolean
                     example: true
                   code:
@@ -50,7 +50,7 @@ paths:
                   message:
                     type: string
                     example: "성공입니다."
-                  result:
+                  data:
                     type: object
                     properties:
                       email:
@@ -60,27 +60,30 @@ paths:
                       sentAt:
                         type: string
                         format: date-time
-                        example: "2026-01-21T22:16:39"
-                      expireAt:
-                        type: string
-                        format: date-time
-                        example: "2026-01-21T22:46:39"
+                        example: "2026-02-09T11:04:49.688Z"
+                      expiresInSeconds:
+                        type: integer
+                        example: 300
+                      isRegistered:
+                        type: boolean
+                        example: true
               example:
-                isSuccess: true
-                code: "COMMON200"
-                message: "성공입니다."
-                result:
+                success: true
+                code: "string"
+                message: "string"
+                data:
                   email: "user@example.com"
-                  sentAt: "2026-01-21T22:16:39"
-                  expireAt: "2026-01-21T22:46:39"
-        '400':
+                  sentAt: "2026-02-09T11:04:49.688Z"
+                  expiresInSeconds: 300
+                  isRegistered: true
+        "400":
           description: Bad Request
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  isSuccess:
+                  success:
                     type: boolean
                     example: false
                   code:
@@ -101,23 +104,30 @@ paths:
             schema:
               type: object
               required:
+                - email
                 - code
               properties:
+                email:
+                  type: string
+                  format: email
+                  description: 이메일 주소
+                  example: "user@example.com"
                 code:
                   type: string
                   description: 이메일로 발송된 인증 코드
                   example: "123456"
             example:
+              email: "user@example.com"
               code: "123456"
       responses:
-        '200':
+        "200":
           description: 이메일 인증 성공
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  isSuccess:
+                  success:
                     type: boolean
                     example: true
                   code:
@@ -126,7 +136,7 @@ paths:
                   message:
                     type: string
                     example: "이메일 인증이 성공적으로 완료되었습니다."
-                  result:
+                  data:
                     type: object
                     properties:
                       email:
@@ -136,26 +146,72 @@ paths:
                       verifiedAt:
                         type: string
                         format: date-time
-                        example: "2026-01-21T22:20:05"
+                        example: "2026-01-21T22:20:05Z"
                       status:
                         type: string
                         example: "VERIFIED"
               example:
-                isSuccess: true
+                success: true
                 code: "COMMON200"
                 message: "이메일 인증이 성공적으로 완료되었습니다."
-                result:
+                data:
                   email: "user@example.com"
-                  verifiedAt: "2026-01-21T22:20:05"
+                  verifiedAt: "2026-01-21T22:20:05Z"
                   status: "VERIFIED"
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  isSuccess:
+                  success:
+                    type: boolean
+                    example: false
+                  code:
+                    type: string
+                  message:
+                    type: string
+
+  /api/v1/auth/refresh:
+    post:
+      summary: RefreshToken 재발급
+      description: AccessToken 만료 시 RefreshToken을 사용해 AccessToken과 RefreshToken을 재발급합니다.
+      tags:
+        - auth
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  code:
+                    type: string
+                    example: "string"
+                  message:
+                    type: string
+                    example: "string"
+                  data:
+                    type: string
+                    description: 새로운 AccessToken
+              example:
+                success: true
+                code: "string"
+                message: "string"
+                data: "string"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
                     type: boolean
                     example: false
                   code:
@@ -167,7 +223,7 @@ paths:
   /api/v1/users/login:
     post:
       summary: 로그인
-      description: 이메일과 인증코드를 받아 로그인 또는 회원가입 처리. 기존 회원 정보가 없다면 회원가입, 있다면 로그인
+      description: 사용자 로그인을 처리합니다
       tags:
         - member
       requestBody:
@@ -178,21 +234,21 @@ paths:
               type: object
               required:
                 - email
-                - authcode
+                - authCode
               properties:
                 email:
                   type: string
                   format: email
-                  example: "example@naver.com"
-                authcode:
+                  example: "test@example.com"
+                authCode:
                   type: string
                   example: "123456"
             example:
-              email: "example@naver.com"
-              authcode: "123456"
+              email: "test@example.com"
+              authCode: "123456"
       responses:
-        '200':
-          description: 성공 응답
+        "200":
+          description: OK
           content:
             application/json:
               schema:
@@ -203,31 +259,32 @@ paths:
                     example: true
                   code:
                     type: string
-                    description: MEMBER_2000 (회원가입) 또는 MEMBER_2001 (로그인)
-                    example: "MEMBER_2001"
+                    example: "string"
                   message:
                     type: string
-                    example: "로그인이 성공적으로 처리되었습니다."
+                    example: "string"
                   data:
-                    type: array
-                    items: {}
-                    example: []
-              examples:
-                signup:
-                  summary: 회원가입 성공
-                  value:
-                    success: true
-                    code: "MEMBER_2000"
-                    message: "회원가입이 성공적으로 처리되었습니다."
-                    data: []
-                login:
-                  summary: 로그인 성공
-                  value:
-                    success: true
-                    code: "MEMBER_2001"
-                    message: "로그인이 성공적으로 처리되었습니다."
-                    data: []
-        '400':
+                    type: object
+                    properties:
+                      email:
+                        type: string
+                        example: "test@example.com"
+                      authCode:
+                        type: string
+                        example: "123456"
+                      accessToken:
+                        type: string
+                        description: 인증용 토큰 (목서버/실제 백엔드 공통)
+                        example: "mock_access_token_123"
+              example:
+                success: true
+                code: "string"
+                message: "string"
+                data:
+                  email: "test@example.com"
+                  authCode: "123456"
+                  accessToken: "mock_access_token_123"
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -245,17 +302,35 @@ paths:
                     type: array
                     items: {}
 
-  /api/v1/users:
-    get:
-      summary: 회원 조회
-      description: 회원 정보를 조회합니다
+  /api/v1/users/signup:
+    post:
+      summary: 회원가입
+      description: 새로운 사용자를 등록합니다
       tags:
         - member
-      security:
-        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - authCode
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: "test@example.com"
+                authCode:
+                  type: string
+                  example: "123456"
+            example:
+              email: "test@example.com"
+              authCode: "123456"
       responses:
-        '200':
-          description: 회원 조회 성공
+        "200":
+          description: OK
           content:
             application/json:
               schema:
@@ -266,76 +341,140 @@ paths:
                     example: true
                   code:
                     type: string
-                    example: "MEMBER_2004"
+                    example: "string"
                   message:
                     type: string
-                    example: "회원 조회가 성공적으로 처리되었습니다."
+                    example: "string"
                   data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        memberId:
-                          type: integer
-                          example: 1
-                        username:
-                          type: string
-                          example: "testuser"
-                        nickname:
-                          type: string
-                          example: "테스트닉"
-                        introduction:
-                          type: string
-                          example: "안녕하세요!"
-                        status:
-                          type: string
-                          example: "ACTIVE"
-                        instagramId:
-                          type: string
-                          nullable: true
-                          example: "test_insta"
-                        twitterId:
-                          type: string
-                          nullable: true
-                          example: null
-                        linkedinId:
-                          type: string
-                          nullable: true
-                          example: null
-                        createdAt:
-                          type: string
-                          format: date-time
-                          example: "2026-01-01T10:00:00"
-                        updatedAt:
-                          type: string
-                          format: date-time
-                          example: "2026-01-21T18:00:00"
-                        email:
-                          type: string
-                          format: email
-                          example: "test@example.com"
-                        imageUrl:
-                          type: string
-                          format: uri
-                          example: "https://example.com/profile/1.jpg"
+                    type: object
+                    properties:
+                      email:
+                        type: string
+                        example: "test@example.com"
+                      authCode:
+                        type: string
+                        example: "123456"
               example:
                 success: true
-                code: "MEMBER_2004"
-                message: "회원 조회가 성공적으로 처리되었습니다."
+                code: "string"
+                message: "string"
                 data:
-                  - memberId: 1
-                    username: "testuser"
-                    nickname: "테스트닉"
-                    introduction: "안녕하세요!"
-                    status: "ACTIVE"
-                    instagramId: "test_insta"
-                    twitterId: null
-                    linkedinId: null
-                    createdAt: "2026-01-01T10:00:00"
-                    updatedAt: "2026-01-21T18:00:00"
-                    email: "test@example.com"
-                    imageUrl: "https://example.com/profile/1.jpg"
-        '400':
+                  email: "test@example.com"
+                  authCode: "123456"
+
+  /api/v1/users/profile-image:
+    post:
+      summary: 프로필 이미지 변경
+      description: 프로필 이미지만 변경합니다. 이미지 파일은 10MB 이하의 JPG, PNG, GIF만 지원합니다.
+      tags:
+        - member
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - image
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: 업로드할 이미지 파일 (최대 10MB, 이미지 형식만)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  code:
+                    type: string
+                    example: "string"
+                  message:
+                    type: string
+                    example: "string"
+                  data:
+                    type: string
+                    example: "string"
+              example:
+                success: true
+                code: "string"
+                message: "string"
+                data: "string"
+
+  /api/v1/users:
+    get:
+      summary: 회원 조회
+      description: 가입된 사용자 정보를 조회합니다
+      tags:
+        - member
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  code:
+                    type: string
+                    example: "string"
+                  message:
+                    type: string
+                    example: "string"
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 0
+                      email:
+                        type: string
+                        example: "string"
+                      nickname:
+                        type: string
+                        example: "string"
+                      introduction:
+                        type: string
+                        example: "string"
+                      instagramId:
+                        type: string
+                        example: "string"
+                      twitterId:
+                        type: string
+                        example: "string"
+                      linkedinId:
+                        type: string
+                        example: "string"
+                      profileImageUrl:
+                        type: string
+                        example: "string"
+              example:
+                success: true
+                code: "string"
+                message: "string"
+                data:
+                  id: 0
+                  email: "string"
+                  nickname: "string"
+                  introduction: "string"
+                  instagramId: "string"
+                  twitterId: "string"
+                  linkedinId: "string"
+                  profileImageUrl: "string"
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -352,7 +491,7 @@ paths:
                   data:
                     type: array
                     items: {}
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -369,79 +508,43 @@ paths:
                   data:
                     type: array
                     items: {}
-    post:
-      summary: 회원정보 수정
-      description: 회원 정보를 수정합니다
+    patch:
+      summary: 내 프로필 수정
+      description: 닉네임, 소개말, 소셜링크 부분 업데이트 / 변경하지 않을 필드는 null 또는 생략 / 본인 정보만 수정 가능
       tags:
         - member
       security:
         - bearerAuth: []
       requestBody:
-        required: true
         content:
           application/json:
             schema:
               type: object
               properties:
-                memberId:
-                  type: integer
-                  example: 1
-                username:
-                  type: string
-                  example: "testuser"
                 nickname:
                   type: string
-                  example: "테스트닉"
+                  example: "string"
                 introduction:
                   type: string
-                  example: "안녕하세요!"
-                status:
-                  type: string
-                  example: "ACTIVE"
+                  example: "string"
                 instagramId:
                   type: string
-                  nullable: true
-                  example: "test_insta"
+                  example: "string"
                 twitterId:
                   type: string
-                  nullable: true
-                  example: null
+                  example: "string"
                 linkedinId:
                   type: string
-                  nullable: true
-                  example: null
-                createdAt:
-                  type: string
-                  format: date-time
-                  example: "2026-01-01T10:00:00"
-                updatedAt:
-                  type: string
-                  format: date-time
-                  example: "2026-01-21T18:00:00"
-                email:
-                  type: string
-                  format: email
-                  example: "test@example.com"
-                imageUrl:
-                  type: string
-                  format: uri
-                  example: "https://example.com/profile/1.jpg"
+                  example: "string"
             example:
-              memberId: 1
-              username: "testuser"
-              nickname: "테스트닉"
-              introduction: "안녕하세요!"
-              status: "ACTIVE"
-              instagramId: "test_insta"
-              twitterId: null
-              linkedinId: null
-              createdAt: "2026-01-01T10:00:00"
-              updatedAt: "2026-01-21T18:00:00"
-              email: "test@example.com"
-              imageUrl: "https://example.com/profile/1.jpg"
+              nickname: "string"
+              introduction: "string"
+              instagramId: "string"
+              twitterId: "string"
+              linkedinId: "string"
       responses:
-        '200':
-          description: 회원정보 수정 성공
+        "200":
+          description: OK
           content:
             application/json:
               schema:
@@ -452,20 +555,51 @@ paths:
                     example: true
                   code:
                     type: string
-                    example: "MEMBER_2002"
+                    example: "string"
                   message:
                     type: string
-                    example: "회원정보 수정이 성공적으로 처리되었습니다."
+                    example: "string"
                   data:
-                    type: array
-                    items: {}
-                    example: []
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 0
+                      email:
+                        type: string
+                        example: "string"
+                      nickname:
+                        type: string
+                        example: "string"
+                      introduction:
+                        type: string
+                        example: "string"
+                      instagramId:
+                        type: string
+                        example: "string"
+                      twitterId:
+                        type: string
+                        example: "string"
+                      linkedinId:
+                        type: string
+                        example: "string"
+                      profileImageUrl:
+                        type: string
+                        example: "string"
               example:
                 success: true
-                code: "MEMBER_2002"
-                message: "회원정보 수정이 성공적으로 처리되었습니다."
-                data: []
-        '400':
+                code: "string"
+                message: "string"
+                data:
+                  id: 0
+                  email: "string"
+                  nickname: "string"
+                  introduction: "string"
+                  instagramId: "string"
+                  twitterId: "string"
+                  linkedinId: "string"
+                  profileImageUrl: "string"
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -482,7 +616,7 @@ paths:
                   data:
                     type: array
                     items: {}
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -507,8 +641,8 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
-          description: 회원 탈퇴 성공
+        "200":
+          description: OK
           content:
             application/json:
               schema:
@@ -519,20 +653,19 @@ paths:
                     example: true
                   code:
                     type: string
-                    example: "MEMBER_200"
+                    example: "string"
                   message:
                     type: string
-                    example: "탈퇴가 성공적으로 처리되었습니다."
+                    example: "string"
                   data:
-                    type: array
-                    items: {}
-                    example: []
+                    type: object
+                    example: {}
               example:
                 success: true
-                code: "MEMBER_200"
-                message: "탈퇴가 성공적으로 처리되었습니다."
-                data: []
-        '400':
+                code: "string"
+                message: "string"
+                data: {}
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -549,7 +682,7 @@ paths:
                   data:
                     type: array
                     items: {}
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -570,22 +703,23 @@ paths:
   # --- Analytics 관련 API ---
   /api/v1/analytics/total:
     get:
-      summary: 통계 값 획득
-      description: 이벤트 통계 정보를 조회합니다
+      summary: 일주일치 통계 자료 획득
+      description: 일주일치 통계자료를 일별로 획득합니다
       tags:
         - analytics
       security:
         - bearerAuth: []
       parameters:
-        - name: Event_id
+        - name: eventId
           in: query
           required: true
           description: 이벤트 ID
           schema:
             type: integer
-            example: 100
+            format: int64
+            example: 1
       responses:
-        '200':
+        "200":
           description: 통계 조회 성공
           content:
             application/json:
@@ -602,98 +736,95 @@ paths:
                     type: string
                     example: "통계 조회가 성공적으로 처리되었습니다."
                   data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        eventId:
-                          type: integer
-                          example: 123
-                        stats:
-                          type: array
-                          items:
-                            type: object
-                            properties:
-                              date:
-                                type: string
-                                format: date
-                                example: "2026-01-15"
-                              clickCount:
-                                type: integer
-                                example: 120
-                              participantCount:
-                                type: integer
-                                example: 110
-                              avgSession:
-                                type: object
-                                properties:
-                                  minutes:
-                                    type: integer
-                                    example: 5
-                                  seconds:
-                                    type: integer
-                                    example: 15
-                              participationRate:
-                                type: number
-                                format: float
-                                example: 43.5
+                    type: object
+                    properties:
+                      eventId:
+                        type: integer
+                        format: int64
+                        example: 0
+                      stats:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            date:
+                              type: string
+                              example: "2026-02-09"
+                            clickCount:
+                              type: integer
+                              example: 0
+                            participantCount:
+                              type: integer
+                              example: 0
+                            avgSession:
+                              type: object
+                              properties:
+                                minutes:
+                                  type: integer
+                                  example: 0
+                                seconds:
+                                  type: integer
+                                  example: 0
+                            participationRate:
+                              type: number
+                              example: 0
               example:
                 success: true
-                code: "STATS_200"
-                message: "통계 조회가 성공적으로 처리되었습니다."
+                code: "string"
+                message: "string"
                 data:
-                  - eventId: 123
-                    stats:
+                  eventId: 0
+                  stats:
                       - date: "2026-01-15"
                         clickCount: 120
-                        participantCount: 110
+                        participantCount: 95
                         avgSession:
-                          minutes: 5
-                          seconds: 15
-                        participationRate: 43.5
-                      - date: "2026-01-15"
-                        clickCount: 120
-                        participantCount: 110
+                          minutes: 0
+                          seconds: 43
+                        participationRate: 83.44
+                      - date: "2026-01-16"
+                        clickCount: 98
+                        participantCount: 88
                         avgSession:
-                          minutes: 5
-                          seconds: 15
-                        participationRate: 43.5
-                      - date: "2026-01-15"
-                        clickCount: 120
-                        participantCount: 110
+                          minutes: 1
+                          seconds: 12
+                        participationRate: 78.5
+                      - date: "2026-01-17"
+                        clickCount: 145
+                        participantCount: 120
                         avgSession:
-                          minutes: 5
-                          seconds: 15
-                        participationRate: 43.5
-                      - date: "2026-01-15"
-                        clickCount: 120
-                        participantCount: 110
+                          minutes: 0
+                          seconds: 55
+                        participationRate: 92.0
+                      - date: "2026-01-18"
+                        clickCount: 132
+                        participantCount: 105
                         avgSession:
-                          minutes: 5
-                          seconds: 15
-                        participationRate: 43.5
-                      - date: "2026-01-15"
-                        clickCount: 120
-                        participantCount: 110
+                          minutes: 1
+                          seconds: 5
+                        participationRate: 85.2
+                      - date: "2026-01-19"
+                        clickCount: 110
+                        participantCount: 92
                         avgSession:
-                          minutes: 5
-                          seconds: 15
-                        participationRate: 43.5
-                      - date: "2026-01-15"
-                        clickCount: 120
-                        participantCount: 110
+                          minutes: 0
+                          seconds: 38
+                        participationRate: 80.1
+                      - date: "2026-01-20"
+                        clickCount: 158
+                        participantCount: 130
                         avgSession:
-                          minutes: 5
-                          seconds: 15
-                        participationRate: 43.5
-                      - date: "2026-01-15"
-                        clickCount: 120
-                        participantCount: 110
+                          minutes: 1
+                          seconds: 22
+                        participationRate: 88.6
+                      - date: "2026-01-21"
+                        clickCount: 142
+                        participantCount: 118
                         avgSession:
-                          minutes: 5
-                          seconds: 15
-                        participationRate: 43.5
-        '400':
+                          minutes: 0
+                          seconds: 51
+                        participationRate: 95.0
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -710,7 +841,7 @@ paths:
                   data:
                     type: array
                     items: {}
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -728,10 +859,10 @@ paths:
                     type: array
                     items: {}
 
-  /api/v1/analytics/{eventId}/sessions:
+  /api/v1/analytics/{eventId}/session:
     post:
-      summary: 세션 시간 측정 시작 / 클릭 수 증가
-      description: 세션 시간 측정을 시작하고 클릭 수를 증가시킵니다
+      summary: 입장시간 기록 및 카운트
+      description: 입장 시간을 기록합니다
       tags:
         - analytics
       security:
@@ -743,9 +874,10 @@ paths:
           description: 이벤트 ID
           schema:
             type: integer
-            example: 100
+            format: int64
+            example: 1
       responses:
-        '200':
+        "200":
           description: 세션 측정 시작 성공
           content:
             application/json:
@@ -773,7 +905,7 @@ paths:
                 message: "세션 측정이 성공적으로 시작되었습니다."
                 data:
                   sessionId: "abc123xyz"
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -787,7 +919,7 @@ paths:
                     type: string
                   message:
                     type: string
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -802,10 +934,10 @@ paths:
                   message:
                     type: string
 
-  /api/v1/analytics/{eventId}/sessions/{sessionId}:
-    patch:
-      summary: 세션 시간 측정 종료
-      description: 세션 시간 측정을 종료합니다
+  /api/v1/analytics/{eventId}/session/{sessionId}:
+    post:
+      summary: 퇴장 시간 기록 및 머문 시간 계산
+      description: 머문 시간을 측정하고 click 수를 카운트 합니다 평균을 계산합니다
       tags:
         - analytics
       security:
@@ -826,7 +958,7 @@ paths:
             type: string
             example: "abc123xyz"
       responses:
-        '200':
+        "200":
           description: 세션 측정 종료 성공
           content:
             application/json:
@@ -854,7 +986,7 @@ paths:
                 message: "세션 측정이 성공적으로 종료되었습니다."
                 data:
                   sessionId: "abc123xyz"
-        '400':
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -868,7 +1000,7 @@ paths:
                     type: string
                   message:
                     type: string
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -883,8 +1015,469 @@ paths:
                   message:
                     type: string
 
+  # --- 댓글 관련 API ---
+  /api/v1/events/{eventId}/comments:
+    get:
+      summary: 댓글 목록 조회 API (커서 기반)
+      description: 특정 행사의 댓글을 최신순으로 조회합니다.
+      tags:
+        - comments
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: 행사 ID
+        - name: lastCommentId
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+          description: 커서 기반 페이지네이션용 마지막 댓글 ID
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  code:
+                    type: string
+                    example: "string"
+                  message:
+                    type: string
+                    example: "string"
+                  data:
+                    type: object
+                    properties:
+                      eventId:
+                        type: integer
+                        format: int64
+                        example: 0
+                      commentList:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            commentId:
+                              type: integer
+                              format: int64
+                              example: 0
+                            nickname:
+                              type: string
+                              example: "string"
+                            profileImageUrl:
+                              type: string
+                              example: "string"
+                            content:
+                              type: string
+                              example: "string"
+                            createdAt:
+                              type: string
+                              format: date-time
+                              example: "2026-02-09T11:11:37.741Z"
+                      nextCursor:
+                        type: integer
+                        format: int64
+                        example: 0
+                      hasNext:
+                        type: boolean
+                        example: true
+              example:
+                success: true
+                code: "string"
+                message: "string"
+                data:
+                  eventId: 0
+                  commentList:
+                    - commentId: 0
+                      nickname: "string"
+                      profileImageUrl: "string"
+                      content: "string"
+                      createdAt: "2026-02-09T11:11:37.741Z"
+                  nextCursor: 0
+                  hasNext: true
+    post:
+      summary: 댓글 작성 API
+      description: 특정 이벤트에 댓글을 작성합니다.
+      tags:
+        - comments
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: 행사 ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                  example: "string"
+            example:
+              content: "string"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  code:
+                    type: string
+                    example: "string"
+                  message:
+                    type: string
+                    example: "string"
+                  data:
+                    type: object
+                    properties:
+                      commentId:
+                        type: integer
+                        format: int64
+                        example: 0
+                      nickname:
+                        type: string
+                        example: "string"
+                      profileImageUrl:
+                        type: string
+                        example: "string"
+                      content:
+                        type: string
+                        example: "string"
+                      createdAt:
+                        type: string
+                        format: date-time
+                        example: "2026-02-09T11:13:58.602Z"
+              example:
+                success: true
+                code: "string"
+                message: "string"
+                data:
+                  commentId: 0
+                  nickname: "string"
+                  profileImageUrl: "string"
+                  content: "string"
+                  createdAt: "2026-02-09T11:13:58.602Z"
+
+  /api/v1/comments/{commentId}:
+    delete:
+      summary: 댓글 삭제 API
+      description: 댓글을 삭제합니다.
+      tags:
+        - comments
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: 댓글 ID
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  code:
+                    type: string
+                    example: "string"
+                  message:
+                    type: string
+                    example: "string"
+                  data:
+                    type: string
+                    example: "string"
+              example:
+                success: true
+                code: "string"
+                message: "string"
+                data: "string"
+
   # --- Events 관련 API ---
   /api/v1/users/events:
+    get:
+      summary: 행사 목록 조회
+      description: 메인/검색하기 탭 등에서 사용하는 전체 행사 목록을 조회합니다
+      tags:
+        - events
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: 행사 목록 조회 성공
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  code:
+                    type: string
+                    example: "EVENT_LIST_READ"
+                  message:
+                    type: string
+                    example: "행사 목록을 조회했습니다."
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        eventId:
+                          type: integer
+                          example: 101
+                        status:
+                          type: string
+                          example: "published"
+                        title:
+                          type: string
+                          nullable: true
+                          example: "오늘의 하루 소개하기"
+                        schedule:
+                          type: object
+                          nullable: true
+                          properties:
+                            startDate:
+                              type: string
+                              format: date-time
+                              example: "2026-01-25T10:00:00Z"
+                            endDate:
+                              type: string
+                              format: date-time
+                              example: "2026-01-25T12:00:00Z"
+                          example: null
+                        location:
+                          type: object
+                          nullable: true
+                          properties:
+                            streetAddress:
+                              type: string
+                              example: "제주 서귀포시 칠십리로 123"
+                            lotNumber:
+                              type: string
+                              nullable: true
+                              example: null
+                          example: null
+                        capacity:
+                          type: integer
+                          nullable: true
+                          example: 8
+                        price:
+                          type: number
+                          nullable: true
+                          example: 60000
+                        playlist:
+                          type: string
+                          nullable: true
+                          example: "http://test.com/playlist/1"
+                        information:
+                          type: string
+                          nullable: true
+                          example: "안녕하세요. 이번에는 소개를"
+                        hostName:
+                          type: string
+                          nullable: true
+                          description: 호스트(개최자) 이름
+                          example: "테스트닉"
+                        imageUrl:
+                          type: string
+                          nullable: true
+                          description: 행사 대표 이미지 URL
+                          example: "https://example.com/event-image.jpg"
+                        createdAt:
+                          type: string
+                          format: date-time
+                          example: "2026-01-01T00:00:00Z"
+                        updatedAt:
+                          type: string
+                          format: date-time
+                          nullable: true
+                          example: "2026-01-02T00:00:00Z"
+              example:
+                success: true
+                code: "EVENT_LIST_READ"
+                message: "행사 목록을 조회했습니다."
+                data:
+                  - eventId: 101
+                    status: "published"
+                    title: "오늘의 하루 소개하기"
+                    schedule:
+                      startDate: "2026-01-25T10:00:00Z"
+                      endDate: "2026-01-25T12:00:00Z"
+                    location:
+                      streetAddress: "제주 서귀포시 칠십리로 123"
+                      lotNumber: null
+                    capacity: 8
+                    price: 60000
+                    playlist: "http://test.com/playlist/1"
+                    information: "안녕하세요. 이번에는 소개를"
+                    hostName: "테스트닉"
+                    imageUrl: "https://media.istockphoto.com/id/1098150302/ko/%EC%82%AC%EC%A7%84/%ED%9C%B4%EC%8A%A4%ED%84%B4-%ED%85%8D%EC%82%AC%EC%8A%A4%EC%97%90%EC%84%9C%EC%9D%98-%EA%B1%B0%EB%A6%AC.jpg?s=612x612&w=0&k=20&c=zRccAPduW5YKYZspa1vQBg_s76m5LEVTX9HBxBxCmqM="
+                    createdAt: "2026-01-01T00:00:00Z"
+                    updatedAt: "2026-01-02T00:00:00Z"
+                  - eventId: 102
+                    status: "published"
+                    title: "주말 브런치 모임"
+                    schedule:
+                      startDate: "2026-01-26T11:00:00Z"
+                      endDate: "2026-01-26T14:00:00Z"
+                    location:
+                      streetAddress: "서울 강남구 테헤란로 123"
+                      lotNumber: null
+                    capacity: 6
+                    price: 35000
+                    playlist: "http://test.com/playlist/2"
+                    information: "주말에 함께 브런치해요."
+                    hostName: "수호"
+                    imageUrl: "https://img.freepik.com/free-vector/mountain-village-town-road-micro-planet-travel-concept_126523-1976.jpg?semt=ais_hybrid&w=740&q=80"
+                    createdAt: "2026-01-03T00:00:00Z"
+                    updatedAt: "2026-01-10T00:00:00Z"
+                  - eventId: 103
+                    status: "published"
+                    title: "온모임 첫 네트워킹"
+                    schedule:
+                      startDate: "2026-01-28T19:00:00Z"
+                      endDate: "2026-01-28T21:00:00Z"
+                    location:
+                      streetAddress: "서울 마포구 와우산로 45"
+                      lotNumber: null
+                    capacity: 20
+                    price: 0
+                    playlist: null
+                    information: "첫 만남 네트워킹 자리입니다."
+                    hostName: "온모임"
+                    imageUrl: "https://c.pxhere.com/photos/c0/fe/architecture_building_dome_historic_india_landmark_mosque-1552957.jpg!d"
+                    createdAt: "2026-01-05T00:00:00Z"
+                    updatedAt: "2026-01-15T00:00:00Z"
+                  - eventId: 104
+                    status: "published"
+                    title: "제주도 감귤 줍기"
+                    schedule:
+                      startDate: "2026-02-01T09:00:00Z"
+                      endDate: "2026-02-01T12:00:00Z"
+                    location:
+                      streetAddress: "제주 서귀포시 감귤농장"
+                      lotNumber: null
+                    capacity: 15
+                    price: 25000
+                    playlist: null
+                    information: "제주 감귤 수확 체험"
+                    hostName: "제주농장"
+                    imageUrl: null
+                    createdAt: "2026-01-10T00:00:00Z"
+                    updatedAt: "2026-01-20T00:00:00Z"
+                  - eventId: 105
+                    status: "published"
+                    title: "서울 한강 러닝"
+                    schedule:
+                      startDate: "2026-02-08T07:00:00Z"
+                      endDate: "2026-02-08T09:00:00Z"
+                    location:
+                      streetAddress: "서울 영등포구 여의도동"
+                      lotNumber: null
+                    capacity: 30
+                    price: 0
+                    playlist: null
+                    information: "한강 조깅 모임"
+                    hostName: "러너"
+                    imageUrl: null
+                    createdAt: "2026-01-12T00:00:00Z"
+                    updatedAt: null
+                  - eventId: 106
+                    status: "published"
+                    title: "부산 해운대 달맞이"
+                    schedule:
+                      startDate: "2026-02-14T18:00:00Z"
+                      endDate: "2026-02-14T21:00:00Z"
+                    location:
+                      streetAddress: "부산 해운대구 해운대해변로"
+                      lotNumber: null
+                    capacity: 25
+                    price: 15000
+                    playlist: null
+                    information: "해운대에서 달 보며 모임"
+                    hostName: "부산사랑"
+                    imageUrl: null
+                    createdAt: "2026-01-14T00:00:00Z"
+                    updatedAt: null
+                  - eventId: 107
+                    status: "published"
+                    title: "제주 동문시장 투어"
+                    schedule:
+                      startDate: "2026-02-20T10:00:00Z"
+                      endDate: "2026-02-20T13:00:00Z"
+                    location:
+                      streetAddress: "제주 제주시 관덕로"
+                      lotNumber: null
+                    capacity: 12
+                    price: 20000
+                    playlist: null
+                    information: "동문시장 먹거리 투어"
+                    hostName: "제주가이드"
+                    imageUrl: null
+                    createdAt: "2026-01-18T00:00:00Z"
+                    updatedAt: null
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  code:
+                    type: string
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items: {}
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  code:
+                    type: string
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items: {}
     post:
       summary: 행사 초안 생성
       description: 행사 초안을 생성합니다
@@ -893,7 +1486,7 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: 행사 초안 생성 성공
           content:
             application/json:
@@ -913,82 +1506,58 @@ paths:
                     type: object
                     properties:
                       eventId:
-                        type: string
-                        example: "event_001"
-                      status:
-                        type: string
-                        example: "drafted"
+                        type: integer
+                        format: int64
+                        example: 0
                       title:
                         type: string
-                        nullable: true
-                        example: null
-                      schedule:
-                        type: object
-                        nullable: true
-                        properties:
-                          startDate:
-                            type: string
-                            format: date-time
-                            example: "2026-00-00T00:00:00Z"
-                          endDate:
-                            type: string
-                            format: date-time
-                            example: "2026-00-00T00:00:00Z"
-                        example: null
-                      location:
-                        type: object
-                        nullable: true
-                        properties:
-                          streetAddress:
-                            type: string
-                            example: "제주 서귀포시 칠십리로 123"
-                          lotNumber:
-                            type: string
-                            nullable: true
-                            example: null
-                        example: null
-                      capacity:
-                        type: integer
-                        nullable: true
-                        example: null
+                        example: "string"
+                      startTime:
+                        type: string
+                        format: date-time
+                        example: "2026-02-09T11:17:03.658Z"
+                      endTime:
+                        type: string
+                        format: date-time
+                        example: "2026-02-09T11:17:03.658Z"
+                      streetAddress:
+                        type: string
+                        example: "string"
+                      lotNumberAddress:
+                        type: string
+                        example: "string"
                       price:
                         type: number
-                        nullable: true
-                        example: null
-                      playlist:
+                        example: 0
+                      playlistUrl:
                         type: string
-                        nullable: true
-                        example: null
-                      information:
+                        example: "string"
+                      capacity:
+                        type: integer
+                        example: 0
+                      introduction:
                         type: string
-                        nullable: true
-                        example: null
-                      createdAt:
+                        example: "string"
+                      status:
                         type: string
-                        format: date-time
-                        example: "2026-00-00T00:00:00Z"
-                      updatedAt:
-                        type: string
-                        format: date-time
-                        nullable: true
-                        example: null
+                        example: "DRAFTED"
               example:
                 success: true
-                code: "DRAFT_CREATED"
-                message: "행사 초안을 생성합니다."
+                code: "string"
+                message: "string"
                 data:
-                  eventId: "event_001"
-                  status: "drafted"
-                  title: null
-                  schedule: null
-                  location: null
-                  capacity: null
-                  price: null
-                  playlist: null
-                  information: null
-                  createdAt: "2026-00-00T00:00:00Z"
-                  updatedAt: null
-        '400':
+                  eventId: 1
+                  title: "string"
+                  startTime: "2026-02-09T11:17:03.658Z"
+                  endTime: "2026-02-09T11:17:03.658Z"
+                  streetAddress: "string"
+                  lotNumberAddress: "string"
+                  price: 0
+                  playlistUrl: "string"
+                  capacity: 0
+                  introduction: "string"
+                  status: "DRAFTED"
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -1004,7 +1573,7 @@ paths:
                     type: string
                   data:
                     type: object
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -1043,11 +1612,11 @@ paths:
                     startDate:
                       type: string
                       format: date-time
-                      example: "2026-00-00T00:00:00Z"
+                      example: "2026-01-25T10:00:00Z"
                     endDate:
                       type: string
                       format: date-time
-                      example: "2026-00-00T00:00:00Z"
+                      example: "2026-01-25T10:00:00Z"
                 location:
                   type: object
                   properties:
@@ -1080,8 +1649,8 @@ paths:
                 summary: 행사 일자 생성
                 value:
                   schedule:
-                    startDate: "2026-00-00T00:00:00Z"
-                    endDate: "2026-00-00T00:00:00Z"
+                    startDate: "2026-01-25T10:00:00Z"
+                    endDate: "2026-01-25T12:00:00Z"
               location:
                 summary: 행사 위치 생성
                 value:
@@ -1105,7 +1674,7 @@ paths:
                 value:
                   information: "안녕하세요. 이번에는 소개글을 ..."
       responses:
-        '200':
+        "200":
           description: 행사 정보 수정 성공
           content:
             application/json:
@@ -1132,6 +1701,7 @@ paths:
                         example: "drafted"
                       title:
                         type: string
+                        nullable: true
                         example: "오늘의 하루 소개하기"
                       schedule:
                         type: object
@@ -1140,11 +1710,11 @@ paths:
                           startDate:
                             type: string
                             format: date-time
-                            example: "2026-00-00T00:00:00Z"
+                            example: "2026-01-25T10:00:00Z"
                           endDate:
                             type: string
                             format: date-time
-                            example: "2026-00-00T00:00:00Z"
+                            example: "2026-01-25T12:00:00Z"
                         example: null
                       location:
                         type: object
@@ -1177,11 +1747,12 @@ paths:
                       createdAt:
                         type: string
                         format: date-time
-                        example: "2026-00-00T00:00:00Z"
+                        example: "2026-01-01T00:00:00Z"
                       updatedAt:
                         type: string
                         format: date-time
-                        example: "2026-00-00T00:00:00Z"
+                        nullable: true
+                        example: "2026-01-25T00:00:00Z"
               examples:
                 title:
                   summary: 행사 제목 생성 성공
@@ -1199,8 +1770,8 @@ paths:
                       price: null
                       playlist: null
                       information: null
-                      createdAt: "2026-00-00T00:00:00Z"
-                      updatedAt: "2026-00-00T00:00:00Z"
+                      createdAt: "2026-01-01T00:00:00Z"
+                      updatedAt: "2026-01-25T00:00:00Z"
                 schedule:
                   summary: 행사 일자 생성 성공
                   value:
@@ -1212,15 +1783,15 @@ paths:
                       status: "drafted"
                       title: "오늘의 하루 소개하기"
                       schedule:
-                        startDate: "2026-00-00T00:00:00Z"
-                        endDate: "2026-00-00T00:00:00Z"
+                        startDate: "2026-01-25T10:00:00Z"
+                        endDate: "2026-01-25T12:00:00Z"
                       location: null
                       capacity: null
                       price: null
                       playlist: null
                       information: null
-                      createdAt: "2026-00-00T00:00:00Z"
-                      updatedAt: "2026-00-00T00:00:00Z"
+                      createdAt: "2026-01-01T00:00:00Z"
+                      updatedAt: "2026-01-25T00:00:00Z"
                 location:
                   summary: 행사 위치 생성 성공
                   value:
@@ -1232,8 +1803,8 @@ paths:
                       status: "drafted"
                       title: "오늘의 하루 소개하기"
                       schedule:
-                        startDate: "2026-00-00T00:00:00Z"
-                        endDate: "2026-00-00T00:00:00Z"
+                        startDate: "2026-01-25T10:00:00Z"
+                        endDate: "2026-01-25T12:00:00Z"
                       location:
                         streetAddress: "제주 서귀포시 칠십리로 123"
                         lotNumber: null
@@ -1241,8 +1812,8 @@ paths:
                       price: null
                       playlist: null
                       information: null
-                      createdAt: "2026-00-00T00:00:00Z"
-                      updatedAt: "2026-00-00T00:00:00Z"
+                      createdAt: "2026-01-01T00:00:00Z"
+                      updatedAt: "2026-01-25T00:00:00Z"
                 capacity:
                   summary: 행사 참여자 생성 성공
                   value:
@@ -1254,8 +1825,8 @@ paths:
                       status: "drafted"
                       title: "오늘의 하루 소개하기"
                       schedule:
-                        startDate: "2026-00-00T00:00:00Z"
-                        endDate: "2026-00-00T00:00:00Z"
+                        startDate: "2026-01-25T10:00:00Z"
+                        endDate: "2026-01-25T12:00:00Z"
                       location:
                         streetAddress: "제주 서귀포시 칠십리로 123"
                         lotNumber: null
@@ -1263,8 +1834,8 @@ paths:
                       price: null
                       playlist: null
                       information: null
-                      createdAt: "2026-00-00T00:00:00Z"
-                      updatedAt: "2026-00-00T00:00:00Z"
+                      createdAt: "2026-01-01T00:00:00Z"
+                      updatedAt: "2026-01-25T00:00:00Z"
                 price:
                   summary: 행사 참여 가격 생성 성공
                   value:
@@ -1276,8 +1847,8 @@ paths:
                       status: "drafted"
                       title: "오늘의 하루 소개하기"
                       schedule:
-                        startDate: "2026-00-00T00:00:00Z"
-                        endDate: "2026-00-00T00:00:00Z"
+                        startDate: "2026-01-25T10:00:00Z"
+                        endDate: "2026-01-25T12:00:00Z"
                       location:
                         streetAddress: "제주 서귀포시 칠십리로 123"
                         lotNumber: null
@@ -1285,8 +1856,8 @@ paths:
                       price: 60000
                       playlist: null
                       information: null
-                      createdAt: "2026-00-00T00:00:00Z"
-                      updatedAt: "2026-00-00T00:00:00Z"
+                      createdAt: "2026-01-01T00:00:00Z"
+                      updatedAt: "2026-01-25T00:00:00Z"
                 playlist:
                   summary: 행사 플레이리스트 생성 성공
                   value:
@@ -1298,8 +1869,8 @@ paths:
                       status: "drafted"
                       title: "오늘의 하루 소개하기"
                       schedule:
-                        startDate: "2026-00-00T00:00:00Z"
-                        endDate: "2026-00-00T00:00:00Z"
+                        startDate: "2026-01-25T10:00:00Z"
+                        endDate: "2026-01-25T12:00:00Z"
                       location:
                         streetAddress: "제주 서귀포시 칠십리로 123"
                         lotNumber: null
@@ -1307,8 +1878,8 @@ paths:
                       price: 60000
                       playlist: "http://test.com/..."
                       information: null
-                      createdAt: "2026-00-00T00:00:00Z"
-                      updatedAt: "2026-00-00T00:00:00Z"
+                      createdAt: "2026-01-01T00:00:00Z"
+                      updatedAt: "2026-01-25T00:00:00Z"
                 information:
                   summary: 행사 소개글 생성 성공
                   value:
@@ -1320,8 +1891,8 @@ paths:
                       status: "drafted"
                       title: "오늘의 하루 소개하기"
                       schedule:
-                        startDate: "2026-00-00T00:00:00Z"
-                        endDate: "2026-00-00T00:00:00Z"
+                        startDate: "2026-01-25T10:00:00Z"
+                        endDate: "2026-01-25T12:00:00Z"
                       location:
                         streetAddress: "제주 서귀포시 칠십리로 123"
                         lotNumber: null
@@ -1329,9 +1900,9 @@ paths:
                       price: 60000
                       playlist: "http://test.com/..."
                       information: "안녕하세요. 이번에는 소개글을 ..."
-                      createdAt: "2026-00-00T00:00:00Z"
-                      updatedAt: "2026-00-00T00:00:00Z"
-        '400':
+                      createdAt: "2026-01-01T00:00:00Z"
+                      updatedAt: "2026-01-25T00:00:00Z"
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -1347,7 +1918,7 @@ paths:
                     type: string
                   data:
                     type: object
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -1364,25 +1935,26 @@ paths:
                   data:
                     type: object
 
-  /api/v1/users/events/{eventId}/publish:
-    post:
-      summary: 행사 생성
-      description: 행사 초안을 발행하여 행사를 생성합니다
+  /api/v1/users/{userId}/events:
+    get:
+      summary: 내가 참여한 행사 조회
+      description: 현재 로그인한 사용자가 참여(투표 상태 = ATTEND)한 행사 목록을 조회합니다
       tags:
         - events
       security:
         - bearerAuth: []
       parameters:
-        - name: eventId
+        - name: userId
           in: path
           required: true
-          description: 이벤트 ID
+          description: 사용자 ID
           schema:
-            type: string
-            example: "event_001"
+            type: integer
+            format: int64
+            example: 1
       responses:
-        '200':
-          description: 행사 생성 성공
+        "200":
+          description: OK
           content:
             application/json:
               schema:
@@ -1393,92 +1965,158 @@ paths:
                     example: true
                   code:
                     type: string
-                    example: "EVENT_CREATED"
+                    example: "string"
                   message:
                     type: string
-                    example: "행사가 생성되었습니다."
+                    example: "string"
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        eventId:
+                          type: integer
+                          format: int64
+                          example: 0
+                        title:
+                          type: string
+                          example: "string"
+                        startTime:
+                          type: string
+                          format: date-time
+                          example: "2026-02-09T11:24:18.638Z"
+                        endTime:
+                          type: string
+                          format: date-time
+                          example: "2026-02-09T11:24:18.638Z"
+                        streetAddress:
+                          type: string
+                          example: "string"
+                        lotNumberAddress:
+                          type: string
+                          example: "string"
+                        price:
+                          type: number
+                          example: 0
+                        playlistUrl:
+                          type: string
+                          example: "string"
+                        capacity:
+                          type: integer
+                          example: 0
+                        introduction:
+                          type: string
+                          example: "string"
+                        status:
+                          type: string
+                          example: "DRAFTED"
+              example:
+                success: true
+                code: "string"
+                message: "string"
+                data:
+                  - eventId: 0
+                    title: "string"
+                    startTime: "2026-02-09T11:24:18.638Z"
+                    endTime: "2026-02-09T11:24:18.638Z"
+                    streetAddress: "string"
+                    lotNumberAddress: "string"
+                    price: 0
+                    playlistUrl: "string"
+                    capacity: 0
+                    introduction: "string"
+                    status: "DRAFTED"
+
+  /api/v1/users/events/{eventId}/published:
+    post:
+      summary: 행사 최종 생성
+      description: 행사 상태를 published(최종 생성) 상태로 수정하고 Analytics 테이블을 생성합니다.
+      tags:
+        - events
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: 발행할 행사 ID
+          schema:
+            type: integer
+            format: int64
+            example: 1
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  code:
+                    type: string
+                    example: "string"
+                  message:
+                    type: string
+                    example: "string"
                   data:
                     type: object
                     properties:
                       eventId:
-                        type: string
-                        example: "event_001"
-                      status:
-                        type: string
-                        example: "published"
+                        type: integer
+                        format: int64
+                        example: 0
                       title:
                         type: string
-                        example: "오늘의 하루 소개하기"
-                      schedule:
-                        type: object
-                        nullable: true
-                        properties:
-                          startDate:
-                            type: string
-                            format: date-time
-                            example: "2026-00-00T00:00:00Z"
-                          endDate:
-                            type: string
-                            format: date-time
-                            example: "2026-00-00T00:00:00Z"
-                        example: null
-                      location:
-                        type: object
-                        nullable: true
-                        properties:
-                          streetAddress:
-                            type: string
-                            example: "제주 서귀포시 칠십리로 123"
-                          lotNumber:
-                            type: string
-                            nullable: true
-                            example: null
-                        example: null
-                      capacity:
-                        type: integer
-                        nullable: true
-                        example: 6
+                        example: "string"
+                      startTime:
+                        type: string
+                        format: date-time
+                        example: "2026-02-09T11:17:14.993Z"
+                      endTime:
+                        type: string
+                        format: date-time
+                        example: "2026-02-09T11:17:14.993Z"
+                      streetAddress:
+                        type: string
+                        example: "string"
+                      lotNumberAddress:
+                        type: string
+                        example: "string"
                       price:
                         type: number
-                        nullable: true
-                        example: 60000
-                      playlist:
+                        example: 0
+                      playlistUrl:
                         type: string
-                        nullable: true
-                        example: "http://test.com/..."
-                      information:
+                        example: "string"
+                      capacity:
+                        type: integer
+                        example: 0
+                      introduction:
                         type: string
-                        nullable: true
-                        example: "안녕하세요. 이번에는 소개글을 ..."
-                      createdAt:
+                        example: "string"
+                      status:
                         type: string
-                        format: date-time
-                        example: "2026-00-00T00:00:00Z"
-                      updatedAt:
-                        type: string
-                        format: date-time
-                        example: "2026-00-00T00:00:00Z"
+                        example: "DRAFTED"
               example:
                 success: true
-                code: "EVENT_CREATED"
-                message: "행사가 생성되었습니다."
+                code: "string"
+                message: "string"
                 data:
-                  eventId: "event_001"
-                  status: "published"
-                  title: "오늘의 하루 소개하기"
-                  schedule:
-                    startDate: "2026-00-00T00:00:00Z"
-                    endDate: "2026-00-00T00:00:00Z"
-                  location:
-                    streetAddress: "제주 서귀포시 칠십리로 123"
-                    lotNumber: null
-                  capacity: 6
-                  price: 60000
-                  playlist: "http://test.com/..."
-                  information: "안녕하세요. 이번에는 소개글을 ..."
-                  createdAt: "2026-00-00T00:00:00Z"
-                  updatedAt: "2026-00-00T00:00:00Z"
-        '400':
+                  eventId: 0
+                  title: "string"
+                  startTime: "2026-02-09T11:17:14.993Z"
+                  endTime: "2026-02-09T11:17:14.993Z"
+                  streetAddress: "string"
+                  lotNumberAddress: "string"
+                  price: 0
+                  playlistUrl: "string"
+                  capacity: 0
+                  introduction: "string"
+                  status: "DRAFTED"
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -1494,7 +2132,7 @@ paths:
                     type: string
                   data:
                     type: object
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -1525,17 +2163,12 @@ paths:
           required: true
           description: 이벤트 ID
           schema:
-            type: string
-            example: "event_123"
+            type: integer
+            format: int64
+            example: 1
       responses:
-        '200':
-          description: 행사 조회 성공
-          headers:
-            Location:
-              description: 행사의 위치
-              schema:
-                type: string
-                example: "api/v1/users/events/event_123"
+        "200":
+          description: OK
           content:
             application/json:
               schema:
@@ -1546,92 +2179,66 @@ paths:
                     example: true
                   code:
                     type: string
-                    example: "EVENT_UPDATED"
+                    example: "string"
                   message:
                     type: string
-                    example: "행사가 수정 되었습니다."
+                    example: "string"
                   data:
                     type: object
                     properties:
                       eventId:
-                        type: string
-                        example: "event_123"
-                      status:
-                        type: string
-                        example: "published"
+                        type: integer
+                        format: int64
+                        example: 0
                       title:
                         type: string
-                        example: "오늘의 하루 소개하기"
-                      schedule:
-                        type: object
-                        nullable: true
-                        properties:
-                          startDate:
-                            type: string
-                            format: date-time
-                            example: "2026-00-00T00:00:00Z"
-                          endDate:
-                            type: string
-                            format: date-time
-                            example: "2026-00-00T00:00:00Z"
-                        example: null
-                      location:
-                        type: object
-                        nullable: true
-                        properties:
-                          streetAddress:
-                            type: string
-                            example: "제주 서귀포시 칠십리로 123"
-                          lotNumber:
-                            type: string
-                            nullable: true
-                            example: null
-                        example: null
-                      capacity:
-                        type: integer
-                        nullable: true
-                        example: 8
+                        example: "string"
+                      startTime:
+                        type: string
+                        format: date-time
+                        example: "2026-02-09T11:21:55.325Z"
+                      endTime:
+                        type: string
+                        format: date-time
+                        example: "2026-02-09T11:21:55.325Z"
+                      introduction:
+                        type: string
+                        example: "string"
+                      streetAddress:
+                        type: string
+                        example: "string"
+                      lotNumberAddress:
+                        type: string
+                        example: "string"
                       price:
                         type: number
-                        nullable: true
-                        example: 60000
-                      playlist:
+                        example: 0
+                      playlistUrl:
                         type: string
-                        nullable: true
-                        example: "http://test.com/..."
-                      information:
+                        example: "string"
+                      capacity:
+                        type: integer
+                        example: 0
+                      status:
                         type: string
-                        nullable: true
-                        example: "안녕하세요. 이번에는 소개글을 ..."
-                      createdAt:
-                        type: string
-                        format: date-time
-                        example: "2026-00-00T00:00:00Z"
-                      updatedAt:
-                        type: string
-                        format: date-time
-                        example: "2026-00-00T00:00:00Z"
+                        example: "DRAFTED"
               example:
                 success: true
-                code: "EVENT_UPDATED"
-                message: "행사가 수정 되었습니다."
+                code: "string"
+                message: "string"
                 data:
-                  eventId: "event_123"
-                  status: "published"
-                  title: "오늘의 하루 소개하기"
-                  schedule:
-                    startDate: "2026-00-00T00:00:00Z"
-                    endDate: "2026-00-00T00:00:00Z"
-                  location:
-                    streetAddress: "제주 서귀포시 칠십리로 123"
-                    lotNumber: null
-                  capacity: 8
-                  price: 60000
-                  playlist: "http://test.com/..."
-                  information: "안녕하세요. 이번에는 소개글을 ..."
-                  createdAt: "2026-00-00T00:00:00Z"
-                  updatedAt: "2026-00-00T00:00:00Z"
-        '400':
+                  eventId: 0
+                  title: "string"
+                  startTime: "2026-02-09T11:21:55.325Z"
+                  endTime: "2026-02-09T11:21:55.325Z"
+                  introduction: "string"
+                  streetAddress: "string"
+                  lotNumberAddress: "string"
+                  price: 0
+                  playlistUrl: "string"
+                  capacity: 0
+                  status: "DRAFTED"
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -1647,7 +2254,7 @@ paths:
                     type: string
                   data:
                     type: object
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -1664,8 +2271,8 @@ paths:
                   data:
                     type: object
     patch:
-      summary: 행사 수정
-      description: 발행된 행사의 정보를 수정합니다
+      summary: 행사 내용 수정
+      description: 행사의 제목, 시간, 장소 등의 모든 정보를 부분 수정합니다
       tags:
         - events
       security:
@@ -1674,12 +2281,12 @@ paths:
         - name: eventId
           in: path
           required: true
-          description: 이벤트 ID
+          description: 수정할 행사 ID
           schema:
-            type: string
-            example: "event_123"
+            type: integer
+            format: int64
+            example: 1
       requestBody:
-        required: true
         content:
           application/json:
             schema:
@@ -1687,52 +2294,46 @@ paths:
               properties:
                 title:
                   type: string
-                  example: "오늘의 하루 소개하기"
-                schedule:
-                  type: object
-                  properties:
-                    startDate:
-                      type: string
-                      format: date-time
-                      example: "2026-00-00T00:00:00Z"
-                    endDate:
-                      type: string
-                      format: date-time
-                      example: "2026-00-00T00:00:00Z"
-                location:
-                  type: object
-                  properties:
-                    streetAddress:
-                      type: string
-                      example: "제주 서귀포시 칠십리로 123"
-                    lotNumber:
-                      type: string
-                      nullable: true
-                      example: null
+                  example: "string"
+                startTime:
+                  type: string
+                  format: date-time
+                  example: "2026-02-09T11:24:05.412Z"
+                endTime:
+                  type: string
+                  format: date-time
+                  example: "2026-02-09T11:24:05.412Z"
+                streetAddress:
+                  type: string
+                  example: "string"
+                lotNumberAddress:
+                  type: string
+                  example: "string"
+                playlistUrl:
+                  type: string
+                  example: "string"
                 capacity:
                   type: integer
-                  example: 8
+                  example: 0
                 price:
                   type: number
-                  example: 60000
-                playlist:
+                  example: 0
+                introduction:
                   type: string
-                  format: uri
-                  example: "http://test.com/..."
-                information:
-                  type: string
-                  example: "안녕하세요. 이번에는 소개글을 ..."
+                  example: "string"
             example:
-              capacity: 8
+              title: "string"
+              startTime: "2026-02-09T11:24:05.412Z"
+              endTime: "2026-02-09T11:24:05.412Z"
+              streetAddress: "string"
+              lotNumberAddress: "string"
+              playlistUrl: "string"
+              capacity: 0
+              price: 0
+              introduction: "string"
       responses:
-        '200':
-          description: 행사 수정 성공
-          headers:
-            Location:
-              description: 수정된 행사의 위치
-              schema:
-                type: string
-                example: "api/v1/users/events/event_123"
+        "200":
+          description: OK
           content:
             application/json:
               schema:
@@ -1743,92 +2344,66 @@ paths:
                     example: true
                   code:
                     type: string
-                    example: "EVENT_UPDATED"
+                    example: "string"
                   message:
                     type: string
-                    example: "행사가 수정 되었습니다."
+                    example: "string"
                   data:
                     type: object
                     properties:
                       eventId:
-                        type: string
-                        example: "event_123"
-                      status:
-                        type: string
-                        example: "published"
+                        type: integer
+                        format: int64
+                        example: 0
                       title:
                         type: string
-                        example: "오늘의 하루 소개하기"
-                      schedule:
-                        type: object
-                        nullable: true
-                        properties:
-                          startDate:
-                            type: string
-                            format: date-time
-                            example: "2026-00-00T00:00:00Z"
-                          endDate:
-                            type: string
-                            format: date-time
-                            example: "2026-00-00T00:00:00Z"
-                        example: null
-                      location:
-                        type: object
-                        nullable: true
-                        properties:
-                          streetAddress:
-                            type: string
-                            example: "제주 서귀포시 칠십리로 123"
-                          lotNumber:
-                            type: string
-                            nullable: true
-                            example: null
-                        example: null
-                      capacity:
-                        type: integer
-                        nullable: true
-                        example: 8
+                        example: "string"
+                      startTime:
+                        type: string
+                        format: date-time
+                        example: "2026-02-09T11:24:05.413Z"
+                      endTime:
+                        type: string
+                        format: date-time
+                        example: "2026-02-09T11:24:05.413Z"
+                      streetAddress:
+                        type: string
+                        example: "string"
+                      lotNumberAddress:
+                        type: string
+                        example: "string"
                       price:
                         type: number
-                        nullable: true
-                        example: 60000
-                      playlist:
+                        example: 0
+                      playlistUrl:
                         type: string
-                        nullable: true
-                        example: "http://test.com/..."
-                      information:
+                        example: "string"
+                      capacity:
+                        type: integer
+                        example: 0
+                      introduction:
                         type: string
-                        nullable: true
-                        example: "안녕하세요. 이번에는 소개글을 ..."
-                      createdAt:
+                        example: "string"
+                      status:
                         type: string
-                        format: date-time
-                        example: "2026-00-00T00:00:00Z"
-                      updatedAt:
-                        type: string
-                        format: date-time
-                        example: "2026-00-00T00:00:00Z"
+                        example: "DRAFTED"
               example:
                 success: true
-                code: "EVENT_UPDATED"
-                message: "행사가 수정 되었습니다."
+                code: "string"
+                message: "string"
                 data:
-                  eventId: "event_123"
-                  status: "published"
-                  title: "오늘의 하루 소개하기"
-                  schedule:
-                    startDate: "2026-00-00T00:00:00Z"
-                    endDate: "2026-00-00T00:00:00Z"
-                  location:
-                    streetAddress: "제주 서귀포시 칠십리로 123"
-                    lotNumber: null
-                  capacity: 8
-                  price: 60000
-                  playlist: "http://test.com/..."
-                  information: "안녕하세요. 이번에는 소개글을 ..."
-                  createdAt: "2026-00-00T00:00:00Z"
-                  updatedAt: "2026-00-00T00:00:00Z"
-        '400':
+                  eventId: 0
+                  title: "string"
+                  startTime: "2026-02-09T11:24:05.413Z"
+                  endTime: "2026-02-09T11:24:05.413Z"
+                  streetAddress: "string"
+                  lotNumberAddress: "string"
+                  price: 0
+                  playlistUrl: "string"
+                  capacity: 0
+                  introduction: "string"
+                  status: "DRAFTED"
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -1844,7 +2419,7 @@ paths:
                     type: string
                   data:
                     type: object
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -1873,11 +2448,12 @@ paths:
           required: true
           description: 이벤트 ID
           schema:
-            type: string
-            example: "event_123"
+            type: integer
+            format: int64
+            example: 1
       responses:
-        '200':
-          description: 행사 삭제 성공
+        "200":
+          description: OK
           content:
             application/json:
               schema:
@@ -1888,15 +2464,19 @@ paths:
                     example: true
                   code:
                     type: string
-                    example: "EVENT_DELETED"
+                    example: "string"
                   message:
                     type: string
-                    example: "행사가 삭제되었습니다."
+                    example: "string"
+                  data:
+                    type: object
+                    example: {}
               example:
                 success: true
-                code: "EVENT_DELETED"
-                message: "행사가 삭제되었습니다."
-        '400':
+                code: "string"
+                message: "string"
+                data: {}
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -1910,7 +2490,7 @@ paths:
                     type: string
                   message:
                     type: string
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -1939,11 +2519,12 @@ paths:
           required: true
           description: 이벤트 ID
           schema:
-            type: string
-            example: "event_123"
+            type: integer
+            format: int64
+            example: 1
       responses:
-        '200':
-          description: 투표 참여자 목록 조회 성공
+        "200":
+          description: OK
           content:
             application/json:
               schema:
@@ -1954,40 +2535,34 @@ paths:
                     example: true
                   code:
                     type: string
-                    example: "EVENT_PARTICIPANTS"
+                    example: "string"
                   message:
                     type: string
-                    example: "투표 참여자 목록을 불러왔습니다."
+                    example: "string"
                   data:
                     type: array
                     items:
                       type: object
                       properties:
                         userId:
+                          type: integer
+                          format: int64
+                          example: 0
+                        nickname:
                           type: string
-                          example: "user_123"
-                        name:
-                          type: string
-                          example: "abc"
+                          example: "string"
                         status:
                           type: string
-                          enum: ["참여!", "고민중...", "못가요..."]
-                          example: "참여!"
+                          example: "ATTEND"
               example:
                 success: true
-                code: "EVENT_PARTICIPANTS"
-                message: "투표 참여자 목록을 불러왔습니다."
+                code: "string"
+                message: "string"
                 data:
-                  - userId: "user_123"
-                    name: "abc"
-                    status: "참여!"
-                  - userId: "user_456"
-                    name: "def"
-                    status: "고민중..."
-                  - userId: "user_789"
-                    name: "ghi"
-                    status: "못가요..."
-        '400':
+                  - userId: 0
+                    nickname: "string"
+                    status: "ATTEND"
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -2004,7 +2579,7 @@ paths:
                   data:
                     type: array
                     items: {}
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:
@@ -2023,9 +2598,9 @@ paths:
                     items: {}
 
   /api/v1/users/events/{eventId}/participants/{userId}:
-    put:
+    post:
       summary: 행사 참여 여부 투표
-      description: 행사 참여 여부를 등록하거나 수정합니다
+      description: 행사 참여 여부를 등록합니다
       tags:
         - events
       security:
@@ -2036,15 +2611,17 @@ paths:
           required: true
           description: 이벤트 ID
           schema:
-            type: string
-            example: "event_123"
+            type: integer
+            format: int64
+            example: 1
         - name: userId
           in: path
           required: true
           description: 사용자 ID
           schema:
-            type: string
-            example: "user_123"
+            type: integer
+            format: int64
+            example: 1
       requestBody:
         required: true
         content:
@@ -2056,13 +2633,12 @@ paths:
               properties:
                 status:
                   type: string
-                  enum: ["참여!", "고민중...", "못가요..."]
-                  example: "참여!"
+                  example: "ATTEND"
             example:
-              status: "참여!"
+              status: "ATTEND"
       responses:
-        '200':
-          description: 행사 참여 여부 등록 성공
+        "200":
+          description: OK
           content:
             application/json:
               schema:
@@ -2073,36 +2649,19 @@ paths:
                     example: true
                   code:
                     type: string
-                    example: "EVENT_PARTICIPANT_CREATED"
+                    example: "string"
                   message:
                     type: string
-                    example: "행사 참여 여부가 등록되었습니다."
+                    example: "string"
                   data:
-                    type: object
-                    properties:
-                      eventUserID:
-                        type: string
-                        example: "event_user_123"
-                      eventId:
-                        type: string
-                        example: "event_123"
-                      userId:
-                        type: string
-                        example: "user_123"
-                      status:
-                        type: string
-                        enum: ["참여!", "고민중...", "못가요..."]
-                        example: "참여!"
+                    type: string
+                    example: "string"
               example:
                 success: true
-                code: "EVENT_PARTICIPANT_CREATED"
-                message: "행사 참여 여부가 등록되었습니다."
-                data:
-                  eventUserID: "event_user_123"
-                  eventId: "event_123"
-                  userId: "user_123"
-                  status: "참여!"
-        '400':
+                code: "string"
+                message: "string"
+                data: "string"
+        "400":
           description: Bad Request
           content:
             application/json:
@@ -2118,7 +2677,7 @@ paths:
                     type: string
                   data:
                     type: object
-        '401':
+        "401":
           description: Unauthorized
           content:
             application/json:

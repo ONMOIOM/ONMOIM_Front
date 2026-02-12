@@ -1,11 +1,66 @@
-// 분석 관련 API
 import axiosInstance from './axiosInstance';
-import { AxiosResponse } from 'axios';
+import { BaseResponse } from '../constants/types';
+// 분석 관련 API 함수 : Chillpan
+//통계 값 획득, 세션 시간 측정 시작 / 클릭 수 증가, 세션 시간 측정 종료
 
-export const analysisAPI = {
-  // 분석 API 명세서가 완성되면 그에 맞춰서 수정하기
-  getAnalysis: (): Promise<AxiosResponse> => {
-    // TODO: API 명세서 완성 후 구현
-    return Promise.reject(new Error('Not implemented'));
-  },
+/* 통계 형식 Data */
+export type StatisticsData = {
+  date: string;
+  clickCount: number;
+  participantCount: number;
+  avgSession: {
+    minutes: number;
+    seconds: number;
+  };
+  participationRate: number;
+};
+
+/*Response data*/
+export type EventAnalysisData = {
+  eventId: number;
+  stats: StatisticsData[]; // 여러 날짜의 데이터가 배열로 들어옴
+};
+
+export type SessionResponseData = {
+  sessionId: string;
+};
+
+
+
+/* API 함수 */
+
+/* 1. 일주일치 통계값 획득: GET /api/v1/analytics/total */
+export const getEventAnalysis = async (
+  eventId: number
+): Promise<BaseResponse<EventAnalysisData>> => {
+  const res = await axiosInstance.get<BaseResponse<EventAnalysisData>>(
+    `/api/v1/analytics/total`,
+    {
+      params: {
+        eventId,
+      },
+    }
+  );
+  return res.data;
+};
+
+/* 2. 입장시간 기록 및 카운트: POST /api/v1/analytics/{eventId}/session */
+export const startSession = async (
+  eventId: number
+): Promise<BaseResponse<SessionResponseData>> => {
+  const res = await axiosInstance.post<BaseResponse<SessionResponseData>>(
+    `/api/v1/analytics/${eventId}/session`
+  );
+  return res.data;
+};
+
+/* 3. 퇴장 시간 기록 및 머문 시간 계산: POST /api/v1/analytics/{eventId}/session/{sessionId} */
+export const endSession = async (
+  eventId: number,
+  sessionId: string
+): Promise<BaseResponse<SessionResponseData>> => {
+  const res = await axiosInstance.post<BaseResponse<SessionResponseData>>(
+    `/api/v1/analytics/${eventId}/session/${sessionId}`
+  );
+  return res.data;
 };

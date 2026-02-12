@@ -1,0 +1,16 @@
+{
+    "rewrites": [
+        {
+            "source": "/api/:path*",
+            "destination": "https://onmoim.site/api/:path*"
+        },
+        {
+            "source": "/images/:path*",
+            "destination": "https://onmoim.site/images/:path*"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
+        }
+    ]
+}
