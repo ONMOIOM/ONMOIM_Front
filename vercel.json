@@ -2,11 +2,11 @@
     "rewrites": [
         {
             "source": "/api/:path*",
-            "destination": "http://168.138.41.19:8080/api/:path*"
+            "destination": "https://onmoim.site/api/:path*"
         },
         {
             "source": "/images/:path*",
-            "destination": "http://168.138.41.19:8080/images/:path*"
+            "destination": "https://onmoim.site/images/:path*"
         },
         {
             "source": "/(.*)",
