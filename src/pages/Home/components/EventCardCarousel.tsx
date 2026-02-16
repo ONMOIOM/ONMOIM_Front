@@ -3,7 +3,7 @@
  * 휠 스크롤 시 좌우로 스크롤되도록 함 (WHEEL_SPEED 동일).
  */
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, forwardRef } from "react";
 import type { ReactNode } from "react";
 
 const WHEEL_SPEED = 2.2;
@@ -48,35 +48,34 @@ const EventCardRoller = ({ children }: EventCardRollerProps) => {
 };
 
 /** 마우스 휠 시 좌우 스크롤 (EventCardRoller와 동일 속도). className으로 레이아웃 지정. */
-export const HorizontalWheelScroll = ({
-  children,
-  className = "",
-}: HorizontalWheelScrollProps) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
+export const HorizontalWheelScroll = forwardRef<HTMLDivElement, HorizontalWheelScrollProps>(
+  ({ children, className = "" }, ref) => {
+    useEffect(() => {
+      const el = typeof ref === 'function' ? null : ref?.current;
+      if (!el) return;
 
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
+      const handleWheel = (e: WheelEvent) => {
+        el.scrollLeft += e.deltaY * WHEEL_SPEED;
+        e.preventDefault();
+      };
 
-    const handleWheel = (e: WheelEvent) => {
-      el.scrollLeft += e.deltaY * WHEEL_SPEED;
-      e.preventDefault();
-    };
+      el.addEventListener("wheel", handleWheel, { passive: false });
+      return () => el.removeEventListener("wheel", handleWheel);
+    }, [ref]);
 
-    el.addEventListener("wheel", handleWheel, { passive: false });
-    return () => el.removeEventListener("wheel", handleWheel);
-  }, []);
+    return (
+      <div
+        ref={ref}
+        className={className}
+        role="region"
+        aria-label="가로 스크롤 목록"
+      >
+        {children}
+      </div>
+    );
+  }
+);
 
-  return (
-    <div
-      ref={scrollRef}
-      className={className}
-      role="region"
-      aria-label="가로 스크롤 목록"
-    >
-      {children}
-    </div>
-  );
-};
+HorizontalWheelScroll.displayName = "HorizontalWheelScroll";
 
 export default EventCardRoller;

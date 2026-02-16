@@ -50,11 +50,17 @@ const EventCard = ({
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const cardRef = useRef<HTMLElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
 
   // imageUrl이 바뀌면 로드 상태 초기화
   useEffect(() => {
     setImageLoaded(false);
     setImageError(false);
+
+    // 이미지가 이미 캐시되어 있는 경우 즉시 로드 완료 처리
+    if (imgRef.current?.complete && imgRef.current?.naturalHeight !== 0) {
+      setImageLoaded(true);
+    }
   }, [imageUrl]);
 
   useEffect(() => {
@@ -96,6 +102,7 @@ const EventCard = ({
       <div className="relative h-[256px] w-[456px] shrink-0 overflow-hidden rounded-t-8 bg-[#E0E0E0]">
         {imageUrl ? (
           <img
+            ref={imgRef}
             src={imageUrl}
             alt=""
             className={`h-full w-full object-cover rounded-t-8 transition-opacity ${imageLoaded && !imageError ? "opacity-100" : "opacity-0"}`}

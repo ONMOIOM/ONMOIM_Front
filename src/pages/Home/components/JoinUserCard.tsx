@@ -25,11 +25,12 @@ const ICON_SIZE_PX = 29;
 const JoinUserCardInner = ({ name, imageUrl, userId }: JoinUserCardProps) => {
   const navigate = useNavigate();
   const [imageError, setImageError] = useState(false);
-  
-  const convertedImageUrl = imageUrl && imageUrl.trim() ? convertImageUrl(imageUrl) : null;
+
+  const convertedImageUrl =
+    imageUrl && imageUrl.trim() ? convertImageUrl(imageUrl) : null;
 
   const handleCardClick = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
     navigate(`/profile/${userId}`);
   };
 

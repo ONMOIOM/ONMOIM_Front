@@ -4,13 +4,21 @@ import arrowRightIcon from "../../../assets/icons/arrow_right.svg";
 const BUTTON_CLASS =
   "flex h-[26px] w-[26px] shrink-0 items-center justify-center transition-opacity hover:opacity-80 hover:cursor-pointer";
 
-const ParticipantSectionArrows = () => {
+export interface ParticipantSectionArrowsProps {
+  /** 왼쪽 화살표 클릭 시 실행될 함수 */
+  onLeftClick?: () => void;
+  /** 오른쪽 화살표 클릭 시 실행될 함수 */
+  onRightClick?: () => void;
+}
+
+const ParticipantSectionArrows = ({ onLeftClick, onRightClick }: ParticipantSectionArrowsProps) => {
   return (
     <span className="mt-1 flex">
       <button
         type="button"
         className={`ml-5 ${BUTTON_CLASS}`}
         aria-label="이전"
+        onClick={onLeftClick}
       >
         <img
           src={arrowLeftIcon}
@@ -24,6 +32,7 @@ const ParticipantSectionArrows = () => {
         type="button"
         className={`ml-[10px] ${BUTTON_CLASS}`}
         aria-label="다음"
+        onClick={onRightClick}
       >
         <img
           src={arrowRightIcon}

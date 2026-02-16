@@ -10,7 +10,7 @@ import {
 type SaveStatus = "idle" | "saving" | "error";
 
 export type DraftData = {
-  title: string;
+  //title: string;
   schedule: { startAt: Date | null; endAt: Date | null };
   location: { streetAddress: string; lotNumber: string | null };
   capacity: number | null;
@@ -25,7 +25,7 @@ export type DraftData = {
 };
 
 const defaultDraft = (): DraftData => ({
-  title: "같은 행사 참여자 보기",
+  //title: "같은 행사 참여자 보기",
   schedule: { startAt: null, endAt: null },
   location: { streetAddress: "", lotNumber: null },
   capacity: null,
@@ -112,6 +112,8 @@ export type EventDraftStore = {
   publishStatus: SaveStatus;
   publishError: string | null;
 
+  _ensureEventId: () => Promise<number>;
+
   reset: () => void;
 };
 
@@ -150,24 +152,31 @@ export const useEventDraftStore = create<EventDraftStore>()(
 
       // 1) 초안 생성
       initDraft: async () => {
-        const { initStatus } = get();
-        if (initStatus === "loading" || initStatus === "ready") return;
+        const { initStatus, eventId } = get();
+        // 이미 ID가 있거나 준비된 상태면 패스
+        if (eventId || initStatus === "ready") return;
 
-        set({ initStatus: "loading", initError: null });
+        // 백엔드 호출 없이 로컬 상태만 준비 완료로 변경
+        set({ initStatus: "ready", initError: null });
+      },
 
+      // (추가됨) 실제 저장 시점에 호출할 ID 보장 함수
+      _ensureEventId: async () => {
+        const { eventId } = get();
+        // 이미 ID가 있으면 그대로 반환
+        if (eventId !== null) return eventId;
+
+        // ID가 없을 때(첫 저장 시) 비로소 백엔드에 생성 요청
         try {
           const res = await createEventDraft();
-          if (!res.success || !res.data) throw new Error(res.message ?? "초안 생성 실패");
+          if (!res.success || !res.data) {
+            throw new Error(res.message ?? "초안 생성 실패");
+          }
 
-          set({
-            eventId: res.data.eventId,
-            initStatus: "ready",
-          });
+          set({ eventId: res.data.eventId });
+          return res.data.eventId;
         } catch (e: any) {
-          set({
-            initStatus: "error",
-            initError: e?.message ?? "초안 생성 오류",
-          });
+          // 생성 실패 시 에러 처리 (필요시 상태 업데이트)
           throw e;
         }
       },
@@ -192,10 +201,12 @@ export const useEventDraftStore = create<EventDraftStore>()(
         set((s) => ({ data: { ...s.data, playlist: v }, playlistError: null })),
 
       setInformation: (v) =>
-        set((s) => ({ data: { ...s.data, information: v }, informationError: null })),
+        set((s) => ({
+          data: { ...s.data, information: v },
+          informationError: null,
+        })),
 
-      setFontType: (v) =>
-        set((s) => ({ data: { ...s.data, fontType: v } })),
+      setFontType: (v) => set((s) => ({ data: { ...s.data, fontType: v } })),
 
       setAllowExternal: (v) =>
         set((s) => ({ data: { ...s.data, allowExternal: v } })),
@@ -205,35 +216,41 @@ export const useEventDraftStore = create<EventDraftStore>()(
 
       // ---- save: title ----
       saveTitle: async () => {
-        const { eventId, data } = get();
-        if (eventId == null) throw new Error("eventId 없음: initDraft 먼저");
+        const { data } = get(); // eventId는 여기서 안 가져옵니다.
 
         set({ titleStatus: "saving", titleError: null });
         try {
           const title = data.title.trim();
           if (!title) throw new Error("제목을 입력해줘.");
 
+          // [핵심] 저장하려고 할 때 ID가 없으면 비로소 만듭니다!
+          const eventId = await get()._ensureEventId();
+
           const res = await patchEvent(eventId, { title });
           if (!res.success) throw new Error(res.message ?? "제목 저장 실패");
 
           set({ titleStatus: "idle" });
         } catch (e: any) {
-          const msg = e?.response?.data?.message ?? e?.message ?? "제목 저장 실패";
+          const msg =
+            e?.response?.data?.message ?? e?.message ?? "제목 저장 실패";
           set({ titleStatus: "error", titleError: msg });
           throw e;
         }
       },
 
-      // ---- save: schedule ----
+      // ---- save: schedule (수정됨) ----
       saveSchedule: async (override) => {
-        const { eventId, data } = get();
-        if (eventId == null) throw new Error("eventId 없음: initDraft 먼저");
+        const { data } = get();
+        // eventId 체크 로직 제거 -> _ensureEventId로 대체
 
         const scheduleToSave = override ?? data.schedule;
         set({ scheduleStatus: "saving", scheduleError: null });
         try {
           const { startAt, endAt } = scheduleToSave;
           if (!startAt || !endAt) throw new Error("일자를 입력해줘.");
+
+          // [핵심] ID 확보
+          const eventId = await get()._ensureEventId();
 
           const res = await patchEvent(eventId, {
             startTime: startAt.toISOString(),
@@ -243,16 +260,16 @@ export const useEventDraftStore = create<EventDraftStore>()(
 
           set({ scheduleStatus: "idle" });
         } catch (e: any) {
-          const msg = e?.response?.data?.message ?? e?.message ?? "일정 저장 실패";
+          const msg =
+            e?.response?.data?.message ?? e?.message ?? "일정 저장 실패";
           set({ scheduleStatus: "error", scheduleError: msg });
           throw e;
         }
       },
 
-      // ---- save: location ----
+      // ---- save: location (수정됨) ----
       saveLocation: async () => {
-        const { eventId, data } = get();
-        if (eventId == null) throw new Error("eventId 없음: initDraft 먼저");
+        const { data } = get();
 
         set({ locationStatus: "saving", locationError: null });
         try {
@@ -260,6 +277,9 @@ export const useEventDraftStore = create<EventDraftStore>()(
           if (!streetAddress) throw new Error("장소를 입력해줘.");
 
           const lotNumberAddress = data.location.lotNumber?.trim() || null;
+
+          // [핵심] ID 확보
+          const eventId = await get()._ensureEventId();
 
           const res = await patchEvent(eventId, {
             streetAddress,
@@ -269,75 +289,90 @@ export const useEventDraftStore = create<EventDraftStore>()(
 
           set({ locationStatus: "idle" });
         } catch (e: any) {
-          const msg = e?.response?.data?.message ?? e?.message ?? "장소 저장 실패";
+          const msg =
+            e?.response?.data?.message ?? e?.message ?? "장소 저장 실패";
           set({ locationStatus: "error", locationError: msg });
           throw e;
         }
       },
 
-      // ---- save: capacity ----
+      // ---- save: capacity (수정됨) ----
       saveCapacity: async () => {
-        const { eventId, data } = get();
-        if (eventId == null) throw new Error("eventId 없음: initDraft 먼저");
+        const { data } = get();
 
         set({ capacityStatus: "saving", capacityError: null });
         try {
+          // [핵심] ID 확보
+          const eventId = await get()._ensureEventId();
+
           const res = await patchEvent(eventId, { capacity: data.capacity });
           if (!res.success) throw new Error(res.message ?? "정원 저장 실패");
 
           set({ capacityStatus: "idle" });
         } catch (e: any) {
-          const msg = e?.response?.data?.message ?? e?.message ?? "정원 저장 실패";
+          const msg =
+            e?.response?.data?.message ?? e?.message ?? "정원 저장 실패";
           set({ capacityStatus: "error", capacityError: msg });
           throw e;
         }
       },
 
-      // ---- save: price ----
+      // ---- save: price (수정됨) ----
       savePrice: async () => {
-        const { eventId, data } = get();
-        if (eventId == null) throw new Error("eventId 없음: initDraft 먼저");
+        const { data } = get();
 
         set({ priceStatus: "saving", priceError: null });
         try {
+          // [핵심] ID 확보
+          const eventId = await get()._ensureEventId();
+
           const res = await patchEvent(eventId, { price: data.price });
           if (!res.success) throw new Error(res.message ?? "가격 저장 실패");
 
           set({ priceStatus: "idle" });
         } catch (e: any) {
-          const msg = e?.response?.data?.message ?? e?.message ?? "가격 저장 실패";
+          const msg =
+            e?.response?.data?.message ?? e?.message ?? "가격 저장 실패";
           set({ priceStatus: "error", priceError: msg });
           throw e;
         }
       },
 
-      // ---- save: playlist ----
+      // ---- save: playlist (수정됨) ----
       savePlaylist: async () => {
-        const { eventId, data } = get();
-        if (eventId == null) throw new Error("eventId 없음: initDraft 먼저");
+        const { data } = get();
 
         set({ playlistStatus: "saving", playlistError: null });
         try {
+          // [핵심] ID 확보
+          const eventId = await get()._ensureEventId();
+
           const res = await patchEvent(eventId, {
             playlist: data.playlist.trim() || undefined,
           });
-          if (!res.success) throw new Error(res.message ?? "플레이리스트 저장 실패");
+          if (!res.success)
+            throw new Error(res.message ?? "플레이리스트 저장 실패");
 
           set({ playlistStatus: "idle" });
         } catch (e: any) {
-          const msg = e?.response?.data?.message ?? e?.message ?? "플레이리스트 저장 실패";
+          const msg =
+            e?.response?.data?.message ??
+            e?.message ??
+            "플레이리스트 저장 실패";
           set({ playlistStatus: "error", playlistError: msg });
           throw e;
         }
       },
 
-      // ---- save: information ----
+      // ---- save: information (수정됨) ----
       saveInformation: async () => {
-        const { eventId, data } = get();
-        if (eventId == null) throw new Error("eventId 없음: initDraft 먼저");
+        const { data } = get();
 
         set({ informationStatus: "saving", informationError: null });
         try {
+          // [핵심] ID 확보
+          const eventId = await get()._ensureEventId();
+
           const res = await patchEvent(eventId, {
             introduction: data.information.trim() || undefined,
           } as any);
@@ -345,19 +380,20 @@ export const useEventDraftStore = create<EventDraftStore>()(
 
           set({ informationStatus: "idle" });
         } catch (e: any) {
-          const msg = e?.response?.data?.message ?? e?.message ?? "소개글 저장 실패";
+          const msg =
+            e?.response?.data?.message ?? e?.message ?? "소개글 저장 실패";
           set({ informationStatus: "error", informationError: msg });
           throw e;
         }
       },
 
-      // ---- publish (저장 클릭 시: eventId만으로 발행, PATCH는 옵션 선택 시 각각 호출됨) ----
+      // ---- publish (수정됨) ----
       publish: async () => {
-        const { eventId } = get();
-
+        // publish는 보통 다 작성 후 누르지만, 혹시 모르니 여기서도 ID 체크
         set({ publishStatus: "saving", publishError: null });
         try {
-          if (eventId == null) throw new Error("초안이 없습니다. 페이지를 새로고침해주세요.");
+          // [핵심] ID 확보 (만약 저장을 한 번도 안 하고 바로 발행 누를 경우 대비)
+          const eventId = await get()._ensureEventId();
 
           const res = await publishEvent(eventId);
           if (!res.success) throw new Error(res.message ?? "발행 실패");
@@ -417,6 +453,6 @@ export const useEventDraftStore = create<EventDraftStore>()(
         // @ts-ignore
         state.data = reviveDates(state.data);
       },
-    }
-  )
+    },
+  ),
 );
