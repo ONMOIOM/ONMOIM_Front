@@ -1,5 +1,5 @@
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
-import { useMemo } from "react";
+import { useMemo, useRef, useCallback, useState } from "react";
 import { useQuery, useQueries, useQueryClient } from "@tanstack/react-query";
 import { HiOutlineSearch } from "react-icons/hi";
 import {
@@ -9,18 +9,18 @@ import {
   getMyHostedEvents,
   getMyParticipatedEvents,
 } from "../../api/eventInfo";
-import type {
-  EventInfoData,
-  EventInfoDetailData,
-} from "../../api/eventInfo";
+import type { EventInfoData, EventInfoDetailData } from "../../api/eventInfo";
 import { profileAPI } from "../../api/profile";
 import useProfile from "../../hooks/useProfile";
 import { formatEventDateTime } from "../../utils/formatDate";
 import AddEventCard from "./components/AddEventCard";
 import EventCard from "./components/EventCard";
-import EventCardRoller, { HorizontalWheelScroll } from "./components/EventCardCarousel.tsx";
+import EventCardRoller, {
+  HorizontalWheelScroll,
+} from "./components/EventCardCarousel.tsx";
 import JoinUserCard from "./components/JoinUserCard";
 import ParticipantSectionArrows from "./components/ParticipantSectionArrows";
+import SearchBar from "./components/SearchBar";
 
 const TAB_ITEMS = [
   { key: "search", label: "행사 목록", withIcon: true },
@@ -33,6 +33,42 @@ const Home = () => {
   const queryClient = useQueryClient();
 
   const { profile } = useProfile();
+
+  // 검색어 state
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // 각 탭의 참여자 스크롤 컨테이너 ref
+  const searchTabScrollRef = useRef<HTMLDivElement>(null);
+  const weekTabScrollRef = useRef<HTMLDivElement>(null);
+  const hostingTabScrollRef = useRef<HTMLDivElement>(null);
+  const joinedTabScrollRef = useRef<HTMLDivElement>(null);
+
+  // 카드 크기(456px) + 간격(54px) = 510px
+  const CARD_SCROLL_AMOUNT = 510;
+
+  // 스크롤 함수 생성
+  const createScrollHandlers = useCallback(
+    (ref: React.RefObject<HTMLDivElement | null>) => {
+      const scrollLeft = () => {
+        if (ref.current) {
+          ref.current.scrollBy({
+            left: -CARD_SCROLL_AMOUNT,
+            behavior: "smooth",
+          });
+        }
+      };
+      const scrollRight = () => {
+        if (ref.current) {
+          ref.current.scrollBy({
+            left: CARD_SCROLL_AMOUNT,
+            behavior: "smooth",
+          });
+        }
+      };
+      return { scrollLeft, scrollRight };
+    },
+    [],
+  );
 
   // 행사 목록 조회 (캐싱) - 마운트 시 stale이면 리패치(발행/수정 후 복귀 시 목록 갱신)
   const { data: events = [] } = useQuery({
@@ -104,19 +140,68 @@ const Home = () => {
   // 행사 목록과 같은 순서: 목록에 있으면 그 createdAt 기준, 없으면 해당 이벤트의 createdAt/startTime
   const sortedHostedEvents = useMemo(() => {
     return [...hostedEvents].sort((a, b) => {
-      const dateA = eventIdToCreatedAt.get(a.eventId) ?? (a.createdAt ? new Date(a.createdAt).getTime() : (a.startTime ? new Date(a.startTime).getTime() : 0));
-      const dateB = eventIdToCreatedAt.get(b.eventId) ?? (b.createdAt ? new Date(b.createdAt).getTime() : (b.startTime ? new Date(b.startTime).getTime() : 0));
+      const dateA =
+        eventIdToCreatedAt.get(a.eventId) ??
+        (a.createdAt
+          ? new Date(a.createdAt).getTime()
+          : a.startTime
+            ? new Date(a.startTime).getTime()
+            : 0);
+      const dateB =
+        eventIdToCreatedAt.get(b.eventId) ??
+        (b.createdAt
+          ? new Date(b.createdAt).getTime()
+          : b.startTime
+            ? new Date(b.startTime).getTime()
+            : 0);
       return dateB - dateA; // 내림차순 (최신이 왼쪽)
     });
   }, [hostedEvents, eventIdToCreatedAt]);
 
   const sortedParticipatedEvents = useMemo(() => {
     return [...participatedEvents].sort((a, b) => {
-      const dateA = eventIdToCreatedAt.get(a.eventId) ?? (a.createdAt ? new Date(a.createdAt).getTime() : (a.startTime ? new Date(a.startTime).getTime() : 0));
-      const dateB = eventIdToCreatedAt.get(b.eventId) ?? (b.createdAt ? new Date(b.createdAt).getTime() : (b.startTime ? new Date(b.startTime).getTime() : 0));
+      const dateA =
+        eventIdToCreatedAt.get(a.eventId) ??
+        (a.createdAt
+          ? new Date(a.createdAt).getTime()
+          : a.startTime
+            ? new Date(a.startTime).getTime()
+            : 0);
+      const dateB =
+        eventIdToCreatedAt.get(b.eventId) ??
+        (b.createdAt
+          ? new Date(b.createdAt).getTime()
+          : b.startTime
+            ? new Date(b.startTime).getTime()
+            : 0);
       return dateB - dateA; // 내림차순 (최신이 왼쪽)
     });
   }, [participatedEvents, eventIdToCreatedAt]);
+
+  // 검색어로 필터링 (제목 기준)
+  const filteredEvents = useMemo(() => {
+    if (!searchTerm.trim()) return sortedEvents;
+    const lowerSearch = searchTerm.toLowerCase();
+    return sortedEvents.filter((e) =>
+      e.title?.toLowerCase().includes(lowerSearch),
+    );
+  }, [sortedEvents, searchTerm]);
+
+  const filteredHostedEvents = useMemo(() => {
+    if (!searchTerm.trim()) return sortedHostedEvents;
+    const lowerSearch = searchTerm.toLowerCase();
+    return sortedHostedEvents.filter((e) =>
+      e.title?.toLowerCase().includes(lowerSearch),
+    );
+  }, [sortedHostedEvents, searchTerm]);
+
+  const filteredParticipatedEvents = useMemo(() => {
+    if (!searchTerm.trim()) return sortedParticipatedEvents;
+    const lowerSearch = searchTerm.toLowerCase();
+    return sortedParticipatedEvents.filter((e) =>
+      e.title?.toLowerCase().includes(lowerSearch),
+    );
+  }, [sortedParticipatedEvents, searchTerm]);
 
   // eventId → 행사 이미지 URL (모든 탭에서 카드 썸네일 공통 사용)
   const eventIdToImageUrl = useMemo(() => {
@@ -198,7 +283,10 @@ const Home = () => {
     if (!profile?.id || allEventIds.length === 0) return [];
 
     const myId = profile.id;
-    const map = new Map<number, { userId: string; name: string; profileImageUrl?: string }>();
+    const map = new Map<
+      number,
+      { userId: string; name: string; profileImageUrl?: string }
+    >();
 
     eventParticipationQueries.forEach((query) => {
       if (!query.data) return;
@@ -217,7 +305,10 @@ const Home = () => {
       const uid = query.data.id;
       const existing = map.get(uid);
       if (existing) {
-        map.set(uid, { ...existing, profileImageUrl: query.data.profileImageUrl });
+        map.set(uid, {
+          ...existing,
+          profileImageUrl: query.data.profileImageUrl,
+        });
       }
     });
 
@@ -249,17 +340,27 @@ const Home = () => {
         queryClient.invalidateQueries({ queryKey: ["coParticipants"] });
       } else {
         // 백엔드에서 success: false 반환 시
-        const errorMsg = (res as any).data || res.message || "행사 삭제에 실패했습니다.";
+        const errorMsg =
+          (res as any).data || res.message || "행사 삭제에 실패했습니다.";
         alert(`행사 삭제 실패: ${errorMsg}`);
       }
     } catch (err: any) {
       console.warn("[Home] 행사 삭제 실패:", err);
       // 에러 응답에서 메시지 추출
-      const errorMessage = err?.response?.data?.data || err?.response?.data?.message || err?.message || "행사 삭제 중 오류가 발생했습니다.";
-      
+      const errorMessage =
+        err?.response?.data?.data ||
+        err?.response?.data?.message ||
+        err?.message ||
+        "행사 삭제 중 오류가 발생했습니다.";
+
       // 외래 키 제약 조건 위반 에러인 경우 명확한 메시지 표시
-      if (errorMessage.includes("constraint") || errorMessage.includes("foreign key")) {
-        alert("이 행사는 참여자나 댓글이 있어서 삭제할 수 없습니다.\n백엔드에서 관련 데이터를 먼저 삭제해야 합니다.");
+      if (
+        errorMessage.includes("constraint") ||
+        errorMessage.includes("foreign key")
+      ) {
+        alert(
+          "이 행사는 참여자나 댓글이 있어서 삭제할 수 없습니다.\n백엔드에서 관련 데이터를 먼저 삭제해야 합니다.",
+        );
       } else {
         alert(`행사 삭제 실패: ${errorMessage}`);
       }
@@ -275,47 +376,55 @@ const Home = () => {
       </h1>
 
       {/* 탭 메뉴 바 - Figma: X 97, Y 338, 874×100, 배경 흰색 */}
-      <div className="-ml-[10px] mt-8 w-[874px]">
+      <div className="-ml-[10px] mt-8 w-[1200px]">
         <TabGroup>
-          <TabList
-            className="flex h-[100px] w-full items-center gap-0 bg-white"
-            aria-label="이벤트 탭 메뉴"
-          >
-            {TAB_ITEMS.map((item) => (
-              <Tab
-                key={item.key}
-                className="relative flex flex-1 items-center justify-center gap-2 border-0 bg-transparent px-4 py-3 text-h4 font-medium text-gray-600 outline-none ring-0 data-selected:text-red-500 data-[hover]:opacity-80 data-[focus]:outline-none data-[focus]:ring-2 data-[focus]:ring-red-500/20 data-[focus]:ring-offset-2 data-[focus]:ring-offset-white"
-              >
-                {({ selected }) => (
-                  <>
-                    {item.withIcon && (
-                      <HiOutlineSearch
-                        className="size-5 shrink-0"
-                        aria-hidden
-                      />
-                    )}
-                    <span>{item.label}</span>
-                    {selected && (
-                      <span
-                        className="absolute bottom-0 left-1/2 h-0.5 w-full -translate-x-1/2 bg-red-500"
-                        aria-hidden
-                      />
-                    )}
-                  </>
-                )}
-              </Tab>
-            ))}
-          </TabList>
+          <div className="flex items-center gap-[20px]">
+            <TabList
+              className="flex h-[100px] items-center gap-0 bg-white flex-nowrap shrink-0"
+              aria-label="이벤트 탭 메뉴"
+            >
+              {TAB_ITEMS.map((item) => (
+                <Tab
+                  key={item.key}
+                  className="whitespace-nowrap relative flex flex-1 items-center justify-center gap-2 border-0 bg-transparent px-4 py-3 text-h4 font-medium text-gray-600 outline-none ring-0 data-selected:text-red-500 data-[hover]:opacity-80 data-[focus]:outline-none data-[focus]:ring-2 data-[focus]:ring-red-500/20 data-[focus]:ring-offset-2 data-[focus]:ring-offset-white"
+                >
+                  {({ selected }) => (
+                    <>
+                      {item.withIcon && (
+                        <HiOutlineSearch
+                          className="size-5 shrink-0"
+                          aria-hidden
+                        />
+                      )}
+                      <span>{item.label}</span>
+                      {selected && (
+                        <span
+                          className="absolute bottom-0 left-1/2 h-0.5 w-full -translate-x-1/2 bg-red-500"
+                          aria-hidden
+                        />
+                      )}
+                    </>
+                  )}
+                </Tab>
+              ))}
+            </TabList>
+            <SearchBar
+              onSearchChange={setSearchTerm}
+              placeholder="행사 검색..."
+              debounceDelay={500}
+            />
+          </div>
           <TabPanels className="mt-0">
             {TAB_ITEMS.map((item) => (
               <TabPanel key={item.key} className="outline-none">
                 {item.key === "search" ? (
                   <>
                     <EventCardRoller>
-                      {sortedEvents.length > 0
-                        ? sortedEvents.map((event) => {
+                      {filteredEvents.length > 0
+                        ? filteredEvents.map((event) => {
                             const isMyEvent =
-                              myHostedEventIds === null || myHostedEventIds.has(event.eventId);
+                              myHostedEventIds === null ||
+                              myHostedEventIds.has(event.eventId);
                             return (
                               <EventCard
                                 key={event.eventId}
@@ -342,9 +451,19 @@ const Home = () => {
                       <h2 className="text-h6 text-gray-900">
                         같은 행사에 참여한 분들
                       </h2>
-                      <ParticipantSectionArrows />
+                      <ParticipantSectionArrows
+                        onLeftClick={
+                          createScrollHandlers(searchTabScrollRef).scrollLeft
+                        }
+                        onRightClick={
+                          createScrollHandlers(searchTabScrollRef).scrollRight
+                        }
+                      />
                     </div>
-                    <HorizontalWheelScroll className="mt-[42px] mb-[100px] w-[1800px] max-w-[calc(100vw-200px)] flex flex-nowrap gap-x-[54px] overflow-x-auto">
+                    <HorizontalWheelScroll
+                      ref={searchTabScrollRef}
+                      className="mt-[42px] mb-[100px] w-[1800px] max-w-[calc(100vw-200px)] flex flex-nowrap gap-x-[54px] overflow-x-auto"
+                    >
                       {coParticipants.length > 0
                         ? coParticipants.map((p) => (
                             <JoinUserCard
@@ -360,8 +479,8 @@ const Home = () => {
                 ) : item.key === "week" ? (
                   <>
                     <EventCardRoller>
-                      {sortedEvents.length > 0
-                        ? sortedEvents
+                      {filteredEvents.length > 0
+                        ? filteredEvents
                             .filter((event) => {
                               const start =
                                 event.schedule?.startDate ??
@@ -369,13 +488,32 @@ const Home = () => {
                               if (!start) return false;
                               const startDate = new Date(start);
                               const now = new Date();
-                              const rangeStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-                              const rangeEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7, 23, 59, 59, 999);
-                              return startDate >= rangeStart && startDate <= rangeEnd;
+                              const rangeStart = new Date(
+                                now.getFullYear(),
+                                now.getMonth(),
+                                now.getDate(),
+                                0,
+                                0,
+                                0,
+                                0,
+                              );
+                              const rangeEnd = new Date(
+                                now.getFullYear(),
+                                now.getMonth(),
+                                now.getDate() + 7,
+                                23,
+                                59,
+                                59,
+                                999,
+                              );
+                              return (
+                                startDate >= rangeStart && startDate <= rangeEnd
+                              );
                             })
                             .map((event) => {
                               const isMyEvent =
-                                myHostedEventIds === null || myHostedEventIds.has(event.eventId);
+                                myHostedEventIds === null ||
+                                myHostedEventIds.has(event.eventId);
                               const startForDisplay =
                                 event.schedule?.startDate ??
                                 (event as { startTime?: string }).startTime;
@@ -403,9 +541,19 @@ const Home = () => {
                       <h2 className="text-h6 text-gray-900">
                         같은 행사에 참여한 분들
                       </h2>
-                      <ParticipantSectionArrows />
+                      <ParticipantSectionArrows
+                        onLeftClick={
+                          createScrollHandlers(weekTabScrollRef).scrollLeft
+                        }
+                        onRightClick={
+                          createScrollHandlers(weekTabScrollRef).scrollRight
+                        }
+                      />
                     </div>
-                    <HorizontalWheelScroll className="mt-[42px] w-[1800px] max-w-[calc(100vw-200px)] flex flex-nowrap gap-x-[54px] overflow-x-auto">
+                    <HorizontalWheelScroll
+                      ref={weekTabScrollRef}
+                      className="mt-[42px] w-[1800px] max-w-[calc(100vw-200px)] flex flex-nowrap gap-x-[54px] overflow-x-auto"
+                    >
                       {coParticipants.length > 0
                         ? coParticipants.map((p) => (
                             <JoinUserCard
@@ -421,8 +569,8 @@ const Home = () => {
                 ) : item.key === "hosting" ? (
                   <>
                     <EventCardRoller>
-                      {sortedHostedEvents.length > 0
-                        ? sortedHostedEvents.map((event) => (
+                      {filteredHostedEvents.length > 0
+                        ? filteredHostedEvents.map((event) => (
                             <EventCard
                               key={event.eventId}
                               eventId={event.eventId}
@@ -433,7 +581,10 @@ const Home = () => {
                                   : "일시 미정"
                               }
                               hostName={displayName}
-                              imageUrl={eventIdToImageUrl.get(event.eventId) ?? undefined}
+                              imageUrl={
+                                eventIdToImageUrl.get(event.eventId) ??
+                                undefined
+                              }
                               onDelete={handleDeleteEvent}
                               isMyEvent={true}
                             />
@@ -445,9 +596,19 @@ const Home = () => {
                       <h2 className="text-h6 text-gray-900">
                         같은 행사에 참여한 분들
                       </h2>
-                      <ParticipantSectionArrows />
+                      <ParticipantSectionArrows
+                        onLeftClick={
+                          createScrollHandlers(hostingTabScrollRef).scrollLeft
+                        }
+                        onRightClick={
+                          createScrollHandlers(hostingTabScrollRef).scrollRight
+                        }
+                      />
                     </div>
-                    <HorizontalWheelScroll className="mt-[42px] mb-[100px] w-[1800px] max-w-[calc(100vw-200px)] flex flex-nowrap gap-x-[54px] overflow-x-auto">
+                    <HorizontalWheelScroll
+                      ref={hostingTabScrollRef}
+                      className="mt-[42px] mb-[100px] w-[1800px] max-w-[calc(100vw-200px)] flex flex-nowrap gap-x-[54px] overflow-x-auto"
+                    >
                       {coParticipants.length > 0
                         ? coParticipants.map((p) => (
                             <JoinUserCard
@@ -463,8 +624,8 @@ const Home = () => {
                 ) : item.key === "joined" ? (
                   <>
                     <EventCardRoller>
-                      {sortedParticipatedEvents.length > 0
-                        ? sortedParticipatedEvents.map((event) => (
+                      {filteredParticipatedEvents.length > 0
+                        ? filteredParticipatedEvents.map((event) => (
                             <EventCard
                               key={event.eventId}
                               eventId={event.eventId}
@@ -475,7 +636,10 @@ const Home = () => {
                                   : "일시 미정"
                               }
                               hostName="호스트"
-                              imageUrl={eventIdToImageUrl.get(event.eventId) ?? undefined}
+                              imageUrl={
+                                eventIdToImageUrl.get(event.eventId) ??
+                                undefined
+                              }
                               onDelete={handleDeleteEvent}
                               isMyEvent={false}
                             />
@@ -487,9 +651,19 @@ const Home = () => {
                       <h2 className="text-h6 text-gray-900">
                         같은 행사에 참여한 분들
                       </h2>
-                      <ParticipantSectionArrows />
+                      <ParticipantSectionArrows
+                        onLeftClick={
+                          createScrollHandlers(joinedTabScrollRef).scrollLeft
+                        }
+                        onRightClick={
+                          createScrollHandlers(joinedTabScrollRef).scrollRight
+                        }
+                      />
                     </div>
-                    <HorizontalWheelScroll className="mt-[42px] mb-[100px] w-[1800px] max-w-[calc(100vw-200px)] flex flex-nowrap gap-x-[54px] overflow-x-auto">
+                    <HorizontalWheelScroll
+                      ref={joinedTabScrollRef}
+                      className="mt-[42px] mb-[100px] w-[1800px] max-w-[calc(100vw-200px)] flex flex-nowrap gap-x-[54px] overflow-x-auto"
+                    >
                       {coParticipants.length > 0
                         ? coParticipants.map((p) => (
                             <JoinUserCard
