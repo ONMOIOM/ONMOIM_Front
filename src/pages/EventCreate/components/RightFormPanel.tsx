@@ -16,7 +16,7 @@ type Props = {
 export const RightFormPanel = ({mode}: Props) => {
   const coverImageUrl = useEventDraftStore((s) => s.data.coverImageUrl);
   const setCoverImageUrl = useEventDraftStore((s) => s.setCoverImageUrl);
-  const eventId = useEventDraftStore((s) => s.eventId);
+  const ensureEventId = useEventDraftStore((s) => s._ensureEventId);
   const [isUploading, setIsUploading] = useState(false);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
@@ -37,16 +37,12 @@ export const RightFormPanel = ({mode}: Props) => {
       return;
     }
 
-    // eventId가 없으면 업로드 불가
-    if (!eventId) {
-      alert("행사 초안이 생성되지 않았습니다. 잠시 후 다시 시도해주세요.");
-      e.target.value = "";
-      return;
-    }
-
     setIsUploading(true);
 
     try {
+      // eventId가 없으면 초안 자동 생성
+      const eventId = await ensureEventId();
+
       // 이미지 압축
       const compressed = await compressImage(file, 1920, 0.85);
       const blob = compressed as Blob;
